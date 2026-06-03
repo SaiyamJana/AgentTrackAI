@@ -1,3 +1,7 @@
+Push the branch locally : 
+git push -u origin Daily-Update (branch will attach to remote github)
+# After that : (git push)
+
 Test the branch : 
 git fetch origin
 git checkout Daily-Update
