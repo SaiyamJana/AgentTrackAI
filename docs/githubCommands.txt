@@ -14,6 +14,10 @@ git pull origin main
 git merge Daily-Update
 git push origin main
 
+Already merged branch
+git branch -d feature-auth
+git push origin --delete feature-auth
+
 Discard the branch(push) : 
 Remote github : git push origin --delete Daily-Update
 Local branch : 
