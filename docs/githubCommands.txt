@@ -1,0 +1,25 @@
+Push the branch locally : 
+git push -u origin Daily-Update (branch will attach to remote github)
+# After that : (git push)
+
+Test the branch : 
+git fetch origin
+git checkout Daily-Update
+git pull origin Daily-Update
+#test it
+
+Merge the branch : 
+git checkout main
+git pull origin main
+git merge Daily-Update
+git push origin main
+
+Discard the branch(push) : 
+Remote github : git push origin --delete Daily-Update
+Local branch : 
+git checkout main
+git branch -d Daily-Update
+
+Delete the branch(push) after merge : 
+git revert <merge_commit_hash>
+git push origin main
