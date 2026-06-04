@@ -27,3 +27,14 @@ git branch -d Daily-Update
 Delete the branch(push) after merge : 
 git revert <merge_commit_hash>
 git push origin main
+
+
+Both should be performed before starting editing : 
+
+If want to update the code from main branch
+git checkout main
+git pull origin main
+
+Want to update their respective branch
+git checkout <branch name>
+git merge main
