@@ -28,6 +28,8 @@ export const registerUser = async (req, res) => {
             designation
         });
 
+        user.password = undefined;
+
         return res.status(201).json({
             success: true,
             message: "User registered successfully",
@@ -44,7 +46,6 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
     try {
-
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });
@@ -55,8 +56,7 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        const isPasswordValid =
-            await user.isPasswordCorrect(password);
+        const isPasswordValid = await user.isPasswordCorrect(password);
 
         if (!isPasswordValid) {
             return res.status(401).json({
@@ -64,14 +64,14 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        const accessToken =
-            user.generateAccessToken();
-
-        const refreshToken =
-            user.generateRefreshToken();
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
 
         user.refreshToken = refreshToken;
         await user.save({ validateBeforeSave: false });
+
+        user.password = undefined;
+        user.refreshToken = undefined;
 
         return res.status(200).json({
             success: true,
