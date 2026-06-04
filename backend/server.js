@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
     res.send("Server Running");
 });
 
-app.use("/api/users", userRouter);
+app.use("/api/v1/users", userRouter);
 
 const PORT = process.env.PORT || 5000;
 
