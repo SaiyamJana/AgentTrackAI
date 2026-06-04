@@ -1,15 +1,14 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+    </Routes>
   );
 }
 

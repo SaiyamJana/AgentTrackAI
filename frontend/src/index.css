@@ -1,6 +1,39 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  background: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #1e3a8a 50%,
+    #4338ca 100%
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.theme-title {
+  background: linear-gradient(
+    90deg,
+    #2563eb,
+    #4f46e5
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
