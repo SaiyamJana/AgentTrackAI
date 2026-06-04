@@ -1,13 +1,13 @@
+import { useState } from "react";
+import Login from "./Login";
+import SignUp from "./SignUp";
 
-import './App.css'
+export default function App() {
+  const [page, setPage] = useState("login");
 
-function App() {
-    return (
-        <div className="StartPage">
-            <h1 className="text-4xl font-bold mb-4">Welcome to the Start Page</h1>
-            <p className="text-lg">This is a simple React application.</p>
-        </div>
-    )
+  return page === "login" ? (
+    <Login onSwitch={() => setPage("signup")} />
+  ) : (
+    <SignUp onSwitch={() => setPage("login")} />
+  );
 }
-
-export default App
