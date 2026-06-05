@@ -34,3 +34,7 @@ Cloned the project repository to local system.
 
 # DAY3 : (4/6/26)
 # Member 1 : (2023CSB037)
+1) Added methods for access and refresh tokens 
+2) Tried to debug backend for authentication
+3) Added Error and Response js files for faster coding 
+4) Added async handler function as helper functions for reuses of async functions
