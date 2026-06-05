@@ -6,7 +6,7 @@ import { AdminGuard, ManagerGuard, EmployeeGuard } from "./components/auth/Prote
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 
-// Placeholder dashboard components — replace with real pages
+// Dashboards
 const PlaceholderPage = ({ title }) => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
     <div className="text-center">
@@ -16,16 +16,19 @@ const PlaceholderPage = ({ title }) => (
   </div>
 );
 
-// Root redirect — if logged in, go to role dashboard; else go to login
+// Redirect based on role
 const RootRedirect = () => {
   const { user, loading } = useAuth();
+
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
+
   const dashboards = {
     admin: "/admin/dashboard",
     manager: "/manager/dashboard",
     employee: "/employee/dashboard",
   };
+
   return <Navigate to={dashboards[user.role] || "/login"} replace />;
 };
 
@@ -37,7 +40,7 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* Admin routes */}
+      {/* Admin */}
       <Route
         path="/admin/dashboard"
         element={<AdminGuard><PlaceholderPage title="Admin Dashboard" /></AdminGuard>}
@@ -46,12 +49,8 @@ function AppRoutes() {
         path="/admin/employees"
         element={<AdminGuard><PlaceholderPage title="Employee Management" /></AdminGuard>}
       />
-      <Route
-        path="/admin/projects"
-        element={<ManagerGuard><PlaceholderPage title="Project Management" /></ManagerGuard>}
-      />
 
-      {/* Manager routes */}
+      {/* Manager */}
       <Route
         path="/manager/dashboard"
         element={<ManagerGuard><PlaceholderPage title="Manager Dashboard" /></ManagerGuard>}
@@ -60,78 +59,25 @@ function AppRoutes() {
         path="/manager/tasks"
         element={<ManagerGuard><PlaceholderPage title="Task Management" /></ManagerGuard>}
       />
-      <Route
-        path="/manager/reports"
-        element={<ManagerGuard><PlaceholderPage title="Reports" /></ManagerGuard>}
-      />
-      <Route
-        path="/manager/risks"
-        element={<ManagerGuard><PlaceholderPage title="Risk Alerts" /></ManagerGuard>}
-      />
-      <Route
-        path="/manager/workload"
-        element={<ManagerGuard><PlaceholderPage title="Workload Analysis" /></ManagerGuard>}
-      />
-      <Route
-        path="/manager/chatbot"
-        element={<ManagerGuard><PlaceholderPage title="Manager Insight Chatbot" /></ManagerGuard>}
-      />
 
-      {/* Employee routes */}
+      {/* Employee */}
       <Route
         path="/employee/dashboard"
         element={<EmployeeGuard><PlaceholderPage title="Employee Dashboard" /></EmployeeGuard>}
       />
 
-      {/* Analytics */}
-      <Route
-        path="/analytics"
-        element={<ManagerGuard><PlaceholderPage title="Analytics Dashboard" /></ManagerGuard>}
-      />
-
-      {/* Fallback */}
+      {/* fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-// Auth Pages
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-
-// Dashboard Pages
-import EmployeeDashboard from "./pages/EmployeeDashboard";
-import ManagerDashboard from "./pages/ManagerDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-
-        {/* Authentication Routes */}
-        <Route path="/" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-
-        {/* Dashboard Routes */}
-        <Route
-          path="/employee"
-          element={<EmployeeDashboard />}
-        />
-
-        <Route
-          path="/manager"
-          element={<ManagerDashboard />}
-        />
-
-        <Route
-          path="/admin"
-          element={<AdminDashboard />}
-        />
-
-      </Routes>
-    </BrowserRouter>
-  );
 }
 
-export default App
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
