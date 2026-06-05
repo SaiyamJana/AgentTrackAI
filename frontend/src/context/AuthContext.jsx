@@ -1,10 +1,10 @@
 import { createContext, useContext, useState } from "react";
-import { saveToken, clearToken, getToken } from "../utils/token";
+import { saveToken, clearToken, getToken } from "../utils/auth";
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => getToken());
+  const [token, setToken] = useState(getToken());
 
   const login = (newToken) => {
     saveToken(newToken);
@@ -17,14 +17,10 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, isAuthenticated: !!token, login, logout }}>
+    <AuthContext.Provider value={{ token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
-  return ctx;
-}
+export const useAuth = () => useContext(AuthContext);
