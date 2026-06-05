@@ -38,3 +38,7 @@ git pull origin main
 Want to update their respective branch
 git checkout <branch name>
 git merge main
+
+If bymistake , you have started editing in main branch , immediately switch to a new branch and continue editing 
+command : 
+git switch -c <new_branch>

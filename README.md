@@ -34,3 +34,16 @@ Cloned the project repository to local system.
 
 # DAY3 : (4/6/26)
 # Member 1 : (2023CSB037)
+1) Added methods for access and refresh tokens 
+2) Tried to debug backend for authentication
+3) Added Error and Response js files for faster coding 
+4) Added async handler function as helper functions for reuses of async functions
+
+# Member 2 : (2023CSB115)
+- Configured local development environment and cloned repository
+- Set up MongoDB Atlas cluster and database connectivity
+- Implemented User schema with bcrypt password hashing
+- Added JWT Access Token and Refresh Token generation
+- Built Register and Login authentication APIs
+- Tested APIs using Postman
+- Pushed changes to authentication2 branch
