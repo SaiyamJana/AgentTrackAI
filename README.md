@@ -50,5 +50,4 @@ Cloned the project repository to local system.
   -Created Login page UI using React and Tailwind
   -Created Signup page UI using React and Tailwind
   -Organized frontend code structure with reusable components
-- Tested APIs using Postman
-- Pushed changes to authentication2 branch
+- Pushed changes to authentication3 branch
