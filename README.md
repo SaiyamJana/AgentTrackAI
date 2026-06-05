@@ -45,5 +45,9 @@ Cloned the project repository to local system.
 - Implemented User schema with bcrypt password hashing
 - Added JWT Access Token and Refresh Token generation
 - Built Register and Login authentication APIs
-- Tested APIs using Postman
-- Pushed changes to authentication2 branch
+
+  # Member 3 :(2023CSB030)
+  -Created Login page UI using React and Tailwind
+  -Created Signup page UI using React and Tailwind
+  -Organized frontend code structure with reusable components
+- Pushed changes to authentication3 branch
