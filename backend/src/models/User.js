@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -29,6 +30,9 @@ const userSchema = new mongoose.Schema(
     designation: {
       type: String,
     },
+    refreshToken: {
+    type: String,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -39,13 +43,12 @@ const userSchema = new mongoose.Schema(
   }
 );
 // Hash password before saving
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
   this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
 
 // Compare entered password with hashed password
