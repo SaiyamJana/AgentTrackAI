@@ -138,7 +138,7 @@ export default function RegisterPage() {
     try {
       const { confirmPassword, ...payload } = form;
       const data = await authAPI.register(payload);
-      const decoded = login(data.token);
+      const decoded = login(data.accessToken);
       navigate(getRoleDashboard(decoded.role));
     } catch (err) {
       setApiError(err.message);
