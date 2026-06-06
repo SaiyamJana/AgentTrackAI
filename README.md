@@ -61,3 +61,10 @@ Cloned the project repository to local system.
 - Manager Dashbaord
 - Admin Dashboard
 4) Debug Register frontend page with database connection
+
+# Member 2 : (2023CSB115)
+* Fixed MongoDB connection issue (data going to 'test' db instead of 'agenttrack_ai')
+* Fixed MONGO_URI parsing in db/index.js to correctly append database name
+* Resolved 'next is not a function' error in User model pre-save hook
+* Successfully tested Register and Login APIs using Postman
+* Synced authentication2 branch with main and created task2 branch
