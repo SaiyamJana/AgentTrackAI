@@ -85,7 +85,7 @@ export const RiskAlertWidget = ({ risks = [] }) => {
 
       {active.length === 0 ? (
         <div className="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-          <Icon name="checkCircle" className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <Icon name="checkCircle" className="w-4 h-4 text-emerald-600 shrink-0" />
           <span className="text-xs text-emerald-700 font-medium">No active risks — all clear!</span>
         </div>
       ) : (
@@ -189,7 +189,7 @@ export const DeadlineTimeline = ({ deadlines = [] }) => {
             const u = urgency(d.date);
             return (
               <div key={i} className="flex items-center gap-3">
-                <div className="text-center flex-shrink-0 w-10">
+                <div className="text-center shrink-0 w-10">
                   <div className="text-base font-black text-slate-700 leading-none">
                     {new Date(d.date).getDate()}
                   </div>
@@ -201,7 +201,7 @@ export const DeadlineTimeline = ({ deadlines = [] }) => {
                   <p className="text-xs font-semibold text-slate-700 truncate">{d.title}</p>
                   <p className="text-[10px] text-slate-400 truncate">{d.project}</p>
                 </div>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${u.cls} flex-shrink-0`}>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${u.cls} shrink-0`}>
                   {u.label}
                 </span>
               </div>
@@ -219,10 +219,10 @@ export const AIReportCard = ({ report }) => {
   if (!report) return null;
 
   return (
-    <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-5 text-white relative overflow-hidden">
+    <div className="bg-linear-to-br from-blue-600 to-blue-800 rounded-2xl p-5 text-white relative overflow-hidden">
       {/* bg decoration */}
-      <div className="absolute top-[-20px] right-[-20px] w-32 h-32 bg-white/10 rounded-full" />
-      <div className="absolute bottom-[-30px] right-[40px] w-20 h-20 bg-white/5 rounded-full" />
+      <div className="absolute -top-5 -right-5 w-32 h-32 bg-white/10 rounded-full" />
+      <div className="absolute -bottom-7.5 right-10 w-20 h-20 bg-white/5 rounded-full" />
 
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-3">
