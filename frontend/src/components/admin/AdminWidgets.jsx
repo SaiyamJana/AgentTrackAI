@@ -26,7 +26,7 @@ export const RecentActivity = ({ logs = [] }) => (
           const cfg = activityIcons[log.action] || activityIcons.TASK_UPDATED;
           return (
             <div key={log._id || i} className="flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-lg ${cfg.color} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+              <div className={`w-8 h-8 rounded-lg ${cfg.color} flex items-center justify-center shrink-0 mt-0.5`}>
                 <Icon name={cfg.icon} className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">

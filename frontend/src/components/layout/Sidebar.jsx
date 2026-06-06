@@ -62,8 +62,8 @@ const Sidebar = ({ open, onClose }) => {
         `}
       >
         {/* Brand */}
-        <div className="h-16 flex items-center gap-3 px-5 border-b border-slate-100 flex-shrink-0">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow shadow-blue-200 flex-shrink-0">
+        <div className="h-16 flex items-center gap-3 px-5 border-b border-slate-100 shrink-0">
+          <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow shadow-blue-200 shrink-0">
             <svg viewBox="0 0 36 36" fill="none" className="w-5 h-5">
               <circle cx="18" cy="10" r="4" fill="white" fillOpacity="0.9"/>
               <circle cx="10" cy="26" r="3" fill="white" fillOpacity="0.6"/>
@@ -82,9 +82,9 @@ const Sidebar = ({ open, onClose }) => {
         </div>
 
         {/* User info */}
-        <div className="px-4 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="px-4 py-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-3 px-2 py-2 bg-slate-50 rounded-xl">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
               {(user?.name || "U").split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase()}
             </div>
             <div className="min-w-0">
@@ -113,7 +113,7 @@ const Sidebar = ({ open, onClose }) => {
             >
               {({ isActive }) => (
                 <>
-                  <Icon name={link.icon} className={`w-4.5 h-4.5 flex-shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-blue-600"}`} />
+                  <Icon name={link.icon} className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-blue-600"}`} />
                   <span className="truncate">{link.label}</span>
                 </>
               )}
@@ -122,12 +122,12 @@ const Sidebar = ({ open, onClose }) => {
         </nav>
 
         {/* Bottom logout */}
-        <div className="px-3 py-4 border-t border-slate-100 flex-shrink-0">
+        <div className="px-3 py-4 border-t border-slate-100 shrink-0">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
           >
-            <Icon name="logout" className="w-4.5 h-4.5 flex-shrink-0" />
+            <Icon name="logout" className="w-4.5 h-4.5 shrink-0" />
             Sign out
           </button>
         </div>
