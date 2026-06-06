@@ -134,7 +134,7 @@ const TaskCard = ({ task, onUpdate }) => {
             {s.label}
           </span>
         </div>
-        <span className={`text-xs font-medium flex items-center gap-1 flex-shrink-0 ${overdue ? "text-red-500" : "text-slate-400"}`}>
+        <span className={`text-xs font-medium flex items-center gap-1 shrink-0 ${overdue ? "text-red-500" : "text-slate-400"}`}>
           <Icon name="clock" className="w-3 h-3" /> {dl.label}
         </span>
       </div>

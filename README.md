@@ -68,3 +68,8 @@ Cloned the project repository to local system.
 * Resolved 'next is not a function' error in User model pre-save hook
 * Successfully tested Register and Login APIs using Postman
 * Synced authentication2 branch with main and created task2 branch
+
+# Day4 : (6/6/26)
+# Member 1 : (2023CSB037)
+
+# Member 2 : (2023CSB115)

@@ -236,7 +236,7 @@ const TaskRow = ({ task, onDelete, onReassign }) => {
         </div>
 
         {/* Progress + actions */}
-        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+        <div className="flex flex-col items-end gap-2 shrink-0">
           <div className="text-xs font-bold text-slate-600">{task.completionPercentage}%</div>
           <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all ${task.status === "completed" ? "bg-emerald-500" : task.completionPercentage > 50 ? "bg-blue-500" : "bg-amber-500"}`}
