@@ -45,7 +45,7 @@ export const MyTasksList = ({ tasks = [], onUpdateProgress }) => {
                 onClick={() => setExpanded(expanded === task._id ? null : task._id)}
               >
                 {/* Status icon */}
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${task.status === "completed" ? "bg-emerald-500 border-emerald-500" : "border-slate-300"}`}>
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${task.status === "completed" ? "bg-emerald-500 border-emerald-500" : "border-slate-300"}`}>
                   {task.status === "completed" && (
                     <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -67,7 +67,7 @@ export const MyTasksList = ({ tasks = [], onUpdateProgress }) => {
                 </div>
 
                 {/* Progress + status */}
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                   <div className="w-20 hidden sm:block">
                     <ProgressBar value={task.completionPercentage} showLabel size="sm" />
                   </div>
@@ -201,7 +201,7 @@ export const UpcomingDeadlines = ({ deadlines = [] }) => {
                 <p className="text-xs font-semibold truncate">{d.title}</p>
                 <p className="text-[10px] opacity-70 truncate">{d.project}</p>
               </div>
-              <span className="text-[10px] font-bold ml-2 flex-shrink-0">{chipLabel(d.date)}</span>
+              <span className="text-[10px] font-bold ml-2 shrink-0">{chipLabel(d.date)}</span>
             </div>
           ))}
         </div>
@@ -224,7 +224,7 @@ export const ProgressSummary = ({ tasks = [] }) => {
 
       {/* Circle indicator (CSS only) */}
       <div className="flex items-center gap-5 mb-4">
-        <div className="relative w-20 h-20 flex-shrink-0">
+        <div className="relative w-20 h-20 shrink-0">
           <svg viewBox="0 0 36 36" className="w-20 h-20 -rotate-90">
             <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" strokeWidth="3" />
             <circle
@@ -240,15 +240,15 @@ export const ProgressSummary = ({ tasks = [] }) => {
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
             <span className="text-xs text-slate-600">{completed} Completed</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0" />
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
             <span className="text-xs text-slate-600">{inProg} In Progress</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-300 flex-shrink-0" />
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-300 shrink-0" />
             <span className="text-xs text-slate-600">{pending} Pending</span>
           </div>
         </div>

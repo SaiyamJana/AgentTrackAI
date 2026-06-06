@@ -39,7 +39,7 @@ const Avatar = ({ name, size = "md", className = "" }) => {
 
   return (
     <div
-      className={`rounded-xl flex items-center justify-center font-bold flex-shrink-0 ${color} ${sizeClass} ${className}`}
+      className={`rounded-xl flex items-center justify-center font-bold shrink-0 ${color} ${sizeClass} ${className}`}
       title={name}
     >
       {initials}
