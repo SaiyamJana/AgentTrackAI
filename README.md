@@ -51,3 +51,13 @@ Cloned the project repository to local system.
   -Created Signup page UI using React and Tailwind
   -Organized frontend code structure with reusable components
 - Pushed changes to authentication3 branch
+
+# Day4 : (5/6/26)
+# Member 1 : (2023CSB037)
+1) Added Auth frontend (Login and Signup)
+2) Debug backend connection for Auth
+3) Added Dashboards : 
+- Employee Dashboard
+- Manager Dashbaord
+- Admin Dashboard
+4) Debug Register frontend page with database connection
