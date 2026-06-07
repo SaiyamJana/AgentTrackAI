@@ -11,32 +11,33 @@ import {
   AIReportCard,
 } from "../../components/manager/ManagerWidgets";
 import { useAuth } from "../../context/AuthContext";
+import { useTaskStats } from "../../hooks/useTasks";
 
-// ── Mock Data (wire up to /api/v1/... in production) ──────────────────────────
+// ── Still-mocked data (replace as each API route is built) ───────────────────
 const mockProjects = [
-  { _id: "1", title: "Q3 Infrastructure Upgrade",  status: "active",    progressPercentage: 68, endDate: "2025-07-15", taskCount: 24, managerId: "m1" },
-  { _id: "2", title: "Customer Portal Redesign",   status: "active",    progressPercentage: 42, endDate: "2025-07-28", taskCount: 18, managerId: "m1" },
-  { _id: "3", title: "Payment Gateway Module",      status: "on-hold",   progressPercentage: 80, endDate: "2025-08-05", taskCount: 11, managerId: "m1" },
-  { _id: "4", title: "Mobile App v2.0",             status: "active",    progressPercentage: 21, endDate: "2025-09-01", taskCount: 33, managerId: "m1" },
+  { _id: "1", title: "Q3 Infrastructure Upgrade",  status: "active",  progressPercentage: 68, endDate: "2025-07-15", taskCount: 24, managerId: "m1" },
+  { _id: "2", title: "Customer Portal Redesign",   status: "active",  progressPercentage: 42, endDate: "2025-07-28", taskCount: 18, managerId: "m1" },
+  { _id: "3", title: "Payment Gateway Module",      status: "on-hold", progressPercentage: 80, endDate: "2025-08-05", taskCount: 11, managerId: "m1" },
+  { _id: "4", title: "Mobile App v2.0",             status: "active",  progressPercentage: 21, endDate: "2025-09-01", taskCount: 33, managerId: "m1" },
 ];
 
 const mockRisks = [
-  { _id: "r1", riskLevel: "high",   reason: "API Integration task is 5 days overdue",          recommendation: "Reassign or break into smaller sub-tasks immediately.",  resolved: false },
-  { _id: "r2", riskLevel: "medium", reason: "Vikram Singh is overloaded with 14 active tasks",  recommendation: "Redistribute 4 tasks to available team members.",          resolved: false },
-  { _id: "r3", riskLevel: "low",    reason: "Mobile App v2.0 deadline may slip by 2 weeks",     recommendation: "Schedule scope review with stakeholders.",               resolved: false },
+  { _id: "r1", riskLevel: "high",   reason: "API Integration task is 5 days overdue",         recommendation: "Reassign or break into smaller sub-tasks immediately.", resolved: false },
+  { _id: "r2", riskLevel: "medium", reason: "Vikram Singh is overloaded with 14 active tasks", recommendation: "Redistribute 4 tasks to available team members.",          resolved: false },
+  { _id: "r3", riskLevel: "low",    reason: "Mobile App v2.0 deadline may slip by 2 weeks",    recommendation: "Schedule scope review with stakeholders.",               resolved: false },
 ];
 
 const mockWorkloads = [
-  { _id: "w1", employeeName: "Priya Sharma",   activeTasksCount: 6, totalAssignedHours: 28, status: "optimal" },
+  { _id: "w1", employeeName: "Priya Sharma",   activeTasksCount: 6,  totalAssignedHours: 28, status: "optimal" },
   { _id: "w2", employeeName: "Vikram Singh",   activeTasksCount: 14, totalAssignedHours: 58, status: "overloaded" },
-  { _id: "w3", employeeName: "Sneha Kulkarni", activeTasksCount: 3, totalAssignedHours: 14, status: "underutilized" },
-  { _id: "w4", employeeName: "Arjun Patel",    activeTasksCount: 8, totalAssignedHours: 36, status: "optimal" },
+  { _id: "w3", employeeName: "Sneha Kulkarni", activeTasksCount: 3,  totalAssignedHours: 14, status: "underutilized" },
+  { _id: "w4", employeeName: "Arjun Patel",    activeTasksCount: 8,  totalAssignedHours: 36, status: "optimal" },
 ];
 
 const mockDeadlines = [
-  { title: "API Rate Limiting",       project: "Q3 Infrastructure",     date: new Date(Date.now() - 86400000) },
-  { title: "Design System Handoff",   project: "Customer Portal",       date: new Date(Date.now() + 86400000) },
-  { title: "Auth Module Tests",       project: "Mobile App v2.0",       date: new Date(Date.now() + 3 * 86400000) },
+  { title: "API Rate Limiting",       project: "Q3 Infrastructure",      date: new Date(Date.now() - 86400000) },
+  { title: "Design System Handoff",   project: "Customer Portal",        date: new Date(Date.now() + 86400000) },
+  { title: "Auth Module Tests",       project: "Mobile App v2.0",        date: new Date(Date.now() + 3 * 86400000) },
   { title: "Payment API Integration", project: "Payment Gateway Module", date: new Date(Date.now() + 8 * 86400000) },
 ];
 
@@ -52,28 +53,31 @@ const CheckIcon  = (p) => <Icon name="checkCircle" {...p} />;
 const ClockIcon  = (p) => <Icon name="clock"       {...p} />;
 const WarnIcon   = (p) => <Icon name="exclamation" {...p} />;
 
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h < 12) return "morning";
+  if (h < 17) return "afternoon";
+  return "evening";
+};
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function ManagerDashboard() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const { user }    = useAuth();
+  const navigate    = useNavigate();
 
-  const [projects]  = useState(mockProjects);
-  const [risks]     = useState(mockRisks);
-  const [workloads] = useState(mockWorkloads);
-  const [deadlines] = useState(mockDeadlines);
-  const [report]    = useState(mockReport);
+  // ── Real task KPI data from API ──────────────────────────────────────────
+  const { stats, loading: statsLoading } = useTaskStats();
 
-  const activeCount    = projects.filter(p => p.status === "active").length;
-  const completedTasks = 28;   // from API
-  const pendingTasks   = 43;
-  const delayedTasks   = 7;
+  const activeCount    = mockProjects.filter(p => p.status === "active").length;
+  const completedTasks = stats?.completed   ?? "—";
+  const pendingTasks   = stats?.pending     ?? "—";
+  const delayedTasks   = stats?.overdue     ?? "—";
 
-  // Quick-link buttons for manager
   const quickLinks = [
-    { label: "Reports",  icon: "report",   to: "/manager/reports",   color: "bg-blue-50 text-blue-700 hover:bg-blue-100" },
-    { label: "Risks",    icon: "shield",   to: "/manager/risks",     color: "bg-red-50 text-red-700 hover:bg-red-100" },
-    { label: "Workload", icon: "workload", to: "/manager/workload",  color: "bg-amber-50 text-amber-700 hover:bg-amber-100" },
-    { label: "Chatbot",  icon: "chat",     to: "/manager/chatbot",   color: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" },
+    { label: "Reports",  icon: "report",   to: "/manager/reports",  color: "bg-blue-50 text-blue-700 hover:bg-blue-100" },
+    { label: "Risks",    icon: "shield",   to: "/manager/risks",    color: "bg-red-50 text-red-700 hover:bg-red-100" },
+    { label: "Workload", icon: "workload", to: "/manager/workload", color: "bg-amber-50 text-amber-700 hover:bg-amber-100" },
+    { label: "Chatbot",  icon: "chat",     to: "/manager/chatbot",  color: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" },
   ];
 
   return (
@@ -85,7 +89,7 @@ export default function ManagerDashboard() {
             Good {getGreeting()}, {user?.name?.split(" ")[0]} 👋
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            {risks.filter(r => !r.resolved).length} active risk{risks.filter(r=>!r.resolved).length !== 1 ? "s" : ""} need your attention today.
+            {mockRisks.filter(r => !r.resolved).length} active risk{mockRisks.filter(r => !r.resolved).length !== 1 ? "s" : ""} need your attention today.
           </p>
         </div>
         <div className="flex gap-2">
@@ -102,40 +106,54 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards — completed/pending/delayed wired to real API */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5 page-enter-delay-1">
-        <StatCard label="Active Projects" value={activeCount}    sub="across your teams" icon={FolderIcon} color="blue"  />
-        <StatCard label="Completed Tasks" value={completedTasks} sub="this sprint"       icon={CheckIcon}  color="green" trend={12} />
-        <StatCard label="Pending Tasks"   value={pendingTasks}   sub="awaiting action"   icon={ClockIcon}  color="amber" />
-        <StatCard label="Delayed Tasks"   value={delayedTasks}   sub="need intervention" icon={WarnIcon}   color="red"   trend={-3} />
+        <StatCard
+          label="Active Projects"
+          value={activeCount}
+          sub="across your teams"
+          icon={FolderIcon}
+          color="blue"
+        />
+        <StatCard
+          label="Completed Tasks"
+          value={statsLoading ? "…" : completedTasks}
+          sub="this sprint"
+          icon={CheckIcon}
+          color="green"
+        />
+        <StatCard
+          label="Pending Tasks"
+          value={statsLoading ? "…" : pendingTasks}
+          sub="awaiting action"
+          icon={ClockIcon}
+          color="amber"
+        />
+        <StatCard
+          label="Overdue Tasks"
+          value={statsLoading ? "…" : delayedTasks}
+          sub="need intervention"
+          icon={WarnIcon}
+          color="red"
+        />
       </div>
 
       {/* AI Report banner */}
       <div className="mb-5 page-enter-delay-1">
-        <AIReportCard report={report} />
+        <AIReportCard report={mockReport} />
       </div>
 
       {/* Main 3-col grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 page-enter-delay-2">
-        {/* Left: project health */}
         <div className="lg:col-span-2 flex flex-col gap-5">
-          <ProjectHealthList projects={projects} />
-          <RiskAlertWidget risks={risks} />
+          <ProjectHealthList projects={mockProjects} />
+          <RiskAlertWidget risks={mockRisks} />
         </div>
-
-        {/* Right column */}
         <div className="flex flex-col gap-5">
-          <TeamOverview workloads={workloads} />
-          <DeadlineTimeline deadlines={deadlines} />
+          <TeamOverview workloads={mockWorkloads} />
+          <DeadlineTimeline deadlines={mockDeadlines} />
         </div>
       </div>
     </DashboardLayout>
   );
 }
-
-const getGreeting = () => {
-  const h = new Date().getHours();
-  if (h < 12) return "morning";
-  if (h < 17) return "afternoon";
-  return "evening";
-};
