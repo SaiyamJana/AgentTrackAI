@@ -10,6 +10,11 @@ const projectSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    companyId: {                                    // ← ADDED
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
+      required: true,
+    },
     managerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -20,16 +25,18 @@ const projectSchema = new mongoose.Schema(
       enum: ["low", "medium", "high"],
       default: "medium",
     },
-    startDate: {
-      type: Date,
-    },
-    endDate: {
-      type: Date,
-    },
     status: {
       type: String,
       enum: ["active", "completed", "on-hold"],
       default: "active",
+    },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
+      type: Date,
+      required: true,
     },
     progressPercentage: {
       type: Number,
@@ -37,10 +44,13 @@ const projectSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+    tags: [{ type: String }],                       // ← ADDED
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
+
+// Indexes
+projectSchema.index({ companyId: 1, status: 1 });
+projectSchema.index({ managerId: 1 });
 
 export const Project = mongoose.model("Project", projectSchema);

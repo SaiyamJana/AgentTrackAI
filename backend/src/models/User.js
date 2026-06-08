@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "manager", "employee"],
       default: "employee",
     },
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
+      default: null,
+    },
     department: {
       type: String,
     },
@@ -31,7 +36,7 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     refreshToken: {
-    type: String,
+      type: String,
     },
     isActive: {
       type: Boolean,
@@ -40,7 +45,7 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 // Hash password before saving
 userSchema.pre("save", async function () {
@@ -56,7 +61,8 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 };
 
 userSchema.methods.generateAccessToken = function () {
-  return jwt.sign({
+  return jwt.sign(
+    {
       _id: this._id,
       email: this.email,
       name: this.name,
@@ -64,11 +70,11 @@ userSchema.methods.generateAccessToken = function () {
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,   // e.g. "1d"
-    }
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY, // e.g. "1d"
+    },
   );
 };
- 
+
 // ─── Generate Refresh Token ───────────────────────────────────────────────────
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
@@ -77,10 +83,9 @@ userSchema.methods.generateRefreshToken = function () {
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,  // e.g. "7d"
-    }
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY, // e.g. "7d"
+    },
   );
 };
-
 
 export const User = mongoose.model("User", userSchema);
