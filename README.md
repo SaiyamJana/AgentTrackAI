@@ -84,3 +84,12 @@ Cloned the project repository to local system.
 - - New and updated schemas
 - - Aggregation pipelines
 - - Overview of API endpoints
+
+# Member 2 : (2023CSB115)
+- Studied the updated PDF covering:
+    - Entity relationships
+    - Database design
+    - Schemas
+    - Aggregation pipelines
+    - API endpoints
+- Started implementing the proposed design by creating schemas, writing backend logic, and testing APIs.
