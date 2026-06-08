@@ -11,6 +11,10 @@ import AdminDashboard    from "./pages/admin/AdminDashboard";
 import ManagerDashboard  from "./pages/manager/ManagerDashboard";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 
+// Task pages
+import TasksPage   from "./pages/manager/TasksPage";
+import MyTasksPage from "./pages/employee/MyTasksPage";
+
 // Placeholder for pages not yet built
 const Placeholder = ({ title }) => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -47,11 +51,12 @@ function AppRoutes() {
       <Route path="/admin/dashboard"  element={<AdminGuard><AdminDashboard /></AdminGuard>} />
       <Route path="/admin/employees"  element={<AdminGuard><Placeholder title="Employee Management" /></AdminGuard>} />
       <Route path="/admin/projects"   element={<ManagerGuard><Placeholder title="Project Management" /></ManagerGuard>} />
+      <Route path="/admin/tasks"      element={<AdminGuard><TasksPage /></AdminGuard>} />
       <Route path="/admin/settings"   element={<AdminGuard><Placeholder title="System Settings" /></AdminGuard>} />
 
       {/* ── Manager ── */}
       <Route path="/manager/dashboard" element={<ManagerGuard><ManagerDashboard /></ManagerGuard>} />
-      <Route path="/manager/tasks"     element={<ManagerGuard><Placeholder title="Task Management" /></ManagerGuard>} />
+      <Route path="/manager/tasks"     element={<ManagerGuard><TasksPage /></ManagerGuard>} />
       <Route path="/manager/reports"   element={<ManagerGuard><Placeholder title="Reports" /></ManagerGuard>} />
       <Route path="/manager/risks"     element={<ManagerGuard><Placeholder title="Risk Alerts" /></ManagerGuard>} />
       <Route path="/manager/workload"  element={<ManagerGuard><Placeholder title="Workload Analysis" /></ManagerGuard>} />
@@ -59,7 +64,7 @@ function AppRoutes() {
 
       {/* ── Employee ── */}
       <Route path="/employee/dashboard"     element={<EmployeeGuard><EmployeeDashboard /></EmployeeGuard>} />
-      <Route path="/employee/tasks"         element={<EmployeeGuard><Placeholder title="My Tasks" /></EmployeeGuard>} />
+      <Route path="/employee/tasks"         element={<EmployeeGuard><MyTasksPage /></EmployeeGuard>} />
       <Route path="/employee/projects"      element={<EmployeeGuard><Placeholder title="My Projects" /></EmployeeGuard>} />
       <Route path="/employee/notifications" element={<EmployeeGuard><Placeholder title="Notifications" /></EmployeeGuard>} />
 
