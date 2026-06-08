@@ -1,4 +1,4 @@
-export const DB_NAME = "";
+export const DB_NAME = "agenttrack-ai";
 
 export const USER_ROLES = {
     ADMIN: "admin",
