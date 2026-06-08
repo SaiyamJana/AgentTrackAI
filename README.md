@@ -69,9 +69,18 @@ Cloned the project repository to local system.
 * Successfully tested Register and Login APIs using Postman
 * Synced authentication2 branch with main and created task2 branch
 
-# Day5 : (6/5/26)
+# Day5 : (6/6/26)
 # Member 1 : (2023CSB037)
 1) Included task related backend ai endpoints
 2) Backend logic for task management for all roles (employee , admin , manager)
 3) Handled and changed frontend code (in branch task2) for handling with created task api endpoints
 4) Discuseed a critical issue with gpt and members about relations between manager , employee and admin
+
+# Day6 : (7/6/26)
+# Member 1 : (2023CSB037)
+1) Created a pdf for completely new design for : 
+- Relations between manager , employee and admin
+- - New database design
+- - New and updated schemas
+- - Aggregation pipelines
+- - Overview of API endpoints
