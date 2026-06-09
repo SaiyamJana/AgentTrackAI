@@ -1,5 +1,6 @@
 import express from "express";
 import {
+    registerCompany,
     createCompany,
     getAllCompanies,
     getCompanyById,
@@ -9,7 +10,11 @@ import { verifyJWT, authorizeRoles } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// All company routes — Admin only
+// ── Public bootstrap route ────────────────────────────────────────────────────
+// PDF Phase 1 Step 1: Admin registers the company (no auth needed yet)
+router.post("/register", registerCompany);
+
+// ── All routes below require Admin JWT ───────────────────────────────────────
 router.use(verifyJWT);
 router.use(authorizeRoles("admin"));
 
