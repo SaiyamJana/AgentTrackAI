@@ -93,3 +93,8 @@ Cloned the project repository to local system.
     - Aggregation pipelines
     - API endpoints
 - Started implementing the proposed design by creating schemas, writing backend logic, and testing APIs.
+
+# Day7 : (8/6/26)
+# Member 1 : (2023CSB037)
+1) Added frontend logic for solution
+2) Studied the workflow and navigation (Solution)
