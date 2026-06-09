@@ -7,33 +7,31 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 /**
  * POST /api/v1/users/register  ← PUBLIC
  *
- * PDF Phase 1 Step 2: "Employee Sign Up"
- * Employees self-register using the Company ID given by Admin.
- * Role is ALWAYS forced to "employee" — Admins and Managers are
- * created by Admin only via POST /api/v1/users  (protected route).
+ * Phase 1 Step 2 — Employee self-registration.
+ * Employee provides the inviteCode (given by Admin), email, password.
+ * Role is hardcoded to "employee" — cannot be spoofed from body.
  */
 export const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, department, designation, companyId } = req.body;
+    const { name, email, password, inviteCode, department, designation } = req.body;
 
-    if (!name || !email || !password || !companyId) {
-        throw new ApiError(400, "name, email, password, companyId are required");
+    if (!name || !email || !password || !inviteCode) {
+        throw new ApiError(400, "name, email, password, inviteCode are required");
     }
 
-    // Validate company exists
-    const company = await Company.findById(companyId);
-    if (!company || !company.isActive) {
-        throw new ApiError(404, "Invalid Company ID. Please ask your Admin for the correct ID.");
+    // Look up company by inviteCode (not raw _id — safer)
+    const company = await Company.findOne({ inviteCode, isActive: true });
+    if (!company) {
+        throw new ApiError(404, "Invalid invite code. Please ask your Admin for the correct code.");
     }
 
     const existing = await User.findOne({ email });
-    if (existing) throw new ApiError(409, "User already exists");
+    if (existing) throw new ApiError(409, "A user with this email already exists");
 
-    // Role is ALWAYS employee for self-registration
     const user = await User.create({
         name, email, password,
-        role: "employee",          // ← enforced, not from body
+        role:      "employee",       // ← always enforced, never from body
         department, designation,
-        companyId,
+        companyId: company._id,
     });
 
     const accessToken  = user.generateAccessToken();
@@ -49,14 +47,25 @@ export const registerUser = asyncHandler(async (req, res) => {
     );
 });
 
-// POST /api/v1/users/login  ← PUBLIC
+/**
+ * POST /api/v1/users/login  ← PUBLIC
+ *
+ * Login requires companyId + email + password as per the workflow spec.
+ * companyId is verified to match the user's stored companyId, ensuring
+ * a user from Company A cannot log in via Company B's login page.
+ */
 export const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, companyId } = req.body;
 
-    if (!email || !password) throw new ApiError(400, "email and password are required");
+    if (!email || !password || !companyId) {
+        throw new ApiError(400, "email, password, and companyId are required");
+    }
 
-    const user = await User.findOne({ email });
-    if (!user) throw new ApiError(404, "User not found");
+    // Find user by email AND companyId together — tenant-scoped login
+    const user = await User.findOne({ email, companyId });
+    if (!user) {
+        throw new ApiError(404, "No account found with this email in the given company");
+    }
 
     const isPasswordValid = await user.isPasswordCorrect(password);
     if (!isPasswordValid) throw new ApiError(401, "Invalid password");
@@ -66,7 +75,6 @@ export const loginUser = asyncHandler(async (req, res) => {
     const accessToken  = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
     user.refreshToken  = refreshToken;
-    user.lastLoginAt   = new Date();
     await user.save({ validateBeforeSave: false });
 
     user.password      = undefined;
@@ -80,8 +88,8 @@ export const loginUser = asyncHandler(async (req, res) => {
 /**
  * POST /api/v1/users  (Admin only)
  *
- * PDF Note: "Admins can also manually create users via the /api/v1/users endpoint"
- * Admin can create managers or employees directly without self-registration.
+ * Admin manually creates a manager or employee for their company.
+ * companyId is inherited from the Admin's token — not from body.
  */
 export const createUser = asyncHandler(async (req, res) => {
     const { name, email, password, role, department, designation } = req.body;
@@ -89,7 +97,6 @@ export const createUser = asyncHandler(async (req, res) => {
     if (!name || !email || !password || !role) {
         throw new ApiError(400, "name, email, password, role are required");
     }
-
     if (!["manager", "employee"].includes(role)) {
         throw new ApiError(400, "Admin can only create users with role 'manager' or 'employee'");
     }
@@ -100,20 +107,16 @@ export const createUser = asyncHandler(async (req, res) => {
     const user = await User.create({
         name, email, password, role,
         department, designation,
-        companyId: req.user.companyId,  // inherit admin's company
+        companyId: req.user.companyId,
     });
 
     user.password = undefined;
-
-    return res.status(201).json(
-        new ApiResponse(201, user, "User created successfully")
-    );
+    return res.status(201).json(new ApiResponse(201, user, "User created successfully"));
 });
 
-// GET /api/v1/users  (Admin)
+// GET /api/v1/users  (Admin — own company only)
 export const getAllUsers = asyncHandler(async (req, res) => {
     const { role } = req.query;
-
     const filter = { companyId: req.user.companyId };
     if (role) filter.role = role;
 
@@ -127,27 +130,20 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
 // GET /api/v1/users/:id  (Admin)
 export const getUserById = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.params.id)
-        .select("-password -refreshToken")
-        .lean();
-
+    const user = await User.findById(req.params.id).select("-password -refreshToken").lean();
     if (!user) throw new ApiError(404, "User not found");
-
     return res.status(200).json(new ApiResponse(200, user, "User fetched successfully"));
 });
 
 // PATCH /api/v1/users/:id  (Admin)
 export const updateUser = asyncHandler(async (req, res) => {
     const { name, department, designation, role, isActive } = req.body;
-
     const user = await User.findByIdAndUpdate(
         req.params.id,
         { name, department, designation, role, isActive },
         { new: true, runValidators: true }
     ).select("-password -refreshToken");
-
     if (!user) throw new ApiError(404, "User not found");
-
     return res.status(200).json(new ApiResponse(200, user, "User updated successfully"));
 });
 
@@ -158,8 +154,6 @@ export const deleteUser = asyncHandler(async (req, res) => {
         { isActive: false },
         { new: true }
     ).select("-password -refreshToken");
-
     if (!user) throw new ApiError(404, "User not found");
-
     return res.status(200).json(new ApiResponse(200, user, "User deactivated successfully"));
 });

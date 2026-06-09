@@ -1,6 +1,7 @@
 import express from "express";
 import {
     registerCompany,
+    regenerateInviteCode,
     createCompany,
     getAllCompanies,
     getCompanyById,
@@ -10,17 +11,18 @@ import { verifyJWT, authorizeRoles } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// ── Public bootstrap route ────────────────────────────────────────────────────
-// PDF Phase 1 Step 1: Admin registers the company (no auth needed yet)
+// ── Public bootstrap ──────────────────────────────────────────────────────────
 router.post("/register", registerCompany);
 
-// ── All routes below require Admin JWT ───────────────────────────────────────
+// ── Admin-only ────────────────────────────────────────────────────────────────
 router.use(verifyJWT);
 router.use(authorizeRoles("admin"));
 
-router.post("/",     createCompany);
-router.get("/",      getAllCompanies);
-router.get("/:id",   getCompanyById);
-router.patch("/:id", updateCompany);
+router.post("/",                           createCompany);
+router.get("/",                            getAllCompanies);
+router.get("/:id",                         getCompanyById);
+router.patch("/:id",                       updateCompany);
+// Admin regenerates the employee invite code
+router.post("/:id/regenerate-invite",      regenerateInviteCode);
 
 export default router;
