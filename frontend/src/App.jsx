@@ -3,8 +3,9 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AdminGuard, ManagerGuard, EmployeeGuard } from "./components/auth/ProtectedRoute";
 
 // Auth pages
-import LoginPage    from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
+import LoginPage           from "./pages/auth/LoginPage";
+import RegisterPage        from "./pages/auth/RegisterPage";
+import RegisterCompanyPage from "./pages/auth/RegisterCompanyPage";
 
 // Dashboards
 import AdminDashboard    from "./pages/admin/AdminDashboard";
@@ -15,7 +16,6 @@ import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 import TasksPage   from "./pages/manager/TasksPage";
 import MyTasksPage from "./pages/employee/MyTasksPage";
 
-// Placeholder for pages not yet built
 const Placeholder = ({ title }) => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
     <div className="text-center bg-white rounded-2xl border border-slate-100 px-10 py-12 shadow-sm">
@@ -30,12 +30,15 @@ const Placeholder = ({ title }) => (
   </div>
 );
 
-// Root redirect based on role
+// Redirect based on role — only "admin" or "employee" exist
 const RootRedirect = () => {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user)   return <Navigate to="/login" replace />;
-  const map = { admin: "/admin/dashboard", manager: "/manager/dashboard", employee: "/employee/dashboard" };
+  const map = {
+    admin:    "/admin/dashboard",
+    employee: "/employee/dashboard",
+  };
   return <Navigate to={map[user.role] || "/login"} replace />;
 };
 
@@ -43,18 +46,19 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public */}
-      <Route path="/"         element={<RootRedirect />} />
-      <Route path="/login"    element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/"                  element={<RootRedirect />} />
+      <Route path="/login"             element={<LoginPage />} />
+      <Route path="/register"          element={<RegisterPage />} />
+      <Route path="/register-company"  element={<RegisterCompanyPage />} />
 
       {/* ── Admin ── */}
       <Route path="/admin/dashboard"  element={<AdminGuard><AdminDashboard /></AdminGuard>} />
       <Route path="/admin/employees"  element={<AdminGuard><Placeholder title="Employee Management" /></AdminGuard>} />
-      <Route path="/admin/projects"   element={<ManagerGuard><Placeholder title="Project Management" /></ManagerGuard>} />
+      <Route path="/admin/projects"   element={<AdminGuard><Placeholder title="Project Management" /></AdminGuard>} />
       <Route path="/admin/tasks"      element={<AdminGuard><TasksPage /></AdminGuard>} />
       <Route path="/admin/settings"   element={<AdminGuard><Placeholder title="System Settings" /></AdminGuard>} />
 
-      {/* ── Manager ── */}
+      {/* ── Manager (employee with projectRole="manager"/"sub-manager") ── */}
       <Route path="/manager/dashboard" element={<ManagerGuard><ManagerDashboard /></ManagerGuard>} />
       <Route path="/manager/tasks"     element={<ManagerGuard><TasksPage /></ManagerGuard>} />
       <Route path="/manager/reports"   element={<ManagerGuard><Placeholder title="Reports" /></ManagerGuard>} />
