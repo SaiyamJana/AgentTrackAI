@@ -108,10 +108,10 @@ Cloned the project repository to local system.
 # Member 1 : (2023CSB037)
 
 # Member 2 : (2023CSB115)
-• Studied the complete AgentTrack AI workflow and project architecture.
-• Analyzed relationships between Admin, Manager, Employee, Projects, and Tasks.
-• Identified that Company ID alone is insufficient for maintaining proper user hierarchy and project ownership.
-• Studied project allocation, employee assignment, task delegation, and reporting workflows.
-• Analyzed manager-submanager-employee interactions and their impact on database design.
-• Worked on redesigning the database structure to support proper Admin → Manager → Employee relationships.
-• Contributed to designing improved relationship mapping for future scalability and workflow management.
+1) Studied the complete AgentTrack AI workflow and project architecture.
+2) Analyzed relationships between Admin, Manager, Employee, Projects, and Tasks.
+3) Identified that Company ID alone is insufficient for maintaining proper user hierarchy and project ownership.
+4) Studied project allocation, employee assignment, task delegation, and reporting workflows.
+5) Analyzed manager-submanager-employee interactions and their impact on database design.
+6) Worked on redesigning the database structure to support proper Admin → Manager → Employee relationships.
+7) Contributed to designing improved relationship mapping for future scalability and workflow management.
