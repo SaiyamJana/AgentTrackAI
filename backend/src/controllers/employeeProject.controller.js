@@ -5,67 +5,95 @@ import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
 
-// POST /api/v1/projects/:id/employees  (Admin only)
-// PDF Phase 2 Step 4: Admin assigns employees to a project under a Manager
+/*
+ * POST /api/v1/projects/:id/employees  (Admin only)
+ *
+ * Admin assigns an employee to a project.
+ * body: { employeeId, projectRole? }
+ *
+ * projectRole options:
+ *   "manager"  — designates this employee as the project manager
+ *                (also updates Project.managerId for fast queries)
+ *   "member"   — regular contributor (default)
+ *
+ * Rule: only ONE manager per project. If role = "manager" and one
+ * already exists, the old manager is demoted to "member" first.
+ */
 export const assignEmployee = asyncHandler(async (req, res) => {
-    const { employeeId } = req.body;
+    const { employeeId, projectRole = "member" } = req.body;
     const projectId = req.params.id;
 
     if (!employeeId) throw new ApiError(400, "employeeId is required");
+    if (!["manager", "member"].includes(projectRole)) {
+        throw new ApiError(400, "Admin can only assign projectRole 'manager' or 'member'");
+    }
 
     const project = await Project.findById(projectId);
     if (!project) throw new ApiError(404, "Project not found");
 
+    // Verify employee belongs to the same company
     const employee = await User.findById(employeeId);
     if (!employee || employee.role !== "employee") {
-        throw new ApiError(404, "Employee not found or user is not an employee");
+        throw new ApiError(404, "Employee not found");
     }
     if (employee.companyId?.toString() !== req.user.companyId?.toString()) {
         throw new ApiError(400, "Employee does not belong to your company");
     }
 
-    const existing = await EmployeeProject.findOne({ projectId, employeeId });
-    if (existing) {
-        if (existing.isActive) throw new ApiError(409, "Employee already assigned to this project");
-        existing.isActive   = true;
-        existing.assignedAt = new Date();
-        existing.assignedBy = req.user._id;
-        existing.projectRole = "member";
-        await existing.save();
-        return res.status(200).json(
-            new ApiResponse(200, existing, "Employee re-assigned to project successfully")
+    // If assigning as manager, demote existing manager first
+    if (projectRole === "manager") {
+        await EmployeeProject.findOneAndUpdate(
+            { projectId, projectRole: "manager", isActive: true },
+            { projectRole: "member" }
         );
     }
 
-    const assignment = await EmployeeProject.create({
-        projectId,
-        employeeId,
-        managerId:   project.managerId,
-        companyId:   req.user.companyId,
-        assignedBy:  req.user._id,
-        projectRole: "member",
-    });
+    // Upsert the assignment
+    let assignment = await EmployeeProject.findOne({ projectId, employeeId });
+    if (assignment) {
+        assignment.isActive    = true;
+        assignment.projectRole = projectRole;
+        assignment.assignedBy  = req.user._id;
+        assignment.assignedAt  = new Date();
+        await assignment.save();
+    } else {
+        assignment = await EmployeeProject.create({
+            projectId,
+            employeeId,
+            companyId:   req.user.companyId,
+            assignedBy:  req.user._id,
+            projectRole,
+        });
+    }
+
+    // Keep Project.managerId in sync when a manager is assigned
+    if (projectRole === "manager") {
+        await Project.findByIdAndUpdate(projectId, { managerId: employeeId });
+    }
 
     return res.status(201).json(
-        new ApiResponse(201, assignment, "Employee assigned to project successfully")
+        new ApiResponse(201, assignment, `Employee assigned as ${projectRole} successfully`)
     );
 });
 
-// GET /api/v1/projects/:id/employees  (Admin / Manager)
+// GET /api/v1/projects/:id/employees  (Admin / project manager)
 export const getProjectEmployees = asyncHandler(async (req, res) => {
     const projectId = req.params.id;
 
     const project = await Project.findById(projectId);
     if (!project) throw new ApiError(404, "Project not found");
 
-    if (req.user.role === "manager" &&
+    // Employees can only see their own project
+    if (req.user.role === "employee" &&
         project.managerId.toString() !== req.user._id.toString()) {
-        throw new ApiError(403, "Access denied");
+        // Allow if they are at least a member
+        const self = await EmployeeProject.findOne({ projectId, employeeId: req.user._id, isActive: true });
+        if (!self) throw new ApiError(403, "Access denied");
     }
 
     const employees = await EmployeeProject.find({ projectId, isActive: true })
-        .populate("employeeId",  "name email department designation")
-        .populate("assignedBy",  "name email")
+        .populate("employeeId", "name email department designation")
+        .populate("assignedBy", "name email")
         .lean();
 
     return res.status(200).json(
@@ -84,30 +112,38 @@ export const removeEmployee = asyncHandler(async (req, res) => {
     );
     if (!assignment) throw new ApiError(404, "Assignment not found");
 
+    // If removed employee was the manager, clear Project.managerId
+    if (assignment.projectRole === "manager") {
+        await Project.findByIdAndUpdate(projectId, { managerId: null });
+    }
+
     return res.status(200).json(
         new ApiResponse(200, assignment, "Employee removed from project successfully")
     );
 });
 
-/**
- * PATCH /api/v1/projects/:id/employees/:eid/role  (Manager only)
+/*
+ * PATCH /api/v1/projects/:id/employees/:eid/role  (Project Manager only)
  *
- * PDF Phase 3 Step 5: Manager delegates a Sub-Manager / Task Lead.
- * Only the project's main manager can elevate one of their assigned employees.
+ * Manager can elevate a member to sub-manager or reset them back to member.
+ * Manager CANNOT elevate someone to "manager" — only Admin can do that.
  */
 export const setEmployeeProjectRole = asyncHandler(async (req, res) => {
     const { id: projectId, eid: employeeId } = req.params;
     const { projectRole } = req.body;
 
-    if (!projectRole || !["member", "sub-manager"].includes(projectRole)) {
-        throw new ApiError(400, "projectRole must be 'member' or 'sub-manager'");
+    if (!projectRole || !["sub-manager", "member"].includes(projectRole)) {
+        throw new ApiError(400, "Manager can only set projectRole to 'sub-manager' or 'member'");
     }
 
-    const project = await Project.findById(projectId);
-    if (!project) throw new ApiError(404, "Project not found");
-
-    // Only the main manager of this project can elevate employees
-    if (project.managerId.toString() !== req.user._id.toString()) {
+    // Verify requester is the project manager
+    const managerAssignment = await EmployeeProject.findOne({
+        projectId,
+        employeeId: req.user._id,
+        projectRole: "manager",
+        isActive: true,
+    });
+    if (!managerAssignment) {
         throw new ApiError(403, "Only the project manager can delegate roles");
     }
 
@@ -122,8 +158,8 @@ export const setEmployeeProjectRole = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(200, assignment,
             projectRole === "sub-manager"
-                ? "Employee elevated to Sub-Manager successfully"
-                : "Employee role reset to Member successfully"
+                ? "Employee elevated to Sub-Manager"
+                : "Employee reset to Member"
         )
     );
 });

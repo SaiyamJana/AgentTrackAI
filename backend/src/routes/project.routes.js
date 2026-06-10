@@ -10,19 +10,18 @@ import {
 import { verifyJWT, authorizeRoles } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
-
 router.use(verifyJWT);
 
-// PDF Phase 3 (Employee): Employee sees their own assigned projects
+// Employee sees all projects they are on (member / sub-manager / manager)
 router.get("/my", authorizeRoles("employee"), getMyProjects);
 
-// Admin creates project; Admin + Manager list projects (each scoped)
-router.post("/",   authorizeRoles("admin"),             createProject);
-router.get("/",    authorizeRoles("admin", "manager"),  getAllProjects);
+// Admin creates; Admin + Employee (acting as manager) can list
+router.post("/", authorizeRoles("admin"),              createProject);
+router.get("/",  authorizeRoles("admin", "employee"),  getAllProjects); // controller filters for manager
 
-// Admin + Manager + Employee can view a single project (each scoped in controller)
-router.get("/:id",          authorizeRoles("admin", "manager", "employee"), getProjectById);
-router.patch("/:id",        authorizeRoles("admin", "manager"),             updateProject);
-router.patch("/:id/manager",authorizeRoles("admin"),                        assignManager);
+// Single project — all roles, scoped in controller
+router.get("/:id",           authorizeRoles("admin", "employee"), getProjectById);
+router.patch("/:id",         authorizeRoles("admin", "employee"), updateProject);   // controller checks manager role
+router.patch("/:id/manager", authorizeRoles("admin"),             assignManager);
 
 export default router;

@@ -5,27 +5,21 @@ import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
 
-/**
- * Helper — returns true if the requester is authorised to manage tasks
- * for the given project.  Authorised = main manager OR sub-manager of
- * this specific project.
- *
- * PDF Phase 3 Step 6: "The main Manager, or the newly appointed
- * Sub-Manager, breaks the project down into atomic work units."
+/*
+ * getProjectRole — returns the caller's projectRole on a given project,
+ * or null if not assigned.  Admin returns "admin".
  */
-async function isAuthorisedTaskManager(project, userId) {
-    if (project.managerId.toString() === userId.toString()) return true;
-
-    const subManager = await EmployeeProject.findOne({
-        projectId:   project._id,
-        employeeId:  userId,
-        projectRole: "sub-manager",
-        isActive:    true,
+async function getProjectRole(userId, userRole, projectId) {
+    if (userRole === "admin") return "admin";
+    const ep = await EmployeeProject.findOne({
+        projectId,
+        employeeId: userId,
+        isActive: true,
     });
-    return !!subManager;
+    return ep ? ep.projectRole : null;
 }
 
-// POST /api/v1/tasks  (Manager or Sub-Manager)
+// POST /api/v1/tasks  (project manager or sub-manager)
 export const createTask = asyncHandler(async (req, res) => {
     const { projectId, title, description, assignedTo, priority, deadline, estimatedHours, tags } = req.body;
 
@@ -33,22 +27,21 @@ export const createTask = asyncHandler(async (req, res) => {
         throw new ApiError(400, "projectId, title, assignedTo, deadline are required");
     }
 
-    const project = await Project.findById(projectId);
-    if (!project) throw new ApiError(404, "Project not found");
-
-    if (!(await isAuthorisedTaskManager(project, req.user._id))) {
+    const callerRole = await getProjectRole(req.user._id, req.user.role, projectId);
+    if (!["admin", "manager", "sub-manager"].includes(callerRole)) {
         throw new ApiError(403, "Only the project manager or a sub-manager can create tasks");
     }
 
-    // Verify assignee is on this project
-    const assignment = await EmployeeProject.findOne({
+    const project = await Project.findById(projectId);
+    if (!project) throw new ApiError(404, "Project not found");
+
+    // Assignee must be on the project
+    const assigneeEP = await EmployeeProject.findOne({
         projectId,
         employeeId: assignedTo,
         isActive: true,
     });
-    if (!assignment) {
-        throw new ApiError(400, "Employee is not assigned to this project");
-    }
+    if (!assigneeEP) throw new ApiError(400, "Assigned employee is not on this project");
 
     if (new Date(deadline) > new Date(project.endDate)) {
         throw new ApiError(400, "Deadline cannot exceed project end date");
@@ -56,24 +49,22 @@ export const createTask = asyncHandler(async (req, res) => {
 
     const task = await Task.create({
         projectId,
-        companyId:      req.user.companyId,
+        companyId:  req.user.companyId,
         title, description, priority, deadline, estimatedHours, tags,
         assignedTo,
-        assignedBy:     req.user._id,   // records whether main manager or sub-manager created it
+        assignedBy: req.user._id,
     });
 
     return res.status(201).json(new ApiResponse(201, task, "Task created successfully"));
 });
 
-// GET /api/v1/tasks?projectId=...  (Manager or Sub-Manager)
+// GET /api/v1/tasks?projectId=...  (manager or sub-manager)
 export const getTasksByProject = asyncHandler(async (req, res) => {
     const { projectId, status, priority } = req.query;
-    if (!projectId) throw new ApiError(400, "projectId query param is required");
+    if (!projectId) throw new ApiError(400, "projectId is required");
 
-    const project = await Project.findById(projectId);
-    if (!project) throw new ApiError(404, "Project not found");
-
-    if (!(await isAuthorisedTaskManager(project, req.user._id))) {
+    const callerRole = await getProjectRole(req.user._id, req.user.role, projectId);
+    if (!["admin", "manager", "sub-manager"].includes(callerRole)) {
         throw new ApiError(403, "Access denied");
     }
 
@@ -90,15 +81,13 @@ export const getTasksByProject = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, tasks, "Tasks fetched successfully"));
 });
 
-// GET /api/v1/tasks/kanban?projectId=...  (Manager or Sub-Manager)
+// GET /api/v1/tasks/kanban?projectId=...  (manager or sub-manager)
 export const getKanbanTasks = asyncHandler(async (req, res) => {
     const { projectId } = req.query;
     if (!projectId) throw new ApiError(400, "projectId is required");
 
-    const project = await Project.findById(projectId);
-    if (!project) throw new ApiError(404, "Project not found");
-
-    if (!(await isAuthorisedTaskManager(project, req.user._id))) {
+    const callerRole = await getProjectRole(req.user._id, req.user.role, projectId);
+    if (!["admin", "manager", "sub-manager"].includes(callerRole)) {
         throw new ApiError(403, "Access denied");
     }
 
@@ -108,76 +97,17 @@ export const getKanbanTasks = asyncHandler(async (req, res) => {
         .lean();
 
     const kanban = {
-        pending:       tasks.filter(t => t.status === "pending"),
-        "in-progress": tasks.filter(t => t.status === "in-progress"),
-        completed:     tasks.filter(t => t.status === "completed"),
+        pending:        tasks.filter(t => t.status === "pending"),
+        "in-progress":  tasks.filter(t => t.status === "in-progress"),
+        completed:      tasks.filter(t => t.status === "completed"),
     };
 
     return res.status(200).json(new ApiResponse(200, kanban, "Kanban tasks fetched successfully"));
 });
 
-// GET /api/v1/tasks/:id  (Manager / Sub-Manager / Employee — scoped)
-export const getTaskById = asyncHandler(async (req, res) => {
-    const task = await Task.findById(req.params.id)
-        .populate("assignedTo", "name email")
-        .populate("assignedBy", "name email")
-        .lean();
-
-    if (!task) throw new ApiError(404, "Task not found");
-
-    if (req.user.role === "employee" &&
-        task.assignedTo._id.toString() !== req.user._id.toString()) {
-        throw new ApiError(403, "Access denied");
-    }
-
-    return res.status(200).json(new ApiResponse(200, task, "Task fetched successfully"));
-});
-
-// PATCH /api/v1/tasks/:id  (Manager or Sub-Manager — metadata update)
-export const updateTask = asyncHandler(async (req, res) => {
-    const { title, description, priority, deadline, estimatedHours, tags } = req.body;
-
-    const task = await Task.findById(req.params.id);
-    if (!task) throw new ApiError(404, "Task not found");
-
-    const project = await Project.findById(task.projectId);
-    if (!(await isAuthorisedTaskManager(project, req.user._id))) {
-        throw new ApiError(403, "Access denied");
-    }
-
-    const updated = await Task.findByIdAndUpdate(
-        req.params.id,
-        { title, description, priority, deadline, estimatedHours, tags },
-        { new: true, runValidators: true }
-    );
-
-    return res.status(200).json(new ApiResponse(200, updated, "Task updated successfully"));
-});
-
-// DELETE /api/v1/tasks/:id  (Manager or Sub-Manager)
-export const deleteTask = asyncHandler(async (req, res) => {
-    const task = await Task.findById(req.params.id);
-    if (!task) throw new ApiError(404, "Task not found");
-
-    const project = await Project.findById(task.projectId);
-    if (!(await isAuthorisedTaskManager(project, req.user._id))) {
-        throw new ApiError(403, "Access denied");
-    }
-
-    await Task.findByIdAndDelete(req.params.id);
-
-    return res.status(200).json(new ApiResponse(200, {}, "Task deleted successfully"));
-});
-
-/**
- * GET /api/v1/tasks/my  (Employee)
- *
- * PDF Phase 3 Step 7: Employee views their assigned tasks.
- * Works for tasks assigned by main Manager OR Sub-Manager.
- */
+// GET /api/v1/tasks/my  (any employee — their own tasks)
 export const getMyTasks = asyncHandler(async (req, res) => {
     const { status } = req.query;
-
     const filter = { assignedTo: req.user._id };
     if (status) filter.status = status;
 
@@ -190,7 +120,59 @@ export const getMyTasks = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, tasks, "My tasks fetched successfully"));
 });
 
-// PATCH /api/v1/tasks/:id/status  (Employee)
+// GET /api/v1/tasks/:id  (manager/sub-manager or the assigned employee)
+export const getTaskById = asyncHandler(async (req, res) => {
+    const task = await Task.findById(req.params.id)
+        .populate("assignedTo", "name email")
+        .populate("assignedBy", "name email")
+        .lean();
+    if (!task) throw new ApiError(404, "Task not found");
+
+    const callerRole = await getProjectRole(req.user._id, req.user.role, task.projectId);
+    const isAssignee = task.assignedTo._id.toString() === req.user._id.toString();
+
+    if (!["admin", "manager", "sub-manager"].includes(callerRole) && !isAssignee) {
+        throw new ApiError(403, "Access denied");
+    }
+
+    return res.status(200).json(new ApiResponse(200, task, "Task fetched successfully"));
+});
+
+// PATCH /api/v1/tasks/:id  (manager or sub-manager — metadata)
+export const updateTask = asyncHandler(async (req, res) => {
+    const task = await Task.findById(req.params.id);
+    if (!task) throw new ApiError(404, "Task not found");
+
+    const callerRole = await getProjectRole(req.user._id, req.user.role, task.projectId);
+    if (!["admin", "manager", "sub-manager"].includes(callerRole)) {
+        throw new ApiError(403, "Access denied");
+    }
+
+    const { title, description, priority, deadline, estimatedHours, tags } = req.body;
+    const updated = await Task.findByIdAndUpdate(
+        req.params.id,
+        { title, description, priority, deadline, estimatedHours, tags },
+        { new: true, runValidators: true }
+    );
+
+    return res.status(200).json(new ApiResponse(200, updated, "Task updated successfully"));
+});
+
+// DELETE /api/v1/tasks/:id  (manager or sub-manager)
+export const deleteTask = asyncHandler(async (req, res) => {
+    const task = await Task.findById(req.params.id);
+    if (!task) throw new ApiError(404, "Task not found");
+
+    const callerRole = await getProjectRole(req.user._id, req.user.role, task.projectId);
+    if (!["admin", "manager", "sub-manager"].includes(callerRole)) {
+        throw new ApiError(403, "Access denied");
+    }
+
+    await Task.findByIdAndDelete(req.params.id);
+    return res.status(200).json(new ApiResponse(200, {}, "Task deleted successfully"));
+});
+
+// PATCH /api/v1/tasks/:id/status  (assigned employee)
 export const updateTaskStatus = asyncHandler(async (req, res) => {
     const { status } = req.body;
     if (!status) throw new ApiError(400, "status is required");
@@ -206,13 +188,12 @@ export const updateTaskStatus = asyncHandler(async (req, res) => {
     if (status === "completed") task.completionPercentage = 100;
     await task.save();
 
-    // Recalculate project progress
-    await recalculateProjectProgress(task.projectId);
+    await recalcProgress(task.projectId);
 
-    return res.status(200).json(new ApiResponse(200, task, "Task status updated successfully"));
+    return res.status(200).json(new ApiResponse(200, task, "Task status updated"));
 });
 
-// PATCH /api/v1/tasks/:id/progress  (Employee)
+// PATCH /api/v1/tasks/:id/progress  (assigned employee)
 export const updateTaskProgress = asyncHandler(async (req, res) => {
     const { actualHours, completionPercentage } = req.body;
 
@@ -223,19 +204,17 @@ export const updateTaskProgress = asyncHandler(async (req, res) => {
         throw new ApiError(403, "You can only update your own tasks");
     }
 
-    if (actualHours           !== undefined) task.actualHours           = actualHours;
-    if (completionPercentage  !== undefined) task.completionPercentage  = completionPercentage;
+    if (actualHours           !== undefined) task.actualHours          = actualHours;
+    if (completionPercentage  !== undefined) task.completionPercentage = completionPercentage;
     await task.save();
 
-    await recalculateProjectProgress(task.projectId);
-
-    return res.status(200).json(new ApiResponse(200, task, "Task progress updated successfully"));
+    await recalcProgress(task.projectId);
+    return res.status(200).json(new ApiResponse(200, task, "Task progress updated"));
 });
 
-// ── Internal helper ───────────────────────────────────────────────────────────
-async function recalculateProjectProgress(projectId) {
+async function recalcProgress(projectId) {
     const tasks = await Task.find({ projectId }).select("completionPercentage").lean();
     if (!tasks.length) return;
-    const avg = tasks.reduce((sum, t) => sum + (t.completionPercentage || 0), 0) / tasks.length;
+    const avg = tasks.reduce((s, t) => s + (t.completionPercentage || 0), 0) / tasks.length;
     await Project.findByIdAndUpdate(projectId, { progressPercentage: Math.round(avg) });
 }

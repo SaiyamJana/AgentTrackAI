@@ -4,25 +4,26 @@ import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
+    name:     { type: String, required: true, trim: true },
+    email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
+
+    /*
+     * ONLY TWO ROLES EXIST AT THE USER LEVEL:
+     *   "admin"    — the company owner; created once via /companies/register
+     *   "employee" — everyone else (regular member, project manager, sub-manager)
+     *
+     * "Manager" and "sub-manager" are PROJECT-LEVEL roles stored in
+     * EmployeeProject.projectRole — NOT here.  A person is a manager
+     * on Project A and a plain member on Project B.
+     */
     role: {
       type: String,
-      enum: ["admin", "manager", "employee"],
+      enum: ["admin", "employee"],
       default: "employee",
     },
-    companyId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
-      default: null,
-    },
+
+    companyId:    { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
     department:   { type: String },
     designation:  { type: String },
     refreshToken: { type: String },
@@ -31,7 +32,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password before saving
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
@@ -41,27 +41,18 @@ userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-// ── companyId included in JWT so token is tenant-scoped ──────────────────────
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
-    {
-      _id:       this._id,
-      email:     this.email,
-      name:      this.name,
-      role:      this.role,
-      companyId: this.companyId,
-    },
+    { _id: this._id, email: this.email, name: this.name, role: this.role, companyId: this.companyId },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
   );
 };
 
 userSchema.methods.generateRefreshToken = function () {
-  return jwt.sign(
-    { _id: this._id },
-    process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
-  );
+  return jwt.sign({ _id: this._id }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+  });
 };
 
 export const User = mongoose.model("User", userSchema);
