@@ -2,6 +2,7 @@ import express from "express";
 import {
     registerUser,
     loginUser,
+    createUser,
     getAllUsers,
     getUserById,
     updateUser,
@@ -19,9 +20,10 @@ router.post("/login",    loginUser);
 router.use(verifyJWT);
 router.use(authorizeRoles("admin"));
 
+router.post("/",      createUser);   // Admin manually creates employee
 router.get("/",       getAllUsers);
 router.get("/:id",    getUserById);
-router.patch("/:id",  updateUser);   // name/dept/designation/isActive only — no role field
+router.patch("/:id",  updateUser);
 router.delete("/:id", deleteUser);
 
 export default router;
