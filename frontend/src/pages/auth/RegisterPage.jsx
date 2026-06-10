@@ -126,10 +126,10 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex bg-slate-50">
-      <div className="w-[45%] flex-shrink-0"><AuthPanel /></div>
+      <div className="w-[45%] shrink-0"><AuthPanel /></div>
 
       <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 xl:px-16 py-12 bg-white relative overflow-y-auto">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-blue-50 rounded-bl-[80px] -z-0" />
+        <div className="absolute top-0 right-0 w-40 h-40 bg-blue-50 rounded-bl-[80px] z-0" />
 
         <div className="relative z-10 w-full max-w-md mx-auto">
           <div className="lg:hidden mb-8"><BrandLogo size="md" /></div>
@@ -167,7 +167,7 @@ export default function RegisterPage() {
           {/* API Error */}
           {apiError && (
             <div className="mb-5 flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl">
-              <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
               {apiError}
@@ -235,7 +235,7 @@ export default function RegisterPage() {
                 autoComplete="new-password"
               />
 
-              <button type="submit" className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 mt-2 rounded-xl font-bold text-sm text-white tracking-wide bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-[0.98] transition-all shadow-lg shadow-blue-200">
+              <button type="submit" className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 mt-2 rounded-xl font-bold text-sm text-white tracking-wide bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-[0.98] transition-all shadow-lg shadow-blue-200">
                 <span>Continue</span>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -287,7 +287,7 @@ export default function RegisterPage() {
                   </svg>
                   Back
                 </button>
-                <button type="submit" disabled={loading} className="flex-[2] flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-[0.98] transition-all shadow-lg shadow-blue-200 disabled:opacity-60 disabled:cursor-not-allowed">
+                <button type="submit" disabled={loading} className="flex-2 flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-[0.98] transition-all shadow-lg shadow-blue-200 disabled:opacity-60 disabled:cursor-not-allowed">
                   {loading ? <><SpinnerIcon /><span>Creating account…</span></> : <><span>Create Account</span><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg></>}
                 </button>
               </div>

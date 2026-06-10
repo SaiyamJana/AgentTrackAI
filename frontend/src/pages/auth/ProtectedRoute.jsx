@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 const LoadingScreen = () => (
   <div className="min-h-screen flex items-center justify-center bg-white">
     <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl flex items-center justify-center animate-pulse">
+      <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-blue-800 rounded-2xl flex items-center justify-center animate-pulse">
         <svg viewBox="0 0 36 36" fill="none" className="w-6 h-6">
           <circle cx="18" cy="10" r="4" fill="white" fillOpacity="0.9" />
           <circle cx="10" cy="26" r="3" fill="white" fillOpacity="0.6" />
