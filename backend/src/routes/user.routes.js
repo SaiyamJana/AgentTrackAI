@@ -2,6 +2,7 @@ import express from "express";
 import {
     registerUser,
     loginUser,
+    createUser,
     getAllUsers,
     getUserById,
     updateUser,
@@ -11,17 +12,18 @@ import { verifyJWT, authorizeRoles } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Public routes
+// Public
 router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/login",    loginUser);
 
-// Admin protected routes
+// Admin only
 router.use(verifyJWT);
 router.use(authorizeRoles("admin"));
 
-router.get("/",        getAllUsers);
-router.get("/:id",     getUserById);
-router.patch("/:id",   updateUser);
-router.delete("/:id",  deleteUser);
+router.post("/",      createUser);   // Admin manually creates employee
+router.get("/",       getAllUsers);
+router.get("/:id",    getUserById);
+router.patch("/:id",  updateUser);
+router.delete("/:id", deleteUser);
 
 export default router;

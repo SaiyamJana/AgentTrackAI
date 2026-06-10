@@ -13,24 +13,21 @@ import {
 import { verifyJWT, authorizeRoles } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
-
 router.use(verifyJWT);
 
-// Employee routes
-router.get("/employee/tasks", authorizeRoles("employee"), getMyTasks);
+// ✅ Specific routes FIRST — before /:id
+router.get("/my",             authorizeRoles("employee"),           getMyTasks);
+router.get("/kanban",         authorizeRoles("admin", "employee"),  getKanbanTasks);
 
-// Manager routes
-router.get("/kanban",  authorizeRoles("manager"), getKanbanTasks);
-router.get("/",        authorizeRoles("manager"), getTasksByProject);
-router.post("/",       authorizeRoles("manager"), createTask);
+// ✅ Collection routes
+router.get("/",               authorizeRoles("admin", "employee"),  getTasksByProject);
+router.post("/",              authorizeRoles("admin", "employee"),  createTask);
 
-// Shared routes (Manager + Employee)
-router.get("/:id",     authorizeRoles("manager", "employee"), getTaskById);
-router.patch("/:id",   authorizeRoles("manager"), updateTask);
-router.delete("/:id",  authorizeRoles("manager"), deleteTask);
-
-// Employee progress routes
-router.patch("/:id/status",   authorizeRoles("employee"), updateTaskStatus);
-router.patch("/:id/progress", authorizeRoles("employee"), updateTaskProgress);
+// ✅ ID routes LAST
+router.get("/:id",            authorizeRoles("admin", "employee"),  getTaskById);
+router.patch("/:id",          authorizeRoles("admin", "employee"),  updateTask);
+router.delete("/:id",         authorizeRoles("admin", "employee"),  deleteTask);
+router.patch("/:id/status",   authorizeRoles("employee"),           updateTaskStatus);
+router.patch("/:id/progress", authorizeRoles("employee"),           updateTaskProgress);
 
 export default router;
