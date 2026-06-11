@@ -1,17 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { AdminGuard, EmployeeGuard, AnyAuthGuard } from "./components/auth/ProtectedRoute";
+import { AdminGuard, EmployeeGuard } from "./components/auth/ProtectedRoute";
 
-import LoginPage         from "./pages/auth/LoginPage";
-import RegisterPage      from "./pages/auth/RegisterPage";
+import LoginPage           from "./pages/auth/LoginPage";
+import RegisterPage        from "./pages/auth/RegisterPage";
 import RegisterCompanyPage from "./pages/auth/RegisterCompanyPage";
-
-import AdminDashboard    from "./pages/admin/AdminDashboard";
-import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
-import MyTasksPage       from "./pages/employee/MyTasksPage";
-import ProjectsPage      from "./pages/employee/ProjectsPage";
-import TasksPage         from "./pages/manager/TasksPage";
-import ManagerDashboard  from "./pages/manager/ManagerDashboard";
+import AdminDashboard      from "./pages/admin/AdminDashboard";
+import AdminProjectsPage   from "./pages/admin/AdminProjectsPage";
+import ManagerDashboard    from "./pages/manager/ManagerDashboard";
+import TasksPage           from "./pages/manager/TasksPage";
+import EmployeeDashboard   from "./pages/employee/EmployeeDashboard";
+import MyTasksPage         from "./pages/employee/MyTasksPage";
+import ProjectsPage        from "./pages/employee/ProjectsPage";
 
 const Placeholder = ({ title }) => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -22,7 +22,7 @@ const Placeholder = ({ title }) => (
         </svg>
       </div>
       <h1 className="text-lg font-bold text-slate-700">{title}</h1>
-      <p className="text-sm text-slate-400 mt-1">This page is under construction.</p>
+      <p className="text-sm text-slate-400 mt-1">Coming soon.</p>
     </div>
   </div>
 );
@@ -38,30 +38,30 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public */}
-      <Route path="/"                   element={<RootRedirect />} />
-      <Route path="/login"              element={<LoginPage />} />
-      <Route path="/register"           element={<RegisterPage />} />
-      <Route path="/register-company"   element={<RegisterCompanyPage />} />
+      <Route path="/"                 element={<RootRedirect />} />
+      <Route path="/login"            element={<LoginPage />} />
+      <Route path="/register"         element={<RegisterPage />} />
+      <Route path="/register-company" element={<RegisterCompanyPage />} />
 
       {/* ── Admin ── */}
-      <Route path="/admin/dashboard"    element={<AdminGuard><AdminDashboard /></AdminGuard>} />
-      <Route path="/admin/employees"    element={<AdminGuard><Placeholder title="Employee Management" /></AdminGuard>} />
-      <Route path="/admin/projects"     element={<AdminGuard><Placeholder title="Project Management" /></AdminGuard>} />
-      <Route path="/admin/settings"     element={<AdminGuard><Placeholder title="System Settings" /></AdminGuard>} />
+      <Route path="/admin/dashboard" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+      <Route path="/admin/projects"  element={<AdminGuard><AdminProjectsPage /></AdminGuard>} />
+      <Route path="/admin/employees" element={<AdminGuard><Placeholder title="Employee Management" /></AdminGuard>} />
+      <Route path="/admin/settings"  element={<AdminGuard><Placeholder title="System Settings" /></AdminGuard>} />
 
-      {/* ── Employee Dashboard (also used by employees who are project managers) ── */}
-      <Route path="/employee/dashboard" element={<EmployeeGuard><EmployeeDashboard /></EmployeeGuard>} />
-      <Route path="/employee/tasks"     element={<EmployeeGuard><MyTasksPage /></EmployeeGuard>} />
-      <Route path="/employee/projects"  element={<EmployeeGuard><ProjectsPage /></EmployeeGuard>} />
+      {/* ── Employee (includes project-managers) ── */}
+      <Route path="/employee/dashboard"     element={<EmployeeGuard><EmployeeDashboard /></EmployeeGuard>} />
+      <Route path="/employee/tasks"         element={<EmployeeGuard><MyTasksPage /></EmployeeGuard>} />
+      <Route path="/employee/projects"      element={<EmployeeGuard><ProjectsPage /></EmployeeGuard>} />
       <Route path="/employee/notifications" element={<EmployeeGuard><Placeholder title="Notifications" /></EmployeeGuard>} />
 
-      {/* ── Manager-style pages — accessible by any employee with projectRole=manager/sub-manager ── */}
-      <Route path="/manager/tasks"      element={<EmployeeGuard><TasksPage /></EmployeeGuard>} />
-      <Route path="/manager/dashboard"  element={<EmployeeGuard><ManagerDashboard /></EmployeeGuard>} />
-      <Route path="/manager/reports"    element={<EmployeeGuard><Placeholder title="Reports" /></EmployeeGuard>} />
-      <Route path="/manager/risks"      element={<EmployeeGuard><Placeholder title="Risk Alerts" /></EmployeeGuard>} />
-      <Route path="/manager/workload"   element={<EmployeeGuard><Placeholder title="Workload Analysis" /></EmployeeGuard>} />
-      <Route path="/manager/chatbot"    element={<EmployeeGuard><Placeholder title="AI Chatbot" /></EmployeeGuard>} />
+      {/* Manager-style pages — employee with projectRole=manager accesses these */}
+      <Route path="/manager/dashboard" element={<EmployeeGuard><ManagerDashboard /></EmployeeGuard>} />
+      <Route path="/manager/tasks"     element={<EmployeeGuard><TasksPage /></EmployeeGuard>} />
+      <Route path="/manager/reports"   element={<EmployeeGuard><Placeholder title="Reports" /></EmployeeGuard>} />
+      <Route path="/manager/risks"     element={<EmployeeGuard><Placeholder title="Risk Alerts" /></EmployeeGuard>} />
+      <Route path="/manager/workload"  element={<EmployeeGuard><Placeholder title="Workload Analysis" /></EmployeeGuard>} />
+      <Route path="/manager/chatbot"   element={<EmployeeGuard><Placeholder title="AI Chatbot" /></EmployeeGuard>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
