@@ -48,24 +48,49 @@ export const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "email, password, and companyId are required");
     }
 
-    const user = await User.findOne({ email, companyId });
-    if (!user) throw new ApiError(404, "No account found with this email in the given company");
+    // companyId from frontend is actually the inviteCode
+    const company = await Company.findOne({
+        inviteCode: companyId,
+        isActive: true,
+    });
+
+    if (!company) {
+        throw new ApiError(404, "Invalid Company ID");
+    }
+
+    const user = await User.findOne({
+        email,
+        companyId: company._id,
+    });
+
+    if (!user) {
+        throw new ApiError(404, "No account found with this email in the given company");
+    }
 
     const isPasswordValid = await user.isPasswordCorrect(password);
-    if (!isPasswordValid) throw new ApiError(401, "Invalid password");
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid password");
+    }
 
-    if (!user.isActive) throw new ApiError(403, "Account is deactivated");
+    if (!user.isActive) {
+        throw new ApiError(403, "Account is deactivated");
+    }
 
-    const accessToken  = user.generateAccessToken();
+    const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
-    user.refreshToken  = refreshToken;
+
+    user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
 
-    user.password     = undefined;
+    user.password = undefined;
     user.refreshToken = undefined;
 
     return res.status(200).json(
-        new ApiResponse(200, { user, accessToken, refreshToken }, "Login successful")
+        new ApiResponse(
+            200,
+            { user, accessToken, refreshToken },
+            "Login successful"
+        )
     );
 });
 

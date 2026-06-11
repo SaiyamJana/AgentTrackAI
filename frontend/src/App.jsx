@@ -1,21 +1,18 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { AdminGuard, ManagerGuard, EmployeeGuard } from "./components/auth/ProtectedRoute";
+import { AdminGuard, EmployeeGuard, AnyAuthGuard } from "./components/auth/ProtectedRoute";
 
-// Auth pages
-import LoginPage    from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
+import LoginPage         from "./pages/auth/LoginPage";
+import RegisterPage      from "./pages/auth/RegisterPage";
+import RegisterCompanyPage from "./pages/auth/RegisterCompanyPage";
 
-// Dashboards
 import AdminDashboard    from "./pages/admin/AdminDashboard";
-import ManagerDashboard  from "./pages/manager/ManagerDashboard";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
+import MyTasksPage       from "./pages/employee/MyTasksPage";
+import ProjectsPage      from "./pages/employee/ProjectsPage";
+import TasksPage         from "./pages/manager/TasksPage";
+import ManagerDashboard  from "./pages/manager/ManagerDashboard";
 
-// Task pages
-import TasksPage   from "./pages/manager/TasksPage";
-import MyTasksPage from "./pages/employee/MyTasksPage";
-
-// Placeholder for pages not yet built
 const Placeholder = ({ title }) => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
     <div className="text-center bg-white rounded-2xl border border-slate-100 px-10 py-12 shadow-sm">
@@ -30,48 +27,42 @@ const Placeholder = ({ title }) => (
   </div>
 );
 
-// Root redirect based on role
 const RootRedirect = () => {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user)   return <Navigate to="/login" replace />;
-  const map = { admin: "/admin/dashboard", manager: "/manager/dashboard", employee: "/employee/dashboard" };
-  return <Navigate to={map[user.role] || "/login"} replace />;
+  return <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/employee/dashboard"} replace />;
 };
 
 function AppRoutes() {
   return (
     <Routes>
       {/* Public */}
-      <Route path="/"         element={<RootRedirect />} />
-      <Route path="/login"    element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/"                   element={<RootRedirect />} />
+      <Route path="/login"              element={<LoginPage />} />
+      <Route path="/register"           element={<RegisterPage />} />
+      <Route path="/register-company"   element={<RegisterCompanyPage />} />
 
       {/* ── Admin ── */}
-      <Route path="/admin/dashboard"  element={<AdminGuard><AdminDashboard /></AdminGuard>} />
-      <Route path="/admin/employees"  element={<AdminGuard><Placeholder title="Employee Management" /></AdminGuard>} />
-      <Route path="/admin/projects"   element={<ManagerGuard><Placeholder title="Project Management" /></ManagerGuard>} />
-      <Route path="/admin/tasks"      element={<AdminGuard><TasksPage /></AdminGuard>} />
-      <Route path="/admin/settings"   element={<AdminGuard><Placeholder title="System Settings" /></AdminGuard>} />
+      <Route path="/admin/dashboard"    element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+      <Route path="/admin/employees"    element={<AdminGuard><Placeholder title="Employee Management" /></AdminGuard>} />
+      <Route path="/admin/projects"     element={<AdminGuard><Placeholder title="Project Management" /></AdminGuard>} />
+      <Route path="/admin/settings"     element={<AdminGuard><Placeholder title="System Settings" /></AdminGuard>} />
 
-      {/* ── Manager ── */}
-      <Route path="/manager/dashboard" element={<ManagerGuard><ManagerDashboard /></ManagerGuard>} />
-      <Route path="/manager/tasks"     element={<ManagerGuard><TasksPage /></ManagerGuard>} />
-      <Route path="/manager/reports"   element={<ManagerGuard><Placeholder title="Reports" /></ManagerGuard>} />
-      <Route path="/manager/risks"     element={<ManagerGuard><Placeholder title="Risk Alerts" /></ManagerGuard>} />
-      <Route path="/manager/workload"  element={<ManagerGuard><Placeholder title="Workload Analysis" /></ManagerGuard>} />
-      <Route path="/manager/chatbot"   element={<ManagerGuard><Placeholder title="AI Chatbot" /></ManagerGuard>} />
-
-      {/* ── Employee ── */}
-      <Route path="/employee/dashboard"     element={<EmployeeGuard><EmployeeDashboard /></EmployeeGuard>} />
-      <Route path="/employee/tasks"         element={<EmployeeGuard><MyTasksPage /></EmployeeGuard>} />
-      <Route path="/employee/projects"      element={<EmployeeGuard><Placeholder title="My Projects" /></EmployeeGuard>} />
+      {/* ── Employee Dashboard (also used by employees who are project managers) ── */}
+      <Route path="/employee/dashboard" element={<EmployeeGuard><EmployeeDashboard /></EmployeeGuard>} />
+      <Route path="/employee/tasks"     element={<EmployeeGuard><MyTasksPage /></EmployeeGuard>} />
+      <Route path="/employee/projects"  element={<EmployeeGuard><ProjectsPage /></EmployeeGuard>} />
       <Route path="/employee/notifications" element={<EmployeeGuard><Placeholder title="Notifications" /></EmployeeGuard>} />
 
-      {/* ── Shared ── */}
-      <Route path="/analytics" element={<ManagerGuard><Placeholder title="Analytics Dashboard" /></ManagerGuard>} />
+      {/* ── Manager-style pages — accessible by any employee with projectRole=manager/sub-manager ── */}
+      <Route path="/manager/tasks"      element={<EmployeeGuard><TasksPage /></EmployeeGuard>} />
+      <Route path="/manager/dashboard"  element={<EmployeeGuard><ManagerDashboard /></EmployeeGuard>} />
+      <Route path="/manager/reports"    element={<EmployeeGuard><Placeholder title="Reports" /></EmployeeGuard>} />
+      <Route path="/manager/risks"      element={<EmployeeGuard><Placeholder title="Risk Alerts" /></EmployeeGuard>} />
+      <Route path="/manager/workload"   element={<EmployeeGuard><Placeholder title="Workload Analysis" /></EmployeeGuard>} />
+      <Route path="/manager/chatbot"    element={<EmployeeGuard><Placeholder title="AI Chatbot" /></EmployeeGuard>} />
 
-      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

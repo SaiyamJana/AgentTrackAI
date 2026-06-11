@@ -4,15 +4,14 @@ import { jwtDecode } from "../utils/jwt";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [user,    setUser]    = useState(null);
+  const [token,   setToken]   = useState(localStorage.getItem("token") || null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        // Check expiry
         if (decoded.exp * 1000 < Date.now()) {
           logout();
         } else {
@@ -35,6 +34,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("companyId");
     setToken(null);
     setUser(null);
   };
