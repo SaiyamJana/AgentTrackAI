@@ -65,7 +65,7 @@ export default function AdminDashboard() {
         <StatCard label="Total Employees" value={loading?"…":employees.length} sub="registered"      icon={UsersIcon}  color="blue"   />
         <StatCard label="Active"          value={loading?"…":active}           sub="currently active" icon={FolderIcon} color="green"  />
         <StatCard label="Inactive"        value={loading?"…":inactive}         sub="deactivated"      icon={TaskIcon}   color="amber"  />
-        <StatCard label="Company ID"      value="—"                            sub="used for login"   icon={KeyIcon}    color="purple" />
+        <StatCard label="Company ID"      value={loading ? "…" : (company?.inviteCode ?? "—")}        sub="used for login"   icon={KeyIcon}    color="purple" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 page-enter-delay-2">
@@ -73,7 +73,7 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center"><Icon name="settings" className="w-5 h-5 text-blue-600"/></div>
-            <div><h3 className="text-sm font-bold text-slate-700">Employee Invite Code</h3><p className="text-xs text-slate-400">Share this with employees to register</p></div>
+            <div><h3 className="text-sm font-bold text-slate-700">Company Login Code</h3><p className="text-xs text-slate-400">Share this with employees to register</p></div>
           </div>
 
           {loading ? <div className="h-12 bg-slate-50 rounded-xl animate-pulse"/> : (
@@ -92,11 +92,6 @@ export default function AdminDashboard() {
               {newCode && <p className="text-xs text-emerald-600 font-semibold mt-2 text-center">✓ New code generated</p>}
             </>
           )}
-
-          <div className="mt-4 pt-4 border-t border-slate-100">
-            <p className="text-xs text-slate-500 font-semibold mb-1">Company ID (for login)</p>
-            <p className="text-xs font-mono text-slate-600 break-all">{user?.companyId ?? "—"}</p>
-          </div>
         </div>
 
         {/* Employee Table */}
