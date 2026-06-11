@@ -106,6 +106,11 @@ Cloned the project repository to local system.
 
 # Day8 : (9/6/26)
 # Member 1 : (2023CSB037)
+1) Redesigned complete new model designs for creating a real world scenario structure for a company
+2) Designed the workflow of the website
+3) Designed the navigation for redesigned structure
+4) Initialized the auth controller and backend structure for redesign models
+5) Prepared a document for redesign to shared thought with team members
 
 # Member 2 : (2023CSB115)
 1) Studied the complete AgentTrack AI workflow and project architecture.
@@ -115,3 +120,18 @@ Cloned the project repository to local system.
 5) Analyzed manager-submanager-employee interactions and their impact on database design.
 6) Worked on redesigning the database structure to support proper Admin → Manager → Employee relationships.
 7) Contributed to designing improved relationship mapping for future scalability and workflow management.
+
+# Day9 : 
+# Member1 : (2023CSB037)
+1) Changed all the routes struture , middleware , models for this redesigned 
+2) Started designing frontend 
+3) Fixed company controllers and user controllers
+4) Designed the users hierarchy on the website
+
+# Day10 : 
+# Member1 : (2023CSB037)
+1) Redesigned all the pages for new design 
+- Employee Dashboard
+- Admin Dashbaord
+- Manager Dashboard
+2) Fixed the login issue (using companyID instead of invite code for user.controller.js)
