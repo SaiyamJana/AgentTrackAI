@@ -136,3 +136,6 @@ Cloned the project repository to local system.
 - Manager Dashboard
 2) Fixed the login issue (using companyID instead of invite code for user.controller.js)
 3) Decided the next few days roadmap with team members , distributed work among three members
+4) Building the comeplete flow and logic for projects an task management
+5) Backend logic and frontend design for projects and tasks
+6) Handled the logic for assigning manager for a project and sub manager for tasks
