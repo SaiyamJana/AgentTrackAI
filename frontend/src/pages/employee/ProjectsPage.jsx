@@ -40,7 +40,7 @@ export default function ProjectsPage() {
             return (
               <div key={p._id} className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-md hover:shadow-slate-100 hover:-translate-y-0.5 transition-all">
                 <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                     <Icon name="folder" className="w-5 h-5 text-blue-600"/>
                   </div>
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 ${s.color}`}>
