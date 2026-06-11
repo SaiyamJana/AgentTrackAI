@@ -128,6 +128,12 @@ Cloned the project repository to local system.
 3) Fixed company controllers and user controllers
 4) Designed the users hierarchy on the website
 
+# Member2 : (2023CSB115)
+1) Debugged and tested the redesigned backend modules
+2) Fixed issues in the existing implementation and verified functionality
+3) Updated the authentication frontend (Login & Register pages) according to the new redesign structure
+4) Integrated frontend authentication changes with the updated backend flow
+
 # Day10 : (11/6/26)
 # Member1 : (2023CSB037)
 1) Redesigned all the pages for new design 
