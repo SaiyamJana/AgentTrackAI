@@ -98,3 +98,20 @@ Cloned the project repository to local system.
 # Member 1 : (2023CSB037)
 1) Added frontend logic for solution
 2) Studied the workflow and navigation (Solution)
+
+# Member 2 : (2023CSB115)
+- Added backend logic for Company ID-based workflow.
+- Updated database relations and wrote code to ensure proper workflow execution.
+- Studied and refined the company-manager-employee structure.
+
+# Day8 : (9/6/26)
+# Member 1 : (2023CSB037)
+
+# Member 2 : (2023CSB115)
+1) Studied the complete AgentTrack AI workflow and project architecture.
+2) Analyzed relationships between Admin, Manager, Employee, Projects, and Tasks.
+3) Identified that Company ID alone is insufficient for maintaining proper user hierarchy and project ownership.
+4) Studied project allocation, employee assignment, task delegation, and reporting workflows.
+5) Analyzed manager-submanager-employee interactions and their impact on database design.
+6) Worked on redesigning the database structure to support proper Admin → Manager → Employee relationships.
+7) Contributed to designing improved relationship mapping for future scalability and workflow management.
