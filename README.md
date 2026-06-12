@@ -1,5 +1,4 @@
 # DAY1 : (2/6/26):
-
 # Member1 : (2023CSB037)
 1) Github Repo Setup and inviting collaborators
 2) Initiaized frontend with ReactJS and TailwindCSS (Commit : Frontend Setup)
@@ -7,7 +6,6 @@
 
 # Member 2 : (2023CSB115)
 Cloned the project repository to local system.
-# Member 3 : 
 
 # DAY2 : (3/6/26)
 # Member 1 : (2023CSB037)
@@ -46,10 +44,10 @@ Cloned the project repository to local system.
 - Added JWT Access Token and Refresh Token generation
 - Built Register and Login authentication APIs
 
-  # Member 3 :(2023CSB030)
-  -Created Login page UI using React and Tailwind
-  -Created Signup page UI using React and Tailwind
-  -Organized frontend code structure with reusable components
+# Member 3 :(2023CSB030)
+-Created Login page UI using React and Tailwind
+-Created Signup page UI using React and Tailwind
+-Organized frontend code structure with reusable components
 - Pushed changes to authentication3 branch
 
 # Day4 : (5/6/26)
@@ -145,3 +143,12 @@ Cloned the project repository to local system.
 4) Building the comeplete flow and logic for projects an task management
 5) Backend logic and frontend design for projects and tasks
 6) Handled the logic for assigning manager for a project and sub manager for tasks
+
+# Member2 : (2023CSB115)
+• Merged Member1's branch and synced local branch with latest updates.
+• Developed Admin → Employee Management functionality.
+• Implemented employee search, filtering, edit, and activate/deactivate features.
+• Added employee project assignment viewing functionality.
+• Updated hooks and integrated Admin Employee Management page into routing.
+• Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
+• Verified complete workflow functionality and fixed integration issues.
