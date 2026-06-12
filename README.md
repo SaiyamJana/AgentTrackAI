@@ -145,10 +145,10 @@ Cloned the project repository to local system.
 6) Handled the logic for assigning manager for a project and sub manager for tasks
 
 # Member2 : (2023CSB115)
-• Merged Member1's branch and synced local branch with latest updates.
-• Developed Admin → Employee Management functionality.
-• Implemented employee search, filtering, edit, and activate/deactivate features.
-• Added employee project assignment viewing functionality.
-• Updated hooks and integrated Admin Employee Management page into routing.
-• Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
-• Verified complete workflow functionality and fixed integration issues.
+1)  Merged Member1's branch and synced local branch with latest updates.
+2)  Developed Admin → Employee Management functionality.
+3)  Implemented employee search, filtering, edit, and activate/deactivate features.
+4)  Added employee project assignment viewing functionality.
+5)  Updated hooks and integrated Admin Employee Management page into routing.
+6)  Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
+7)  Verified complete workflow functionality and fixed integration issues.
