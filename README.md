@@ -1,5 +1,4 @@
 # DAY1 : (2/6/26):
-
 # Member1 : (2023CSB037)
 1) Github Repo Setup and inviting collaborators
 2) Initiaized frontend with ReactJS and TailwindCSS (Commit : Frontend Setup)
@@ -7,7 +6,6 @@
 
 # Member 2 : (2023CSB115)
 Cloned the project repository to local system.
-# Member 3 : 
 
 # DAY2 : (3/6/26)
 # Member 1 : (2023CSB037)
@@ -46,10 +44,10 @@ Cloned the project repository to local system.
 - Added JWT Access Token and Refresh Token generation
 - Built Register and Login authentication APIs
 
-  # Member 3 :(2023CSB030)
-  -Created Login page UI using React and Tailwind
-  -Created Signup page UI using React and Tailwind
-  -Organized frontend code structure with reusable components
+# Member 3 :(2023CSB030)
+-Created Login page UI using React and Tailwind
+-Created Signup page UI using React and Tailwind
+-Organized frontend code structure with reusable components
 - Pushed changes to authentication3 branch
 
 # Day4 : (5/6/26)
@@ -146,7 +144,18 @@ Cloned the project repository to local system.
 5) Backend logic and frontend design for projects and tasks
 6) Handled the logic for assigning manager for a project and sub manager for tasks
 
+<<<<<<< HEAD
 # Day11 : (12/6/26)
 # Member1 : (2023CSB037)
 1) Tested the complete wrap up goal of flow between admin , manager , sub manager and employee for projects and tasks
 2) Decided the next goal for our roadmap , analyzed the different agents motive, workflow , flow across the application
+=======
+# Member2 : (2023CSB115)
+1)  Merged Member1's branch and synced local branch with latest updates.
+2)  Developed Admin → Employee Management functionality.
+3)  Implemented employee search, filtering, edit, and activate/deactivate features.
+4)  Added employee project assignment viewing functionality.
+5)  Updated hooks and integrated Admin Employee Management page into routing.
+6)  Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
+7)  Verified complete workflow functionality and fixed integration issues.
+>>>>>>> f2ed19432d37c6e283db1ba8d187651e8460d58f
