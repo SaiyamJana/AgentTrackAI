@@ -19,7 +19,7 @@ const request = async (method, path, body) => {
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const authAPI = {
-  // POST /companies/register  — public bootstrap (Admin only)
+  // POST /companies/register — public bootstrap, creates company + admin
   registerCompany: async (payload) => {
     const res = await fetch(`${BASE}/companies/register`, {
       method: "POST",
@@ -31,7 +31,7 @@ export const authAPI = {
     return data;
   },
 
-  // POST /users/register  — employee self-registration with inviteCode
+  // POST /users/register — employee self-register with inviteCode
   register: async (payload) => {
     const res = await fetch(`${BASE}/users/register`, {
       method: "POST",
@@ -43,7 +43,7 @@ export const authAPI = {
     return data;
   },
 
-  // POST /users/login  — requires companyId + email + password
+  // POST /users/login — requires companyId + email + password
   login: async (companyId, email, password) => {
     const res = await fetch(`${BASE}/users/login`, {
       method: "POST",
@@ -56,7 +56,7 @@ export const authAPI = {
   },
 };
 
-// ── Users (Admin) ─────────────────────────────────────────────────────────────
+// ── Users ─────────────────────────────────────────────────────────────────────
 export const userAPI = {
   list: (params = {}) => {
     const qs = new URLSearchParams(
@@ -64,49 +64,47 @@ export const userAPI = {
     ).toString();
     return request("GET", `/users${qs ? `?${qs}` : ""}`);
   },
-  getById: (id) => request("GET", `/users/${id}`),
-  update:  (id, payload) => request("PATCH", `/users/${id}`, payload),
-  deactivate: (id) => request("DELETE", `/users/${id}`),
+  getById:    (id)         => request("GET",    `/users/${id}`),
+  update:     (id, body)   => request("PATCH",  `/users/${id}`, body),
+  deactivate: (id)         => request("DELETE", `/users/${id}`),
 };
 
-// ── Companies (Admin) ─────────────────────────────────────────────────────────
+// ── Companies ─────────────────────────────────────────────────────────────────
 export const companyAPI = {
-  getById:         (id) => request("GET",  `/companies/${id}`),
-  update:          (id, payload) => request("PATCH", `/companies/${id}`, payload),
-  regenerateInvite:(id) => request("POST", `/companies/${id}/regenerate-invite`),
+  getById:          (id)       => request("GET",   `/companies/${id}`),
+  update:           (id, body) => request("PATCH", `/companies/${id}`, body),
+  regenerateInvite: (id)       => request("POST",  `/companies/${id}/regenerate-invite`),
 };
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 export const projectAPI = {
-  // GET /projects — Admin sees all; employee (manager) sees their own
+  // GET /projects — Admin: all; Employee-manager: their own
   list: (params = {}) => {
     const qs = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v))
     ).toString();
     return request("GET", `/projects${qs ? `?${qs}` : ""}`);
   },
-  // GET /projects/my — employee sees projects they are assigned to
-  my: () => request("GET", "/projects/my"),
-
-  getById: (id) => request("GET", `/projects/${id}`),
-  create:  (payload) => request("POST", "/projects", payload),
-  update:  (id, payload) => request("PATCH", `/projects/${id}`, payload),
+  // GET /projects/my — employee: projects they are assigned to
+  my:       ()           => request("GET",    "/projects/my"),
+  getById:  (id)         => request("GET",    `/projects/${id}`),
+  create:   (body)       => request("POST",   "/projects", body),
+  update:   (id, body)   => request("PATCH",  `/projects/${id}`, body),
   assignManager: (id, managerId) => request("PATCH", `/projects/${id}/manager`, { managerId }),
 };
 
-// ── Project Members ───────────────────────────────────────────────────────────
+// ── Project Members (EmployeeProject junction) ────────────────────────────────
 export const memberAPI = {
-  // GET /projects/:id/employees
-  list: (projectId) => request("GET", `/projects/${projectId}/employees`),
+  // GET  /projects/:id/employees
+  list:   (projectId)                      => request("GET",    `/projects/${projectId}/employees`),
   // POST /projects/:id/employees — { employeeId, projectRole: "manager"|"member" }
   assign: (projectId, employeeId, projectRole = "member") =>
-    request("POST", `/projects/${projectId}/employees`, { employeeId, projectRole }),
+    request("POST",   `/projects/${projectId}/employees`, { employeeId, projectRole }),
   // PATCH /projects/:id/employees/:eid/role — manager sets sub-manager
-  setRole: (projectId, employeeId, projectRole) =>
-    request("PATCH", `/projects/${projectId}/employees/${employeeId}/role`, { projectRole }),
+  setRole:(projectId, employeeId, projectRole) =>
+    request("PATCH",  `/projects/${projectId}/employees/${employeeId}/role`, { projectRole }),
   // DELETE /projects/:id/employees/:eid
-  remove: (projectId, employeeId) =>
-    request("DELETE", `/projects/${projectId}/employees/${employeeId}`),
+  remove: (projectId, employeeId)          => request("DELETE", `/projects/${projectId}/employees/${employeeId}`),
 };
 
 // ── Tasks ─────────────────────────────────────────────────────────────────────
@@ -118,8 +116,6 @@ export const taskAPI = {
     ).toString();
     return request("GET", `/tasks${qs ? `?${qs}` : ""}`);
   },
-  // GET /tasks/kanban?projectId=  (manager/sub-manager)
-  kanban: (projectId) => request("GET", `/tasks/kanban?projectId=${projectId}`),
   // GET /tasks/my  (employee — own tasks)
   my: (params = {}) => {
     const qs = new URLSearchParams(
@@ -127,17 +123,16 @@ export const taskAPI = {
     ).toString();
     return request("GET", `/tasks/my${qs ? `?${qs}` : ""}`);
   },
-  getById:  (id) => request("GET",    `/tasks/${id}`),
-  create:   (payload) => request("POST",  "/tasks", payload),
-  update:   (id, payload) => request("PATCH", `/tasks/${id}`, payload),
-  // PATCH /tasks/:id/status  (assigned employee only)
-  updateStatus:   (id, status) => request("PATCH", `/tasks/${id}/status`, { status }),
-  // PATCH /tasks/:id/progress  (assigned employee only)
-  updateProgress: (id, payload) => request("PATCH", `/tasks/${id}/progress`, payload),
-  delete: (id) => request("DELETE", `/tasks/${id}`),
+  // GET /tasks/kanban?projectId=
+  kanban:  (projectId) => request("GET",    `/tasks/kanban?projectId=${projectId}`),
+  getById: (id)        => request("GET",    `/tasks/${id}`),
+  create:  (body)      => request("POST",   "/tasks", body),
+  update:  (id, body)  => request("PATCH",  `/tasks/${id}`, body),
+  updateStatus:   (id, status)  => request("PATCH", `/tasks/${id}/status`,   { status }),
+  updateProgress: (id, body)    => request("PATCH", `/tasks/${id}/progress`, body),
+  delete:  (id)        => request("DELETE", `/tasks/${id}`),
 };
 
-// ── Role redirect helper ──────────────────────────────────────────────────────
-// After the redesign there are only two user roles: "admin" and "employee"
+// ── Role redirect ─────────────────────────────────────────────────────────────
 export const getRoleDashboard = (role) =>
   role === "admin" ? "/admin/dashboard" : "/employee/dashboard";
