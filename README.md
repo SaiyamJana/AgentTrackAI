@@ -145,3 +145,8 @@ Cloned the project repository to local system.
 4) Building the comeplete flow and logic for projects an task management
 5) Backend logic and frontend design for projects and tasks
 6) Handled the logic for assigning manager for a project and sub manager for tasks
+
+# Day11 : (12/6/26)
+# Member1 : (2023CSB037)
+1) Tested the complete wrap up goal of flow between admin , manager , sub manager and employee for projects and tasks
+2) Decided the next goal for our roadmap , analyzed the different agents motive, workflow , flow across the application
