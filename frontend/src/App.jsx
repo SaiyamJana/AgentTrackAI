@@ -7,6 +7,7 @@ import RegisterPage        from "./pages/auth/RegisterPage";
 import RegisterCompanyPage from "./pages/auth/RegisterCompanyPage";
 import AdminDashboard      from "./pages/admin/AdminDashboard";
 import AdminProjectsPage   from "./pages/admin/AdminProjectsPage";
+import AdminEmployeesPage  from "./pages/admin/AdminEmployeesPage";
 import ManagerDashboard    from "./pages/manager/ManagerDashboard";
 import TasksPage           from "./pages/manager/TasksPage";
 import EmployeeDashboard   from "./pages/employee/EmployeeDashboard";
@@ -46,7 +47,7 @@ function AppRoutes() {
       {/* ── Admin ── */}
       <Route path="/admin/dashboard" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
       <Route path="/admin/projects"  element={<AdminGuard><AdminProjectsPage /></AdminGuard>} />
-      <Route path="/admin/employees" element={<AdminGuard><Placeholder title="Employee Management" /></AdminGuard>} />
+      <Route path="/admin/employees" element={<AdminGuard><AdminEmployeesPage /></AdminGuard>} />
       <Route path="/admin/settings"  element={<AdminGuard><Placeholder title="System Settings" /></AdminGuard>} />
 
       {/* ── Employee (includes project-managers) ── */}

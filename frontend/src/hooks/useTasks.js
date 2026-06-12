@@ -205,3 +205,69 @@ export function useAllEmployees() {
 
   return { employees, loading };
 }
+
+// ── useAllEmployeesAdmin — admin: full employee list with edit/deactivate ──
+export function useAllEmployeesAdmin(filters = {}) {
+  const [employees, setEmployees] = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState(null);
+
+  const fetch_ = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const res = await userAPI.list({ role: "employee", ...filters });
+      setEmployees(res.data ?? []);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [JSON.stringify(filters)]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  const updateEmployee = async (id, payload) => {
+    const res = await userAPI.update(id, payload);
+    setEmployees(prev => prev.map(e => e._id === id ? { ...e, ...res.data } : e));
+    return res.data;
+  };
+
+  const deactivateEmployee = async (id) => {
+    const res = await userAPI.deactivate(id);
+    setEmployees(prev => prev.map(e => e._id === id ? { ...e, ...res.data } : e));
+    return res.data;
+  };
+
+  const reactivateEmployee = async (id) => updateEmployee(id, { isActive: true });
+
+  return { employees, loading, error, refetch: fetch_, updateEmployee, deactivateEmployee, reactivateEmployee };
+}
+
+// ── useEmployeeProjects — admin: a single employee's project assignments ──
+export function useEmployeeProjects(employeeId) {
+  const [assignments, setAssignments] = useState([]);
+  const [loading,     setLoading]     = useState(false);
+
+  useEffect(() => {
+    if (!employeeId) { setAssignments([]); return; }
+    setLoading(true);
+    projectAPI.list()
+      .then(async (res) => {
+        const projects = res.data ?? [];
+        // For each project, check if this employee is a member
+        const results = await Promise.all(
+          projects.map(async (p) => {
+            try {
+              const m = await memberAPI.list(p._id);
+              const match = (m.data ?? []).find(
+                x => (x.employeeId?._id ?? x.employeeId) === employeeId
+              );
+              return match ? { project: p, projectRole: match.projectRole } : null;
+            } catch { return null; }
+          })
+        );
+        setAssignments(results.filter(Boolean));
+      })
+      .catch(() => setAssignments([]))
+      .finally(() => setLoading(false));
+  }, [employeeId]);
+
+  return { assignments, loading };
+}
