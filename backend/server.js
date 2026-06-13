@@ -7,6 +7,7 @@ import companyRouter         from "./src/routes/company.routes.js";
 import projectRouter         from "./src/routes/project.routes.js";
 import employeeProjectRouter from "./src/routes/employeeProject.routes.js";
 import taskRouter            from "./src/routes/task.routes.js";
+import reportRouter          from "./src/routes/report.routes.js";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use("/api/v1/companies",companyRouter);
 app.use("/api/v1/projects", projectRouter);
 app.use("/api/v1/projects/:id/employees", employeeProjectRouter);
 app.use("/api/v1/tasks", taskRouter);
+app.use("/api/v1/reports", reportRouter);
 
 app.get("/", (req, res) => res.send("AgentTrack AI — Server Running"));
 
