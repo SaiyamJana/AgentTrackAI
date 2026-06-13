@@ -144,12 +144,14 @@ Cloned the project repository to local system.
 5) Backend logic and frontend design for projects and tasks
 6) Handled the logic for assigning manager for a project and sub manager for tasks
 
-<<<<<<< HEAD
+
 # Day11 : (12/6/26)
 # Member1 : (2023CSB037)
 1) Tested the complete wrap up goal of flow between admin , manager , sub manager and employee for projects and tasks
 2) Decided the next goal for our roadmap , analyzed the different agents motive, workflow , flow across the application
-=======
+3) Learn about Google gemini api and how to integrate them with website
+4) Analyzed the reports feature for admin and manager and its structure across the system
+
 # Member2 : (2023CSB115)
 1)  Merged Member1's branch and synced local branch with latest updates.
 2)  Developed Admin → Employee Management functionality.
@@ -158,4 +160,3 @@ Cloned the project repository to local system.
 5)  Updated hooks and integrated Admin Employee Management page into routing.
 6)  Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
 7)  Verified complete workflow functionality and fixed integration issues.
->>>>>>> f2ed19432d37c6e283db1ba8d187651e8460d58f
