@@ -160,3 +160,15 @@ Cloned the project repository to local system.
 5)  Updated hooks and integrated Admin Employee Management page into routing.
 6)  Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
 7)  Verified complete workflow functionality and fixed integration issues.
+
+# Day12 : (13/06/26)
+# Member2 : (2023CSB115)
+1) Built Risk Agent — rule-based, cron-scheduled, no LLM
+2) Created Risk.js and Notification.js models
+3) Detects overdue tasks and delayed projects automatically
+4) Auto-creates risks + notifications for employee, manager, admin
+5) Built /api/v1/risks and /api/v1/notifications APIs
+6) Wired hourly cron job in server.js
+7) Built live notification bell dropdown + Notifications page
+8) Built Active Risks page (/admin/risks, /manager/risks) with resolve toggle
+9) Verified full pipeline end-to-end — fully automatic 
