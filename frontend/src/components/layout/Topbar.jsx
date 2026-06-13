@@ -1,8 +1,29 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useNotifications } from "../../hooks/useTasks";
 import Avatar from "../shared/Avatar";
 import Icon from "../shared/Icon";
+
+const timeAgo = (date) => {
+  const diff = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)  return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+};
+
+const TYPE_ICON = {
+  risk_detected:     "exclamation",
+  task_assigned:     "task",
+  task_completed:    "checkCircle",
+  project_assigned:  "folder",
+  manager_promoted:  "shield",
+  report_ready:      "report",
+  workload_alert:    "workload",
+};
 
 const Topbar = ({ title, onMenuClick }) => {
   const { user, logout } = useAuth();
@@ -10,16 +31,20 @@ const Topbar = ({ title, onMenuClick }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
-  // Sample notifications
-  const notifications = [
-    { id: 1, text: "Task 'API Integration' is overdue", time: "2m ago", type: "risk" },
-    { id: 2, text: "New risk alert on Project Alpha", time: "15m ago", type: "risk" },
-    { id: 3, text: "Weekly report is ready", time: "1h ago", type: "report" },
-  ];
+  const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  const handleNotifClick = async (n) => {
+    if (!n.read) await markAsRead(n._id);
+    // Navigate to relevant page based on type
+    if (n.type === "risk_detected") {
+      navigate(user?.role === "admin" ? "/admin/risks" : "/manager/risks");
+    }
+    setNotifOpen(false);
   };
 
   return (
@@ -49,28 +74,55 @@ const Topbar = ({ title, onMenuClick }) => {
             className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 transition-colors"
           >
             <Icon name="bell" className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+            )}
           </button>
 
           {notifOpen && (
             <div className="absolute right-0 top-11 w-80 bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/80 z-50 overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                 <span className="text-sm font-bold text-slate-700">Notifications</span>
-                <span className="badge badge-blue">{notifications.length} new</span>
+                {unreadCount > 0 ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{unreadCount} new</span>
+                ) : (
+                  <span className="text-[10px] text-slate-400">All caught up</span>
+                )}
               </div>
-              <div className="divide-y divide-slate-50">
-                {notifications.map((n) => (
-                  <div key={n.id} className="px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors">
-                    <p className="text-xs text-slate-700 font-medium leading-relaxed">{n.text}</p>
-                    <p className="text-[10px] text-slate-400 mt-1">{n.time}</p>
+              <div className="divide-y divide-slate-50 max-h-80 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-8 text-center">
+                    <p className="text-xs text-slate-400">No notifications yet.</p>
                   </div>
-                ))}
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n._id}
+                      onClick={() => handleNotifClick(n)}
+                      className={`px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors flex gap-3 ${!n.read ? "bg-blue-50/40" : ""}`}
+                    >
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${!n.read ? "bg-blue-100 text-blue-600" : "bg-slate-100 text-slate-400"}`}>
+                        <Icon name={TYPE_ICON[n.type] ?? "bell"} className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-slate-700 font-medium leading-relaxed line-clamp-2">{n.message}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">{timeAgo(n.createdAt)}</p>
+                      </div>
+                      {!n.read && <span className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0 mt-1.5" />}
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="px-4 py-2.5 border-t border-slate-100">
-                <button className="text-xs text-blue-600 font-semibold hover:text-blue-800 transition-colors">
-                  View all notifications →
-                </button>
-              </div>
+              {notifications.length > 0 && unreadCount > 0 && (
+                <div className="px-4 py-2.5 border-t border-slate-100">
+                  <button
+                    onClick={() => markAllRead()}
+                    className="text-xs text-blue-600 font-semibold hover:text-blue-800 transition-colors"
+                  >
+                    Mark all as read
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

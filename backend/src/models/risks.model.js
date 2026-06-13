@@ -1,16 +1,4 @@
-// {
-// "_id": "ObjectId",
-// "projectId": "ObjectId", // Reference to projects
-// "taskId": "ObjectId", // Reference to tasks
-// "riskLevel": "low" | "medium" | "high",
-// "reason": "String",
-// "recommendation": "String",
-// "resolved": "Boolean",
-// "resolvedAt": "Date",
-// "createdAt": "Date"
-// }
-
-import mongoose , {Schema} from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 const risksSchema = new Schema({
     projectId: {
@@ -21,11 +9,21 @@ const risksSchema = new Schema({
     taskId: {
         type: Schema.Types.ObjectId,
         ref: 'Task',
+        required: false
+    },
+    companyId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Company',
         required: true
+    },
+    category: {
+        type: String,
+        enum: ["overdue_task", "delayed_project", "overloaded_team"],
+        default: "overdue_task"
     },
     riskLevel: {
         type: String,
-        enum: ["low", "medium", "high"],
+        enum: ["low", "medium", "high", "critical"],
         required: true
     },
     reason: {
@@ -42,7 +40,15 @@ const risksSchema = new Schema({
     },
     resolvedAt: {
         type: Date
+    },
+    resolvedBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
     }
-},{timestamps: true});
+}, { timestamps: true });
+
+risksSchema.index({ projectId: 1, resolved: 1 });
+risksSchema.index({ companyId: 1, riskLevel: 1 });
+risksSchema.index({ taskId: 1 });
 
 export const Risk = mongoose.model("Risk", risksSchema);
