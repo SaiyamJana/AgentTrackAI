@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { taskAPI, projectAPI, memberAPI, userAPI, reportAPI } from "../utils/api";
+import { taskAPI, projectAPI, memberAPI, userAPI, reportAPI, analyticsAPI } from "../utils/api";
 
 // ── useTaskList — manager/sub-manager list with full CRUD ─────────────────────
 export function useTaskList(filters = {}) {
@@ -308,4 +308,46 @@ export function useReports(projectId, reportType = "") {
   };
 
   return { reports, loading, error, generating, refetch: fetch_, generateReport, deleteReport };
+}
+
+// ── useAnalytics — personal productivity analytics ─────────────────────────────
+// params: { range: "1d"|"7d"|"30d"|"90d"|"all"|"custom", from, to }
+export function useAnalytics(params = {}) {
+  const [data,    setData]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  const fetch_ = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const res = await analyticsAPI.me(params);
+      setData(res.data);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [JSON.stringify(params)]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  return { data, loading, error, refetch: fetch_ };
+}
+
+// ── useProjectAnalytics — team/project analytics (manager/sub-manager/admin) ──
+export function useProjectAnalytics(projectId, params = {}) {
+  const [data,    setData]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  const fetch_ = useCallback(async () => {
+    if (!projectId) { setData(null); setLoading(false); return; }
+    setLoading(true); setError(null);
+    try {
+      const res = await analyticsAPI.project(projectId, params);
+      setData(res.data);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [projectId, JSON.stringify(params)]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  return { data, loading, error, refetch: fetch_ };
 }

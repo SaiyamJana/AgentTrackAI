@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { AdminGuard, EmployeeGuard } from "./components/auth/ProtectedRoute";
+import { AdminGuard, EmployeeGuard, AnyAuthGuard } from "./components/auth/ProtectedRoute";
 
 import LoginPage           from "./pages/auth/LoginPage";
 import RegisterPage        from "./pages/auth/RegisterPage";
@@ -14,6 +14,7 @@ import ReportsPage         from "./pages/manager/ReportsPage";
 import EmployeeDashboard   from "./pages/employee/EmployeeDashboard";
 import MyTasksPage         from "./pages/employee/MyTasksPage";
 import ProjectsPage        from "./pages/employee/ProjectsPage";
+import AnalyticsPage       from "./pages/shared/AnalyticsPage";
 
 const Placeholder = ({ title }) => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -44,6 +45,11 @@ function AppRoutes() {
       <Route path="/login"            element={<LoginPage />} />
       <Route path="/register"         element={<RegisterPage />} />
       <Route path="/register-company" element={<RegisterCompanyPage />} />
+
+      {/* ── Shared ── */}
+      <Route path="/analytics" element={
+        <AnyAuthGuard><AnalyticsPage /></AnyAuthGuard>
+      } />
 
       {/* ── Admin ── */}
       <Route path="/admin/dashboard" element={<AdminGuard><AdminDashboard /></AdminGuard>} />

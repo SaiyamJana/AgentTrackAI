@@ -172,3 +172,16 @@ Cloned the project repository to local system.
 - coded the prompt generation for gemini model
 - coded a emergency fallback function (if gemini model fails)
 - wrap up the reporting Agent and tested it
+
+# Day13 : (14/6/26)
+# Member1 : (2023CSB037)
+1) Tried to solve the gemini model issue 
+2) Tested with different gemini models
+3) Studied the motive and role of analytics Agent
+4) Studied the charts (Javascript) to provide better understandability to users
+5) Added analytics dashboard for employee and manager
+6) Added analytics routes in backend accessed through frontend
+- Added controller , routes and edited api endpoint file
+- Added dashboard , edited sidebar (including analytics tab)
+7) Fixed analytics mounting issue
+8) Tried to fix react rendering issue

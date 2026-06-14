@@ -9,10 +9,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
  * Reports feature keeps working without the AI layer.
  */
 
-const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 let genAI = null;
 function getClient() {
+  console.log(process.env.GEMINI_MODEL);
   if (!process.env.GEMINI_API_KEY) return null;
   if (!genAI) genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   return genAI;
@@ -96,6 +97,9 @@ ${riskLine}
  * Returns { summary: string, usedAI: boolean }
  */
 export async function generateProjectReport({ reportType, project, metrics, tasksSnapshot }) {
+  console.log("MODEL_NAME =", MODEL_NAME);
+  console.log("ENV =", process.env.GEMINI_MODEL);
+
   const client = getClient();
 
   if (!client) {

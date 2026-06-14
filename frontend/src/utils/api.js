@@ -12,8 +12,25 @@ const request = async (method, path, body) => {
     headers: authHeaders(),
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Request failed");
+
+  const text = await res.text();
+
+  console.log("REQUEST URL:", `${BASE}${path}`);
+  console.log("STATUS:", res.status);
+  console.log("RESPONSE:", text);
+
+  let data = {};
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`Server returned non-JSON response:\n${text}`);
+  }
+
+  if (!res.ok) {
+    throw new Error(data.message || `HTTP ${res.status}`);
+  }
+
   return data;
 };
 
@@ -146,6 +163,24 @@ export const reportAPI = {
   // POST /reports/generate — { projectId, reportType: "daily"|"weekly"|"project-summary" }
   generate: (body) => request("POST", "/reports/generate", body),
   delete:   (id)   => request("DELETE", `/reports/${id}`),
+};
+
+// ── Analytics ─────────────────────────────────────────────────────────────────
+export const analyticsAPI = {
+  // GET /analytics/me?range=1d|7d|30d|90d|all|custom&from=&to=
+  me: (params = {}) => {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v))
+    ).toString();
+    return request("GET", `/analytics/me${qs ? `?${qs}` : ""}`);
+  },
+  // GET /analytics/project/:projectId?range=...
+  project: (projectId, params = {}) => {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v))
+    ).toString();
+    return request("GET", `/analytics/project/${projectId}${qs ? `?${qs}` : ""}`);
+  },
 };
 
 // ── Role redirect ─────────────────────────────────────────────────────────────
