@@ -1,10 +1,12 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
 import connectDB from "./src/db/index.js";
-import userRouter from "./src/routes/user.routes.js";
-import taskRouter from "./src/routes/task.routes.js";
+import userRouter            from "./src/routes/user.routes.js";
+import companyRouter         from "./src/routes/company.routes.js";
+import projectRouter         from "./src/routes/project.routes.js";
+import employeeProjectRouter from "./src/routes/employeeProject.routes.js";
+import taskRouter            from "./src/routes/task.routes.js";
 
 dotenv.config();
 
@@ -14,20 +16,22 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-    res.send("Server Running");
-});
-
-app.use("/api/v1/users", userRouter);
+// ── Route mounts ──────────────────────────────────────────────────────────────
+app.use("/api/v1/users",userRouter);
+app.use("/api/v1/companies",companyRouter);
+app.use("/api/v1/projects", projectRouter);
+app.use("/api/v1/projects/:id/employees", employeeProjectRouter);
 app.use("/api/v1/tasks", taskRouter);
 
-// ── Global error handler ─────────────────────────────────────────────────────
+app.get("/", (req, res) => res.send("AgentTrack AI — Server Running"));
+
+// ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
     res.status(statusCode).json({
         success: false,
         message: err.message || "Internal Server Error",
-        errors: err.errors || [],
+        errors:  err.errors || [],
     });
 });
 

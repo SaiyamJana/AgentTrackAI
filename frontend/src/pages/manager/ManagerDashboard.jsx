@@ -1,141 +1,154 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import StatCard from "../../components/shared/StatCard";
 import Icon from "../../components/shared/Icon";
-import {
-  ProjectHealthList,
-  RiskAlertWidget,
-  TeamOverview,
-  DeadlineTimeline,
-  AIReportCard,
-} from "../../components/manager/ManagerWidgets";
 import { useAuth } from "../../context/AuthContext";
+import { useManagerProjects, useTaskList } from "../../hooks/useTasks";
 
-// ── Mock Data (wire up to /api/v1/... in production) ──────────────────────────
-const mockProjects = [
-  { _id: "1", title: "Q3 Infrastructure Upgrade",  status: "active",    progressPercentage: 68, endDate: "2025-07-15", taskCount: 24, managerId: "m1" },
-  { _id: "2", title: "Customer Portal Redesign",   status: "active",    progressPercentage: 42, endDate: "2025-07-28", taskCount: 18, managerId: "m1" },
-  { _id: "3", title: "Payment Gateway Module",      status: "on-hold",   progressPercentage: 80, endDate: "2025-08-05", taskCount: 11, managerId: "m1" },
-  { _id: "4", title: "Mobile App v2.0",             status: "active",    progressPercentage: 21, endDate: "2025-09-01", taskCount: 33, managerId: "m1" },
-];
+const greet = () => { const h=new Date().getHours(); return h<12?"morning":h<17?"afternoon":"evening"; };
+const FI = (p) => <Icon name="folder"      {...p}/>;
+const CI = (p) => <Icon name="checkCircle" {...p}/>;
+const LI = (p) => <Icon name="clock"       {...p}/>;
+const WI = (p) => <Icon name="exclamation" {...p}/>;
 
-const mockRisks = [
-  { _id: "r1", riskLevel: "high",   reason: "API Integration task is 5 days overdue",          recommendation: "Reassign or break into smaller sub-tasks immediately.",  resolved: false },
-  { _id: "r2", riskLevel: "medium", reason: "Vikram Singh is overloaded with 14 active tasks",  recommendation: "Redistribute 4 tasks to available team members.",          resolved: false },
-  { _id: "r3", riskLevel: "low",    reason: "Mobile App v2.0 deadline may slip by 2 weeks",     recommendation: "Schedule scope review with stakeholders.",               resolved: false },
-];
-
-const mockWorkloads = [
-  { _id: "w1", employeeName: "Priya Sharma",   activeTasksCount: 6, totalAssignedHours: 28, status: "optimal" },
-  { _id: "w2", employeeName: "Vikram Singh",   activeTasksCount: 14, totalAssignedHours: 58, status: "overloaded" },
-  { _id: "w3", employeeName: "Sneha Kulkarni", activeTasksCount: 3, totalAssignedHours: 14, status: "underutilized" },
-  { _id: "w4", employeeName: "Arjun Patel",    activeTasksCount: 8, totalAssignedHours: 36, status: "optimal" },
-];
-
-const mockDeadlines = [
-  { title: "API Rate Limiting",       project: "Q3 Infrastructure",     date: new Date(Date.now() - 86400000) },
-  { title: "Design System Handoff",   project: "Customer Portal",       date: new Date(Date.now() + 86400000) },
-  { title: "Auth Module Tests",       project: "Mobile App v2.0",       date: new Date(Date.now() + 3 * 86400000) },
-  { title: "Payment API Integration", project: "Payment Gateway Module", date: new Date(Date.now() + 8 * 86400000) },
-];
-
-const mockReport = {
-  reportType: "daily",
-  summary: "3 tasks were completed yesterday across 2 projects. Q3 Infrastructure is on track at 68% completion. 1 high-severity risk detected on API Integration — immediate action recommended. Team capacity is unevenly distributed; Vikram Singh is overloaded.",
-  generatedAt: new Date(),
+const S_CFG = {
+  active:    { badge:"bg-emerald-50 text-emerald-700", dot:"bg-emerald-500", bar:"bg-emerald-500" },
+  "on-hold": { badge:"bg-amber-50 text-amber-700",     dot:"bg-amber-500",   bar:"bg-amber-400"  },
+  completed: { badge:"bg-slate-100 text-slate-600",    dot:"bg-slate-400",   bar:"bg-slate-400"  },
 };
 
-// ── Stat icons ────────────────────────────────────────────────────────────────
-const FolderIcon = (p) => <Icon name="folder"      {...p} />;
-const CheckIcon  = (p) => <Icon name="checkCircle" {...p} />;
-const ClockIcon  = (p) => <Icon name="clock"       {...p} />;
-const WarnIcon   = (p) => <Icon name="exclamation" {...p} />;
-
-// ── Page ─────────────────────────────────────────────────────────────────────
 export default function ManagerDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { projects, loading:pLoading } = useManagerProjects();
 
-  const [projects]  = useState(mockProjects);
-  const [risks]     = useState(mockRisks);
-  const [workloads] = useState(mockWorkloads);
-  const [deadlines] = useState(mockDeadlines);
-  const [report]    = useState(mockReport);
+  // Load tasks for the first managed project
+  const firstId = projects[0]?._id ?? "";
+  const { tasks, stats, loading:tLoading } = useTaskList(firstId ? { projectId: firstId } : {});
 
-  const activeCount    = projects.filter(p => p.status === "active").length;
-  const completedTasks = 28;   // from API
-  const pendingTasks   = 43;
-  const delayedTasks   = 7;
+  const activeProjects = projects.filter(p => p.status==="active").length;
 
-  // Quick-link buttons for manager
   const quickLinks = [
-    { label: "Reports",  icon: "report",   to: "/manager/reports",   color: "bg-blue-50 text-blue-700 hover:bg-blue-100" },
-    { label: "Risks",    icon: "shield",   to: "/manager/risks",     color: "bg-red-50 text-red-700 hover:bg-red-100" },
-    { label: "Workload", icon: "workload", to: "/manager/workload",  color: "bg-amber-50 text-amber-700 hover:bg-amber-100" },
-    { label: "Chatbot",  icon: "chat",     to: "/manager/chatbot",   color: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" },
+    { label:"Reports",  icon:"report",   to:"/manager/reports",  cls:"bg-blue-50 text-blue-700 hover:bg-blue-100"     },
+    { label:"Risks",    icon:"shield",   to:"/manager/risks",    cls:"bg-red-50 text-red-700 hover:bg-red-100"        },
+    { label:"Workload", icon:"workload", to:"/manager/workload", cls:"bg-amber-50 text-amber-700 hover:bg-amber-100"  },
+    { label:"Chatbot",  icon:"chat",     to:"/manager/chatbot",  cls:"bg-emerald-50 text-emerald-700 hover:bg-emerald-100" },
   ];
 
   return (
     <DashboardLayout title="Manager Dashboard">
-      {/* Greeting + quick links */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 page-enter">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">
-            Good {getGreeting()}, {user?.name?.split(" ")[0]} 👋
-          </h2>
+          <h2 className="text-xl font-bold text-slate-800">Good {greet()}, {user?.name?.split(" ")[0]} 👋</h2>
           <p className="text-sm text-slate-500 mt-1">
-            {risks.filter(r => !r.resolved).length} active risk{risks.filter(r=>!r.resolved).length !== 1 ? "s" : ""} need your attention today.
+            {pLoading ? "Loading…" : projects.length === 0
+              ? "No projects assigned yet. Contact your Admin."
+              : `Managing ${activeProjects} active project${activeProjects!==1?"s":""}.`}
           </p>
         </div>
-        <div className="flex gap-2">
-          {quickLinks.map((q) => (
-            <button
-              key={q.label}
-              onClick={() => navigate(q.to)}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[11px] font-semibold transition-colors ${q.color}`}
-            >
-              <Icon name={q.icon} className="w-4 h-4" />
-              {q.label}
+        <div className="flex gap-2 flex-wrap">
+          {quickLinks.map(q => (
+            <button key={q.label} onClick={() => navigate(q.to)}
+              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[11px] font-semibold transition-colors ${q.cls}`}>
+              <Icon name={q.icon} className="w-4 h-4"/>{q.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5 page-enter-delay-1">
-        <StatCard label="Active Projects" value={activeCount}    sub="across your teams" icon={FolderIcon} color="blue"  />
-        <StatCard label="Completed Tasks" value={completedTasks} sub="this sprint"       icon={CheckIcon}  color="green" trend={12} />
-        <StatCard label="Pending Tasks"   value={pendingTasks}   sub="awaiting action"   icon={ClockIcon}  color="amber" />
-        <StatCard label="Delayed Tasks"   value={delayedTasks}   sub="need intervention" icon={WarnIcon}   color="red"   trend={-3} />
+        <StatCard label="Active Projects" value={pLoading?"…":activeProjects}     sub="you manage"        icon={FI} color="blue"   />
+        <StatCard label="Completed Tasks" value={tLoading?"…":stats.completed}    sub="this sprint"       icon={CI} color="green"  />
+        <StatCard label="In Progress"     value={tLoading?"…":stats.inProgress}   sub="currently active"  icon={LI} color="amber"  />
+        <StatCard label="Overdue"         value={tLoading?"…":stats.overdue}      sub="need attention"    icon={WI} color={stats.overdue>0?"red":"slate"} />
       </div>
 
-      {/* AI Report banner */}
-      <div className="mb-5 page-enter-delay-1">
-        <AIReportCard report={report} />
-      </div>
-
-      {/* Main 3-col grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 page-enter-delay-2">
-        {/* Left: project health */}
-        <div className="lg:col-span-2 flex flex-col gap-5">
-          <ProjectHealthList projects={projects} />
-          <RiskAlertWidget risks={risks} />
+      {/* Projects list */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-5 page-enter-delay-2">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-bold text-slate-700">My Projects</h3>
+          <button onClick={() => navigate("/manager/tasks")} className="text-xs text-blue-600 font-semibold hover:text-blue-800">Manage Tasks →</button>
         </div>
 
-        {/* Right column */}
-        <div className="flex flex-col gap-5">
-          <TeamOverview workloads={workloads} />
-          <DeadlineTimeline deadlines={deadlines} />
-        </div>
+        {pLoading ? (
+          [...Array(3)].map((_,i) => <div key={i} className="h-16 bg-slate-50 rounded-xl animate-pulse mb-3"/>)
+        ) : projects.length === 0 ? (
+          <div className="text-center py-10">
+            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <Icon name="folder" className="w-6 h-6 text-slate-300"/>
+            </div>
+            <p className="text-sm font-semibold text-slate-500">No projects yet</p>
+            <p className="text-xs text-slate-400 mt-1">Your Admin hasn't assigned you as manager on any project.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {projects.map(p => {
+              const s   = S_CFG[p.status] ?? S_CFG.active;
+              const prog = p.progressPercentage ?? 0;
+              return (
+                <div key={p._id} className="flex items-center gap-4 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => navigate("/manager/tasks")}>
+                  <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
+                    <Icon name="folder" className="w-4 h-4 text-blue-600"/>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{p.title}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${s.bar}`} style={{width:`${prog}%`}}/>
+                      </div>
+                      <span className="text-xs font-bold text-slate-500 shrink-0">{prog}%</span>
+                    </div>
+                  </div>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shrink-0 ${s.badge}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`}/>{p.status}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* Recent tasks */}
+      {firstId && (
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 page-enter-delay-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-slate-700">Recent Tasks — {projects[0]?.title}</h3>
+            <button onClick={() => navigate("/manager/tasks")} className="text-xs text-blue-600 font-semibold hover:text-blue-800">View all →</button>
+          </div>
+          {tLoading ? (
+            [...Array(3)].map((_,i) => <div key={i} className="h-12 bg-slate-50 rounded-xl animate-pulse mb-2"/>)
+          ) : tasks.length === 0 ? (
+            <div className="text-center py-6">
+              <p className="text-sm text-slate-400">No tasks yet. Go to Task Management to create the first task.</p>
+              <button onClick={() => navigate("/manager/tasks")} className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-800">Create Task →</button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {tasks.slice(0,6).map(t => {
+                const sc = {"pending":"bg-slate-100 text-slate-600","in-progress":"bg-blue-50 text-blue-700","completed":"bg-emerald-50 text-emerald-700"};
+                return (
+                  <div key={t._id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+                    <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center shrink-0">
+                      <Icon name="task" className="w-4 h-4 text-slate-400"/>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-700 truncate">{t.title}</p>
+                      <p className="text-[10px] text-slate-400">{t.assignedTo?.name ?? "Unassigned"}</p>
+                    </div>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg ${sc[t.status]??sc.pending}`}>
+                      {t.status}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </DashboardLayout>
   );
 }
-
-const getGreeting = () => {
-  const h = new Date().getHours();
-  if (h < 12) return "morning";
-  if (h < 17) return "afternoon";
-  return "evening";
-};
