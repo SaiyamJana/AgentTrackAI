@@ -10,6 +10,7 @@ import AdminProjectsPage   from "./pages/admin/AdminProjectsPage";
 import AdminEmployeesPage  from "./pages/admin/AdminEmployeesPage";
 import ManagerDashboard    from "./pages/manager/ManagerDashboard";
 import TasksPage           from "./pages/manager/TasksPage";
+import ReportsPage         from "./pages/manager/ReportsPage";
 import EmployeeDashboard   from "./pages/employee/EmployeeDashboard";
 import MyTasksPage         from "./pages/employee/MyTasksPage";
 import ProjectsPage        from "./pages/employee/ProjectsPage";
@@ -59,7 +60,7 @@ function AppRoutes() {
       {/* Manager-style pages — employee with projectRole=manager accesses these */}
       <Route path="/manager/dashboard" element={<EmployeeGuard><ManagerDashboard /></EmployeeGuard>} />
       <Route path="/manager/tasks"     element={<EmployeeGuard><TasksPage /></EmployeeGuard>} />
-      <Route path="/manager/reports"   element={<EmployeeGuard><Placeholder title="Reports" /></EmployeeGuard>} />
+      <Route path="/manager/reports"   element={<EmployeeGuard><ReportsPage /></EmployeeGuard>} />
       <Route path="/manager/risks"     element={<EmployeeGuard><Placeholder title="Risk Alerts" /></EmployeeGuard>} />
       <Route path="/manager/workload"  element={<EmployeeGuard><Placeholder title="Workload Analysis" /></EmployeeGuard>} />
       <Route path="/manager/chatbot"   element={<EmployeeGuard><Placeholder title="AI Chatbot" /></EmployeeGuard>} />

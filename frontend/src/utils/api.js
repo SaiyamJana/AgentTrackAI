@@ -133,6 +133,21 @@ export const taskAPI = {
   delete:  (id)        => request("DELETE", `/tasks/${id}`),
 };
 
+// ── Reports ───────────────────────────────────────────────────────────────────
+export const reportAPI = {
+  // GET /reports?projectId=&reportType=
+  list: (params = {}) => {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v))
+    ).toString();
+    return request("GET", `/reports${qs ? `?${qs}` : ""}`);
+  },
+  getById:  (id)   => request("GET",  `/reports/${id}`),
+  // POST /reports/generate — { projectId, reportType: "daily"|"weekly"|"project-summary" }
+  generate: (body) => request("POST", "/reports/generate", body),
+  delete:   (id)   => request("DELETE", `/reports/${id}`),
+};
+
 // ── Role redirect ─────────────────────────────────────────────────────────────
 export const getRoleDashboard = (role) =>
   role === "admin" ? "/admin/dashboard" : "/employee/dashboard";

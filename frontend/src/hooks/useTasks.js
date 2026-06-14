@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { taskAPI, projectAPI, memberAPI, userAPI } from "../utils/api";
+import { taskAPI, projectAPI, memberAPI, userAPI, reportAPI } from "../utils/api";
 
 // ── useTaskList — manager/sub-manager list with full CRUD ─────────────────────
 export function useTaskList(filters = {}) {
@@ -270,4 +270,42 @@ export function useEmployeeProjects(employeeId) {
   }, [employeeId]);
 
   return { assignments, loading };
+}
+
+// ── useReports — AI-generated reports for a project ───────────────────────────
+export function useReports(projectId, reportType = "") {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+  const [generating, setGenerating] = useState(false);
+
+  const fetch_ = useCallback(async () => {
+    if (!projectId) { setReports([]); setLoading(false); return; }
+    setLoading(true); setError(null);
+    try {
+      const res = await reportAPI.list(reportType ? { projectId, reportType } : { projectId });
+      setReports(res.data ?? []);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [projectId, reportType]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  const generateReport = async (type) => {
+    setGenerating(true);
+    try {
+      const res = await reportAPI.generate({ projectId, reportType: type });
+      await fetch_();
+      return res.data;
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const deleteReport = async (id) => {
+    await reportAPI.delete(id);
+    setReports(prev => prev.filter(r => r._id !== id));
+  };
+
+  return { reports, loading, error, generating, refetch: fetch_, generateReport, deleteReport };
 }

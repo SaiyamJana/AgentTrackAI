@@ -160,3 +160,15 @@ Cloned the project repository to local system.
 5)  Updated hooks and integrated Admin Employee Management page into routing.
 6)  Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
 7)  Verified complete workflow functionality and fixed integration issues.
+
+# Day12 : (13/6/26)
+# Member1 : (2023CSB037)
+1) Started working on Reporting Agent : 
+- Added reports management page for manager 
+- added the report api endpoint from backend
+- edited the report schema for for information (title , generatedAt etc)
+- coded the routes for router from manager user
+- created the gemini api key and added it in .env file
+- coded the prompt generation for gemini model
+- coded a emergency fallback function (if gemini model fails)
+- wrap up the reporting Agent and tested it
