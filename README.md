@@ -185,3 +185,8 @@ Cloned the project repository to local system.
 - Added dashboard , edited sidebar (including analytics tab)
 7) Fixed analytics mounting issue
 8) Tried to fix react rendering issue
+
+# Day14 : (15/6/26)
+1) Analyzed the react dom and recharts version for import
+2) Fix the react rendering issue
+3) Analyzed the folder structure package.json causing the react rendering issue
