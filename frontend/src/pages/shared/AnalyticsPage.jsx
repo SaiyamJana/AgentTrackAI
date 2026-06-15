@@ -107,7 +107,7 @@ const ProductivityTrend = ({ trend }) => {
         <div className="h-64 flex items-center justify-center">
           <p className="text-xs text-slate-400">No task activity recorded in this period.</p>
         </div>
-      ) : (
+      ): (
         <ResponsiveContainer width="100%" height={260}>
           <AreaChart data={trend} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
             <defs>
@@ -129,7 +129,8 @@ const ProductivityTrend = ({ trend }) => {
             <Area type="monotone" dataKey="completed" name="Completed" stroke="#10b981" strokeWidth={2} fill="url(#completedGrad)" />
           </AreaChart>
         </ResponsiveContainer>
-      )}
+      )
+      }
       <div className="flex items-center gap-5 mt-2 pl-1">
         <span className="flex items-center gap-1.5 text-xs text-slate-500"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" />Created</span>
         <span className="flex items-center gap-1.5 text-xs text-slate-500"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />Completed</span>
@@ -238,7 +239,7 @@ const TeamComparison = ({ members }) => {
 
       {/* Member detail table */}
       <div className="mt-5 -mx-1 overflow-x-auto">
-        <table className="w-full text-xs min-w-[480px]">
+        <table className="w-full text-xs min-w-120">
           <thead>
             <tr className="text-left text-slate-400 border-b border-slate-100">
               <th className="font-semibold px-2 py-2">Member</th>

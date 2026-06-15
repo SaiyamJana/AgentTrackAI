@@ -12,25 +12,8 @@ const request = async (method, path, body) => {
     headers: authHeaders(),
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
-
-  const text = await res.text();
-
-  console.log("REQUEST URL:", `${BASE}${path}`);
-  console.log("STATUS:", res.status);
-  console.log("RESPONSE:", text);
-
-  let data = {};
-
-  try {
-    data = text ? JSON.parse(text) : {};
-  } catch {
-    throw new Error(`Server returned non-JSON response:\n${text}`);
-  }
-
-  if (!res.ok) {
-    throw new Error(data.message || `HTTP ${res.status}`);
-  }
-
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Request failed");
   return data;
 };
 
