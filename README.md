@@ -205,3 +205,4 @@ Cloned the project repository to local system.
 3) fix the api.js for react rendering issue
 4) Analyzed the recharts issue faced during bug fixing of statcards
 5) Tested all the options (1d/7d/30d/90d/overall/custom) and collected correct results
+6) distributed and analyzed the work for activityLogs and workload Management Agent
