@@ -190,3 +190,18 @@ Cloned the project repository to local system.
 1) Analyzed the react dom and recharts version for import
 2) Fix the react rendering issue
 3) Analyzed the folder structure package.json causing the react rendering issue
+
+# Day14 : (15/6/26)
+# Member1 : (2023CSB037)
+1) Tested notifications and risk alerts dashboards
+2) Analyzed and studied the various hits needed for notifications
+3) Analyzed the bug/issue needed to solve for analytics tab
+4) Trigger the duration hit for statcards in analytics dashboard
+
+# Day15 : (16/6/26)
+# Member1 : (2023CSB037)
+1) Changed the analytics dashboard featuring changes with respect to duration selected
+2) Changed the controller logic featuring correct computation
+3) fix the api.js for react rendering issue
+4) Analyzed the recharts issue faced during bug fixing of statcards
+5) Tested all the options (1d/7d/30d/90d/overall/custom) and collected correct results
