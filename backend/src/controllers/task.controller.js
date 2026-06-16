@@ -1,11 +1,11 @@
 import { Task }            from "../models/Task.js";
 import { Project }         from "../models/Project.js";
 import { EmployeeProject } from "../models/EmployeeProject.js";
+import { Notification }    from "../models/Notification.js";
 import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
 
-// Returns the caller's projectRole, or "admin" for admins, or null if not assigned
 async function getProjectRole(userId, userRole, projectId) {
   if (userRole === "admin") return "admin";
   const ep = await EmployeeProject.findOne({ projectId, employeeId: userId, isActive: true });
@@ -33,7 +33,6 @@ export const createTask = asyncHandler(async (req, res) => {
   const project = await Project.findById(projectId);
   if (!project) throw new ApiError(404, "Project not found");
 
-  // Assignee must be on this project
   const assigneeEP = await EmployeeProject.findOne({ projectId, employeeId: assignedTo, isActive: true });
   if (!assigneeEP) throw new ApiError(400, "Assigned employee is not on this project");
 
@@ -46,6 +45,17 @@ export const createTask = asyncHandler(async (req, res) => {
     title, description, priority, deadline, estimatedHours, tags,
     assignedTo,
     assignedBy: req.user._id,
+  });
+
+  // ── Notify the assigned employee ────────────────────────────────────
+  await Notification.create({
+    userId: assignedTo,
+    companyId: req.user.companyId,
+    type: "task_assigned",
+    title: "New Task Assigned",
+    message: `You've been assigned a new task: "${title}" on project "${project.title}".`,
+    relatedEntity: { type: "task", id: task._id },
+    read: false,
   });
 
   const populated = await Task.findById(task._id)
@@ -77,7 +87,6 @@ export const getTasksByProject = asyncHandler(async (req, res) => {
     .sort({ deadline: 1 })
     .lean();
 
-  // Return flat array — frontend reads res.data directly
   return res.status(200).json(new ApiResponse(200, tasks, "Tasks fetched"));
 });
 
@@ -145,11 +154,27 @@ export const updateTask = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Access denied");
 
   const { title, description, priority, deadline, estimatedHours, tags } = req.body;
+
+  const deadlineChanged = deadline && new Date(deadline).getTime() !== new Date(task.deadline).getTime();
+
   const updated = await Task.findByIdAndUpdate(
     req.params.id,
     { title, description, priority, deadline, estimatedHours, tags },
     { new: true, runValidators: true }
   ).populate("assignedTo","name email").populate("projectId","title");
+
+  // ── Notify the assignee if task details changed ─────────────────────
+  if (deadlineChanged) {
+    await Notification.create({
+      userId: task.assignedTo,
+      companyId: req.user.companyId,
+      type: "task_updated",
+      title: "Task Deadline Changed",
+      message: `Deadline for task "${updated.title}" has been updated.`,
+      relatedEntity: { type: "task", id: task._id },
+      read: false,
+    });
+  }
 
   return res.status(200).json(new ApiResponse(200, updated, "Task updated"));
 });
@@ -162,6 +187,17 @@ export const deleteTask = asyncHandler(async (req, res) => {
   const role = await getProjectRole(req.user._id, req.user.role, task.projectId);
   if (!["admin","manager","sub-manager"].includes(role))
     throw new ApiError(403, "Access denied");
+
+  // ── Notify the assignee about removal ───────────────────────────────
+  await Notification.create({
+    userId: task.assignedTo,
+    companyId: req.user.companyId,
+    type: "task_removed",
+    title: "Task Removed",
+    message: `Task "${task.title}" has been removed.`,
+    relatedEntity: { type: "task", id: task._id },
+    read: false,
+  });
 
   await Task.findByIdAndDelete(req.params.id);
   return res.status(200).json(new ApiResponse(200, {}, "Task deleted"));
@@ -177,10 +213,33 @@ export const updateTaskStatus = asyncHandler(async (req, res) => {
   if (task.assignedTo.toString() !== req.user._id.toString())
     throw new ApiError(403, "You can only update your own tasks");
 
+  const wasCompleted = task.status === "completed";
+
   task.status = status;
   if (status === "completed") task.completionPercentage = 100;
   await task.save();
   await recalcProgress(task.projectId);
+
+  // ── Notify assignedBy (manager/sub-manager) on completion ───────────
+  if (status === "completed" && !wasCompleted) {
+    const project = await Project.findById(task.projectId).lean();
+
+    const recipients = new Set();
+    recipients.add(task.assignedBy.toString());
+    if (project?.managerId) recipients.add(project.managerId.toString());
+
+    for (const userId of recipients) {
+      await Notification.create({
+        userId,
+        companyId: req.user.companyId,
+        type: "task_completed",
+        title: "Task Completed",
+        message: `Task "${task.title}" has been marked as completed by ${req.user.name}.`,
+        relatedEntity: { type: "task", id: task._id },
+        read: false,
+      });
+    }
+  }
 
   return res.status(200).json(new ApiResponse(200, task, "Status updated"));
 });

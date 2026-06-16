@@ -1,16 +1,12 @@
 import { Project }         from "../models/Project.js";
 import { EmployeeProject } from "../models/EmployeeProject.js";
+import { Notification }    from "../models/Notification.js";
 import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
 
 /*
  * POST /api/v1/projects  (Admin only)
- *
- * Admin creates a project. managerId is required at creation —
- * Admin must have already assigned (or will assign) one of the
- * registered employees as the manager.  We also create the
- * EmployeeProject record for the manager here atomically.
  */
 export const createProject = asyncHandler(async (req, res) => {
     const { title, description, managerId, priority, startDate, endDate, tags } = req.body;
@@ -22,7 +18,6 @@ export const createProject = asyncHandler(async (req, res) => {
         throw new ApiError(400, "endDate must be after startDate");
     }
 
-    // managerId must be a registered employee of this company
     const { User } = await import("../models/User.js");
     const manager = await User.findById(managerId);
     if (!manager || manager.role !== "employee") {
@@ -38,13 +33,23 @@ export const createProject = asyncHandler(async (req, res) => {
         managerId,
     });
 
-    // Create the EmployeeProject record for the manager
     await EmployeeProject.create({
         projectId:   project._id,
         employeeId:  managerId,
         companyId:   req.user.companyId,
         assignedBy:  req.user._id,
         projectRole: "manager",
+    });
+
+    // ── Notify the newly assigned manager ───────────────────────────────
+    await Notification.create({
+        userId: managerId,
+        companyId: req.user.companyId,
+        type: "project_assigned",
+        title: "Assigned as Project Manager",
+        message: `You've been assigned as manager of project "${project.title}".`,
+        relatedEntity: { type: "project", id: project._id },
+        read: false,
     });
 
     return res.status(201).json(new ApiResponse(201, project, "Project created successfully"));
@@ -56,7 +61,6 @@ export const getAllProjects = asyncHandler(async (req, res) => {
     let projectIds;
 
     if (req.user.role === "employee") {
-        // Employee acting as manager — find via EmployeeProject
         const managed = await EmployeeProject.find({
             employeeId:  req.user._id,
             projectRole: "manager",
@@ -121,7 +125,6 @@ export const updateProject = asyncHandler(async (req, res) => {
     if (!project) throw new ApiError(404, "Project not found");
 
     if (req.user.role === "employee") {
-        // Must be the project manager
         const isManager = await EmployeeProject.findOne({
             projectId:   req.params.id,
             employeeId:  req.user._id,
@@ -131,11 +134,52 @@ export const updateProject = asyncHandler(async (req, res) => {
         if (!isManager) throw new ApiError(403, "Only the project manager can update project details");
     }
 
+    const previousStatus = project.status;
+
     const updated = await Project.findByIdAndUpdate(
         req.params.id,
         { title, description, priority, status, startDate, endDate, tags, progressPercentage },
         { new: true, runValidators: true }
     );
+
+    // ── Notify on status change ─────────────────────────────────────────
+    if (status && status !== previousStatus) {
+        const { Company } = await import("../models/Company.js");
+        const company = await Company.findById(req.user.companyId).lean();
+
+        const recipients = new Set();
+        recipients.add(updated.managerId.toString());
+        if (company?.adminId) recipients.add(company.adminId.toString());
+
+        for (const userId of recipients) {
+            await Notification.create({
+                userId,
+                companyId: req.user.companyId,
+                type: "project_status_changed",
+                title: "Project Status Updated",
+                message: `Project "${updated.title}" status changed from "${previousStatus}" to "${status}".`,
+                relatedEntity: { type: "project", id: updated._id },
+                read: false,
+            });
+        }
+    }
+
+    // ── Notify admin when project reaches 100% ──────────────────────────
+    if (progressPercentage === 100 && project.progressPercentage !== 100) {
+        const { Company } = await import("../models/Company.js");
+        const company = await Company.findById(req.user.companyId).lean();
+        if (company?.adminId) {
+            await Notification.create({
+                userId: company.adminId,
+                companyId: req.user.companyId,
+                type: "project_completed",
+                title: "Project Completed",
+                message: `Project "${updated.title}" has reached 100% completion.`,
+                relatedEntity: { type: "project", id: updated._id },
+                read: false,
+            });
+        }
+    }
 
     return res.status(200).json(new ApiResponse(200, updated, "Project updated successfully"));
 });
@@ -157,13 +201,11 @@ export const assignManager = asyncHandler(async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) throw new ApiError(404, "Project not found");
 
-    // Demote old manager to member
     await EmployeeProject.findOneAndUpdate(
         { projectId: req.params.id, projectRole: "manager", isActive: true },
         { projectRole: "member" }
     );
 
-    // Upsert new manager's assignment
     await EmployeeProject.findOneAndUpdate(
         { projectId: req.params.id, employeeId: managerId },
         { projectRole: "manager", isActive: true, assignedBy: req.user._id, assignedAt: new Date() },
@@ -175,6 +217,17 @@ export const assignManager = asyncHandler(async (req, res) => {
         { managerId },
         { new: true }
     );
+
+    // ── Notify the newly assigned manager ───────────────────────────────
+    await Notification.create({
+        userId: managerId,
+        companyId: req.user.companyId,
+        type: "manager_promoted",
+        title: "Assigned as Project Manager",
+        message: `You've been assigned as manager of project "${updated.title}".`,
+        relatedEntity: { type: "project", id: updated._id },
+        read: false,
+    });
 
     return res.status(200).json(new ApiResponse(200, updated, "Manager re-assigned successfully"));
 });

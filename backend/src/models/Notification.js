@@ -12,9 +12,13 @@ const notificationSchema = new Schema({
         required: true
     },
     type: {
-        type: String,
-        enum: ["risk_detected", "task_assigned", "task_completed", "project_assigned", "manager_promoted", "report_ready", "workload_alert"],
-        required: true
+    type: String,
+    enum: [
+      "risk_detected", "task_assigned", "task_updated", "task_completed", "task_removed",
+      "project_assigned", "project_removed", "manager_promoted", "role_changed",
+      "project_status_changed", "project_completed", "report_ready", "workload_alert"
+    ],
+    required: true
     },
     title: {
         type: String,
