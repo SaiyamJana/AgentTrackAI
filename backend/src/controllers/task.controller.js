@@ -2,6 +2,7 @@ import { Task }            from "../models/Task.js";
 import { Project }         from "../models/Project.js";
 import { EmployeeProject } from "../models/EmployeeProject.js";
 import { Notification }    from "../models/Notification.js";
+import { TaskAssignment }  from "../models/TaskAssignment.js";
 import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
@@ -19,10 +20,10 @@ async function isProjectManager(projectId , userId) {
 
 // POST /api/v1/tasks  (manager / sub-manager / admin)
 export const createTask = asyncHandler(async (req, res) => {
-  const { projectId, title, description, assignedTo, priority, deadline, estimatedHours, tags } = req.body;
+  const { projectId, title, description, subManagerId, priority, deadline, estimatedHours, tags } = req.body;
 
-  if (!projectId || !title || !assignedTo || !deadline)
-    throw new ApiError(400, "projectId, title, assignedTo, deadline are required");
+  if (!projectId || !title || !subManagerId || !deadline)
+    throw new ApiError(400, "projectId, title, subManagerId, deadline are required");
 
   //validity
   const project = await Project.findById(projectId);
@@ -379,7 +380,7 @@ export const getTaskById = asyncHandler(async (req, res) => {
 });
 
 export const getTaskMembers = asyncHandler(async (req , res) => {
-  const task = await Task.findById(req.params.id).populate("teamMembers", "name email");
+  const task = await Task.findById(req.params.id);
   if(!task){
     throw new ApiError(404 , "Task not found");
   }
@@ -460,8 +461,12 @@ export const updateTask = asyncHandler(async (req, res) => {
       "Only project manager can update task"
     );
   }
-}
+  }
 
+
+  const {
+    title , description , priority , deadline , estimatedHours , tags
+  } = req.body;
   const updates = {};
 
   if(title !== undefined) updates.title = title;
@@ -555,60 +560,185 @@ export const deleteTask = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, {}, "Task deleted"));
 });
 
-// PATCH /api/v1/tasks/:id/status  (assigned employee only)
-export const updateTaskStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body;
-  if (!status) throw new ApiError(400, "status is required");
+export const updateAssignmentProgress = asyncHandler(async (req , res) => {
+  const {completionPercentage , actualHours} = req.body;
 
-  const task = await Task.findById(req.params.id);
-  if (!task)   throw new ApiError(404, "Task not found");
-  if (task.assignedTo.toString() !== req.user._id.toString())
-    throw new ApiError(403, "You can only update your own tasks");
+  const taskId = req.params.id;
 
-  const wasCompleted = task.status === "completed";
-
-  task.status = status;
-  if (status === "completed") task.completionPercentage = 100;
-  await task.save();
-  await recalcProgress(task.projectId);
-
-  // ── Notify assignedBy (manager/sub-manager) on completion ───────────
-  if (status === "completed" && !wasCompleted) {
-    const project = await Project.findById(task.projectId).lean();
-
-    const recipients = new Set();
-    recipients.add(task.assignedBy.toString());
-    if (project?.managerId) recipients.add(project.managerId.toString());
-
-    for (const userId of recipients) {
-      await Notification.create({
-        userId,
-        companyId: req.user.companyId,
-        type: "task_completed",
-        title: "Task Completed",
-        message: `Task "${task.title}" has been marked as completed by ${req.user.name}.`,
-        relatedEntity: { type: "task", id: task._id },
-        read: false,
-      });
-    }
+  //check if task exists
+  const task = await Task.findById(taskId);
+  if(!task){
+    throw new ApiError(404 , "Task not found");
   }
 
-  return res.status(200).json(new ApiResponse(200, task, "Status updated"));
-});
+  //check if user is assigned to task
+  const assignment = await TaskAssignment.findOne({
+    taskId,
+    employeeId: req.user._id,
+  });
 
-// PATCH /api/v1/tasks/:id/progress  (assigned employee only)
-export const updateTaskProgress = asyncHandler(async (req, res) => {
-  const { actualHours, completionPercentage } = req.body;
+  if(!assignment){
+    throw new ApiError(403 , "You are not assigned to this task");
+  }
 
-  const task = await Task.findById(req.params.id);
-  if (!task)   throw new ApiError(404, "Task not found");
-  if (task.assignedTo.toString() !== req.user._id.toString())
-    throw new ApiError(403, "You can only update your own tasks");
+  //input validation
+  if(completionPercentage !== undefined){
+    if(typeof completionPercentage !== "number" || completionPercentage < 0 || completionPercentage > 100){
+      throw new ApiError(400 , "completionPercentage must be a number between 0 and 100");
+    }
+    assignment.completionPercentage = completionPercentage;
+  }
 
-  if (actualHours          !== undefined) task.actualHours          = actualHours;
-  if (completionPercentage !== undefined) task.completionPercentage = completionPercentage;
+  if(actualHours !== undefined){
+    if(typeof actualHours !== "number" || actualHours < 0){
+      throw new ApiError(400 , "actualHours must be a non-negative number");
+    }
+    assignment.actualHours = actualHours;
+  }
+
+  //auto status update based on completion percentage
+  if(assignment.completionPercentage === 100){
+    assignment.status = "completed";
+  }else if(assignment.completionPercentage > 0){
+    assignment.status = "in-progress";
+  }else{
+    assignment.status = "pending";
+  }
+
+  await assignment.save();
+
+  //recalculate overall task progress
+  const allAssignments = await TaskAssignment.find({ taskId });
+
+  const totalCompletion = allAssignments.reduce((sum, a) => sum + (a.completionPercentage || 0), 0);
+  const overallProgress = allAssignments.length ? totalCompletion / allAssignments.length : 0;
+
+  const totalActualHours = allAssignments.reduce((sum, a) => sum + (a.actualHours || 0), 0);
+
+  const previousTaskStatus = task.status;
+  task.completionPercentage = Math.round(overallProgress);
+  task.actualHours = totalActualHours;
+
+  if(overallProgress === 100){
+    task.status = "completed";
+  }
+  else if(overallProgress > 0){
+    task.status = "in-progress";
+  }
+  else{
+    task.status = "pending";
+  }
+
   await task.save();
-  await recalcProgress(task.projectId);
 
-  return res.status(200).json(new ApiResponse(200, task, "Progress updated"));
+  //due to task progress change , project progress might also change — we can trigger a project progress recalculation here if needed (not implemented in this snippet)
+
+  const projectTasks = await Task.find({ projectId: task.projectId });
+
+  const totalProjectProgress = projectTasks.reduce((sum, t) => sum + (t.completionPercentage || 0), 0);
+
+  const overallProjectProgress = projectTasks.length ? totalProjectProgress / projectTasks.length : 0;
+
+
+  const project = await Project.findById(task.projectId);
+
+  const previousProjectProgress = project.progressPercentage;
+
+  project.progressPercentage = Math.round(overallProjectProgress);
+
+  await project.save();
+  // ── Notify the project manager about the project progress update ─────────────────────────────
+  // Notify the task sub-manager about the task progress update
+
+  const notifications = [];
+
+  if(task.subManagerId.toString() !== req.user._id.toString()){
+
+  notifications.push(
+    Notification.create({
+      userId: task.subManagerId,
+      companyId: req.user.companyId,
+      type: "task_progress_updated",
+      title: "Task Progress Updated",
+      message: `${req.user.name} updated progress on "${task.title}" to ${assignment.completionPercentage}%`,
+      relatedEntity: {
+        type: "task",
+        id: task._id,
+      },
+      read: false,
+    })
+  );
+  }
+
+  //project manager
+
+  if(project.managerId.toString() !== req.user._id.toString()){
+
+  notifications.push(
+    Notification.create({
+      userId: project.managerId,
+      companyId: req.user.companyId,
+      type: "task_progress_updated",
+      title: "Task Progress Updated",
+      message: `${req.user.name} updated progress on "${task.title}" to ${assignment.completionPercentage}%`,
+      relatedEntity: {
+        type: "task",
+        id: task._id,
+      },
+      read: false,
+    })
+  );
+  }
+
+  //status change notifications : 
+
+  if(previousTaskStatus !== "completed" && task.status === "completed"){
+
+  notifications.push(
+    Notification.create({
+      userId: project.managerId,
+      companyId: req.user.companyId,
+      type: "task_completed",
+      title: "Task Completed",
+      message: `Task "${task.title}" has been completed.`,
+      relatedEntity: {
+        type: "task",
+        id: task._id,
+      },
+      read: false,
+    })
+  );
+  }
+
+  if(previousProjectProgress <100 && overallProjectProgress === 100){
+
+  notifications.push(
+    Notification.create({
+      userId: project.managerId,
+      companyId: req.user.companyId,
+      type: "project_completed",
+      title: "Project Completed",
+      message: `Project "${project.title}" has been completed.`,
+      relatedEntity: {
+        type: "project",
+        id: project._id,
+      },
+      read: false,
+    })
+  );
+  }
+
+  await Promise.all(notifications);
+
+  return res.status(200).json(
+  new ApiResponse(
+    200,
+    {
+      assignment,
+      taskProgress: task.completionPercentage,
+      projectProgress: Math.round(overallProjectProgress),
+    },
+    "Progress updated"
+  )
+);
 });
