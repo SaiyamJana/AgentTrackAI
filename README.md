@@ -199,7 +199,31 @@ Cloned the project repository to local system.
 8) Tried to fix react rendering issue
 
 # Day14 : (15/6/26)
+# Member1 : (2023CSB037)
 1) Analyzed the react dom and recharts version for import
 2) Fix the react rendering issue
 3) Analyzed the folder structure package.json causing the react rendering issue
+1) Tested notifications and risk alerts dashboards
+2) Analyzed and studied the various hits needed for notifications
+3) Analyzed the bug/issue needed to solve for analytics tab
+4) Trigger the duration hit for statcards in analytics dashboard
 
+# Day15 : (16/6/26)
+# Member1 : (2023CSB037)
+1) Changed the analytics dashboard featuring changes with respect to duration selected
+2) Changed the controller logic featuring correct computation
+3) fix the api.js for react rendering issue
+4) Analyzed the recharts issue faced during bug fixing of statcards
+5) Tested all the options (1d/7d/30d/90d/overall/custom) and collected correct results
+6) distributed and analyzed the work for activityLogs and workload Management Agent
+7) Identified the sub - manager bug and controller system of manager and sub-manager relations (respect to tasks)
+- started to fix the issue 
+- changed the schema structure supporting task and sub-manager relations
+
+# Day16 : (17/6/26)
+# Member1 : (2023CSB037)
+1) Changed files : 
+- task.model.js (changed task->1 employee relation to task->many employee relation)
+- taskAssignment.js (new file for employee progress under that task)
+- EmployeeProject.js (changed the content since sub-manager is not related with project)
+- task.routes.js (new and changed api endpoints)
