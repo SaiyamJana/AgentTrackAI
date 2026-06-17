@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AdminGuard, EmployeeGuard, AnyAuthGuard } from "./components/auth/ProtectedRoute";
+import NotificationsPage from "./pages/employee/NotificationsPage";
+import RisksPage from "./pages/manager/RisksPage";
 
 import LoginPage           from "./pages/auth/LoginPage";
 import RegisterPage        from "./pages/auth/RegisterPage";
@@ -56,18 +58,19 @@ function AppRoutes() {
       <Route path="/admin/projects"  element={<AdminGuard><AdminProjectsPage /></AdminGuard>} />
       <Route path="/admin/employees" element={<AdminGuard><AdminEmployeesPage /></AdminGuard>} />
       <Route path="/admin/settings"  element={<AdminGuard><Placeholder title="System Settings" /></AdminGuard>} />
+      <Route path="/admin/risks"     element={<AdminGuard><RisksPage /></AdminGuard>} />
 
       {/* ── Employee (includes project-managers) ── */}
       <Route path="/employee/dashboard"     element={<EmployeeGuard><EmployeeDashboard /></EmployeeGuard>} />
       <Route path="/employee/tasks"         element={<EmployeeGuard><MyTasksPage /></EmployeeGuard>} />
       <Route path="/employee/projects"      element={<EmployeeGuard><ProjectsPage /></EmployeeGuard>} />
-      <Route path="/employee/notifications" element={<EmployeeGuard><Placeholder title="Notifications" /></EmployeeGuard>} />
+      <Route path="/employee/notifications" element={<EmployeeGuard><NotificationsPage /></EmployeeGuard>} />
 
       {/* Manager-style pages — employee with projectRole=manager accesses these */}
       <Route path="/manager/dashboard" element={<EmployeeGuard><ManagerDashboard /></EmployeeGuard>} />
       <Route path="/manager/tasks"     element={<EmployeeGuard><TasksPage /></EmployeeGuard>} />
       <Route path="/manager/reports"   element={<EmployeeGuard><ReportsPage /></EmployeeGuard>} />
-      <Route path="/manager/risks"     element={<EmployeeGuard><Placeholder title="Risk Alerts" /></EmployeeGuard>} />
+      <Route path="/manager/risks"     element={<EmployeeGuard><RisksPage /></EmployeeGuard>} />
       <Route path="/manager/workload"  element={<EmployeeGuard><Placeholder title="Workload Analysis" /></EmployeeGuard>} />
       <Route path="/manager/chatbot"   element={<EmployeeGuard><Placeholder title="AI Chatbot" /></EmployeeGuard>} />
 

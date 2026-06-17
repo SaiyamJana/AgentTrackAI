@@ -169,3 +169,26 @@ export const analyticsAPI = {
 // ── Role redirect ─────────────────────────────────────────────────────────────
 export const getRoleDashboard = (role) =>
   role === "admin" ? "/admin/dashboard" : "/employee/dashboard";
+
+// ── Notifications ──────────────────────────────────────────────────────────
+export const notificationAPI = {
+  list:        (params = {}) => {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== ""))
+    ).toString();
+    return request("GET", `/notifications${qs ? `?${qs}` : ""}`);
+  },
+  markAsRead:  (id) => request("PATCH", `/notifications/${id}/read`),
+  markAllRead: ()   => request("PATCH", `/notifications/read-all`),
+};
+
+// ── Risks ──────────────────────────────────────────────────────────────────
+export const riskAPI = {
+  list:    (params = {}) => {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== ""))
+    ).toString();
+    return request("GET", `/risks${qs ? `?${qs}` : ""}`);
+  },
+  resolve: (id) => request("PATCH", `/risks/${id}/resolve`),
+};

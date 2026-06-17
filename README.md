@@ -161,6 +161,7 @@ Cloned the project repository to local system.
 6)  Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
 7)  Verified complete workflow functionality and fixed integration issues.
 
+
 # Day12 : (13/6/26)
 # Member1 : (2023CSB037)
 1) Started working on Reporting Agent : 
@@ -172,6 +173,17 @@ Cloned the project repository to local system.
 - coded the prompt generation for gemini model
 - coded a emergency fallback function (if gemini model fails)
 - wrap up the reporting Agent and tested it
+
+# Member2 : (2023CSB115)
+1) Built Risk Agent — rule-based, cron-scheduled, no LLM
+2) Created Risk.js and Notification.js models
+3) Detects overdue tasks and delayed projects automatically
+4) Auto-creates risks + notifications for employee, manager, admin
+5) Built /api/v1/risks and /api/v1/notifications APIs
+6) Wired hourly cron job in server.js
+7) Built live notification bell dropdown + Notifications page
+8) Built Active Risks page (/admin/risks, /manager/risks) with resolve toggle
+9) Verified full pipeline end-to-end — fully automatic 
 
 # Day13 : (14/6/26)
 # Member1 : (2023CSB037)
@@ -187,12 +199,10 @@ Cloned the project repository to local system.
 8) Tried to fix react rendering issue
 
 # Day14 : (15/6/26)
+# Member1 : (2023CSB037)
 1) Analyzed the react dom and recharts version for import
 2) Fix the react rendering issue
 3) Analyzed the folder structure package.json causing the react rendering issue
-
-# Day14 : (15/6/26)
-# Member1 : (2023CSB037)
 1) Tested notifications and risk alerts dashboards
 2) Analyzed and studied the various hits needed for notifications
 3) Analyzed the bug/issue needed to solve for analytics tab
@@ -206,3 +216,14 @@ Cloned the project repository to local system.
 4) Analyzed the recharts issue faced during bug fixing of statcards
 5) Tested all the options (1d/7d/30d/90d/overall/custom) and collected correct results
 6) distributed and analyzed the work for activityLogs and workload Management Agent
+7) Identified the sub - manager bug and controller system of manager and sub-manager relations (respect to tasks)
+- started to fix the issue 
+- changed the schema structure supporting task and sub-manager relations
+
+# Day16 : (17/6/26)
+# Member1 : (2023CSB037)
+1) Changed files : 
+- task.model.js (changed task->1 employee relation to task->many employee relation)
+- taskAssignment.js (new file for employee progress under that task)
+- EmployeeProject.js (changed the content since sub-manager is not related with project)
+- task.routes.js (new and changed api endpoints)

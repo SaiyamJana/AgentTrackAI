@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { taskAPI, projectAPI, memberAPI, userAPI, reportAPI, analyticsAPI } from "../utils/api";
+import { taskAPI, projectAPI, memberAPI, userAPI, notificationAPI, riskAPI, reportAPI, analyticsAPI } from "../utils/api";
 
 // ── useTaskList — manager/sub-manager list with full CRUD ─────────────────────
 export function useTaskList(filters = {}) {
@@ -9,7 +9,6 @@ export function useTaskList(filters = {}) {
   const [stats,   setStats]   = useState({ total: 0, completed: 0, inProgress: 0, overdue: 0 });
 
   const fetch_ = useCallback(async () => {
-    // Need at minimum a projectId to fetch tasks
     if (!filters.projectId && Object.keys(filters).length === 0) {
       setTasks([]); setLoading(false); return;
     }
@@ -251,7 +250,6 @@ export function useEmployeeProjects(employeeId) {
     projectAPI.list()
       .then(async (res) => {
         const projects = res.data ?? [];
-        // For each project, check if this employee is a member
         const results = await Promise.all(
           projects.map(async (p) => {
             try {
@@ -270,6 +268,68 @@ export function useEmployeeProjects(employeeId) {
   }, [employeeId]);
 
   return { assignments, loading };
+}
+
+// ── useNotifications — bell icon dropdown ──────────────────────────────────
+export function useNotifications() {
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount,   setUnreadCount]   = useState(0);
+  const [loading,       setLoading]       = useState(true);
+
+  const fetch_ = useCallback(async () => {
+    try {
+      const res = await notificationAPI.list();
+      setNotifications(res.data?.notifications ?? []);
+      setUnreadCount(res.data?.unreadCount ?? 0);
+    } catch { /* silently ignore */ }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    fetch_();
+    const interval = setInterval(fetch_, 60000);
+    return () => clearInterval(interval);
+  }, [fetch_]);
+
+  const markAsRead = async (id) => {
+    await notificationAPI.markAsRead(id);
+    setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
+  const markAllRead = async () => {
+    await notificationAPI.markAllRead();
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+  };
+
+  return { notifications, unreadCount, loading, refetch: fetch_, markAsRead, markAllRead };
+}
+
+// ── useRisks — active/resolved risk alerts ──────────────────────────────────
+export function useRisks(filters = {}) {
+  const [risks,   setRisks]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  const fetch_ = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const res = await riskAPI.list(filters);
+      setRisks(res.data ?? []);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [JSON.stringify(filters)]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  const resolveRisk = async (id) => {
+    const res = await riskAPI.resolve(id);
+    setRisks(prev => prev.map(r => r._id === id ? { ...r, ...res.data } : r));
+    return res.data;
+  };
+
+  return { risks, loading, error, refetch: fetch_, resolveRisk };
 }
 
 // ── useReports — AI-generated reports for a project ───────────────────────────
@@ -311,7 +371,6 @@ export function useReports(projectId, reportType = "") {
 }
 
 // ── useAnalytics — personal productivity analytics ─────────────────────────────
-// params: { range: "1d"|"7d"|"30d"|"90d"|"all"|"custom", from, to }
 export function useAnalytics(params = {}) {
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
