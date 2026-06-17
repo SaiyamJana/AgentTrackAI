@@ -6,6 +6,7 @@ const adminLinks = [
   { to: "/admin/dashboard",  label: "Dashboard",          icon: "home"     },
   { to: "/admin/employees",  label: "Employees",          icon: "users"    },
   { to: "/admin/projects",   label: "Projects",           icon: "folder"   },
+  { to: "/analytics",        label: "Analytics",          icon: "chart"    },
   { to: "/admin/settings",   label: "Settings",           icon: "settings" },
 ];
 
@@ -15,6 +16,7 @@ const employeeLinks = [
   { to: "/employee/dashboard",     label: "My Dashboard",  icon: "home"  },
   { to: "/employee/tasks",         label: "My Tasks",      icon: "task"  },
   { to: "/employee/projects",      label: "My Projects",   icon: "folder"},
+  { to: "/analytics",              label: "Analytics",     icon: "chart" },
   { to: "/employee/notifications", label: "Notifications", icon: "bell"  },
 ];
 

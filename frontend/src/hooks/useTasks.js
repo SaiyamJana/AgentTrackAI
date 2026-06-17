@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { taskAPI, projectAPI, memberAPI, userAPI, notificationAPI, riskAPI } from "../utils/api";
+import { taskAPI, projectAPI, memberAPI, userAPI, notificationAPI, riskAPI, reportAPI, analyticsAPI } from "../utils/api";
+
 // ── useTaskList — manager/sub-manager list with full CRUD ─────────────────────
 export function useTaskList(filters = {}) {
   const [tasks,   setTasks]   = useState([]);
@@ -8,7 +9,6 @@ export function useTaskList(filters = {}) {
   const [stats,   setStats]   = useState({ total: 0, completed: 0, inProgress: 0, overdue: 0 });
 
   const fetch_ = useCallback(async () => {
-    // Need at minimum a projectId to fetch tasks
     if (!filters.projectId && Object.keys(filters).length === 0) {
       setTasks([]); setLoading(false); return;
     }
@@ -250,7 +250,6 @@ export function useEmployeeProjects(employeeId) {
     projectAPI.list()
       .then(async (res) => {
         const projects = res.data ?? [];
-        // For each project, check if this employee is a member
         const results = await Promise.all(
           projects.map(async (p) => {
             try {
@@ -288,7 +287,6 @@ export function useNotifications() {
 
   useEffect(() => {
     fetch_();
-    // Poll every 60 seconds
     const interval = setInterval(fetch_, 60000);
     return () => clearInterval(interval);
   }, [fetch_]);
@@ -332,4 +330,83 @@ export function useRisks(filters = {}) {
   };
 
   return { risks, loading, error, refetch: fetch_, resolveRisk };
+}
+
+// ── useReports — AI-generated reports for a project ───────────────────────────
+export function useReports(projectId, reportType = "") {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+  const [generating, setGenerating] = useState(false);
+
+  const fetch_ = useCallback(async () => {
+    if (!projectId) { setReports([]); setLoading(false); return; }
+    setLoading(true); setError(null);
+    try {
+      const res = await reportAPI.list(reportType ? { projectId, reportType } : { projectId });
+      setReports(res.data ?? []);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [projectId, reportType]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  const generateReport = async (type) => {
+    setGenerating(true);
+    try {
+      const res = await reportAPI.generate({ projectId, reportType: type });
+      await fetch_();
+      return res.data;
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const deleteReport = async (id) => {
+    await reportAPI.delete(id);
+    setReports(prev => prev.filter(r => r._id !== id));
+  };
+
+  return { reports, loading, error, generating, refetch: fetch_, generateReport, deleteReport };
+}
+
+// ── useAnalytics — personal productivity analytics ─────────────────────────────
+export function useAnalytics(params = {}) {
+  const [data,    setData]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  const fetch_ = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const res = await analyticsAPI.me(params);
+      setData(res.data);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [JSON.stringify(params)]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  return { data, loading, error, refetch: fetch_ };
+}
+
+// ── useProjectAnalytics — team/project analytics (manager/sub-manager/admin) ──
+export function useProjectAnalytics(projectId, params = {}) {
+  const [data,    setData]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  const fetch_ = useCallback(async () => {
+    if (!projectId) { setData(null); setLoading(false); return; }
+    setLoading(true); setError(null);
+    try {
+      const res = await analyticsAPI.project(projectId, params);
+      setData(res.data);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [projectId, JSON.stringify(params)]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  return { data, loading, error, refetch: fetch_ };
 }

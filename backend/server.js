@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import cron from "node-cron";
 import connectDB from "./src/db/index.js";
 import userRouter            from "./src/routes/user.routes.js";
@@ -10,9 +12,9 @@ import employeeProjectRouter from "./src/routes/employeeProject.routes.js";
 import taskRouter            from "./src/routes/task.routes.js";
 import riskRouter            from "./src/routes/risk.routes.js";
 import notificationRouter    from "./src/routes/notification.routes.js";
+import reportRouter          from "./src/routes/report.routes.js";
+import analyticsRouter       from "./src/routes/analytics.routes.js";
 import { runRiskAgent }      from "./src/agents/riskAgent.js";
-
-dotenv.config();
 
 const app = express();
 
@@ -28,6 +30,8 @@ app.use("/api/v1/projects/:id/employees", employeeProjectRouter);
 app.use("/api/v1/tasks", taskRouter);
 app.use("/api/v1/risks", riskRouter);
 app.use("/api/v1/notifications", notificationRouter);
+app.use("/api/v1/reports", reportRouter);
+app.use("/api/v1/analytics", analyticsRouter);
 
 app.get("/", (req, res) => res.send("AgentTrack AI — Server Running"));
 

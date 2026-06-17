@@ -1,5 +1,4 @@
 # DAY1 : (2/6/26):
-
 # Member1 : (2023CSB037)
 1) Github Repo Setup and inviting collaborators
 2) Initiaized frontend with ReactJS and TailwindCSS (Commit : Frontend Setup)
@@ -7,7 +6,6 @@
 
 # Member 2 : (2023CSB115)
 Cloned the project repository to local system.
-# Member 3 : 
 
 # DAY2 : (3/6/26)
 # Member 1 : (2023CSB037)
@@ -46,10 +44,10 @@ Cloned the project repository to local system.
 - Added JWT Access Token and Refresh Token generation
 - Built Register and Login authentication APIs
 
-  # Member 3 :(2023CSB030)
-  -Created Login page UI using React and Tailwind
-  -Created Signup page UI using React and Tailwind
-  -Organized frontend code structure with reusable components
+# Member 3 :(2023CSB030)
+-Created Login page UI using React and Tailwind
+-Created Signup page UI using React and Tailwind
+-Organized frontend code structure with reusable components
 - Pushed changes to authentication3 branch
 
 # Day4 : (5/6/26)
@@ -128,6 +126,12 @@ Cloned the project repository to local system.
 3) Fixed company controllers and user controllers
 4) Designed the users hierarchy on the website
 
+# Member2 : (2023CSB115)
+1) Debugged and tested the redesigned backend modules
+2) Fixed issues in the existing implementation and verified functionality
+3) Updated the authentication frontend (Login & Register pages) according to the new redesign structure
+4) Integrated frontend authentication changes with the updated backend flow
+
 # Day10 : (11/6/26)
 # Member1 : (2023CSB037)
 1) Redesigned all the pages for new design 
@@ -139,3 +143,50 @@ Cloned the project repository to local system.
 4) Building the comeplete flow and logic for projects an task management
 5) Backend logic and frontend design for projects and tasks
 6) Handled the logic for assigning manager for a project and sub manager for tasks
+
+
+# Day11 : (12/6/26)
+# Member1 : (2023CSB037)
+1) Tested the complete wrap up goal of flow between admin , manager , sub manager and employee for projects and tasks
+2) Decided the next goal for our roadmap , analyzed the different agents motive, workflow , flow across the application
+3) Learn about Google gemini api and how to integrate them with website
+4) Analyzed the reports feature for admin and manager and its structure across the system
+
+# Member2 : (2023CSB115)
+1)  Merged Member1's branch and synced local branch with latest updates.
+2)  Developed Admin → Employee Management functionality.
+3)  Implemented employee search, filtering, edit, and activate/deactivate features.
+4)  Added employee project assignment viewing functionality.
+5)  Updated hooks and integrated Admin Employee Management page into routing.
+6)  Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
+7)  Verified complete workflow functionality and fixed integration issues.
+
+# Day12 : (13/6/26)
+# Member1 : (2023CSB037)
+1) Started working on Reporting Agent : 
+- Added reports management page for manager 
+- added the report api endpoint from backend
+- edited the report schema for for information (title , generatedAt etc)
+- coded the routes for router from manager user
+- created the gemini api key and added it in .env file
+- coded the prompt generation for gemini model
+- coded a emergency fallback function (if gemini model fails)
+- wrap up the reporting Agent and tested it
+
+# Day13 : (14/6/26)
+# Member1 : (2023CSB037)
+1) Tried to solve the gemini model issue 
+2) Tested with different gemini models
+3) Studied the motive and role of analytics Agent
+4) Studied the charts (Javascript) to provide better understandability to users
+5) Added analytics dashboard for employee and manager
+6) Added analytics routes in backend accessed through frontend
+- Added controller , routes and edited api endpoint file
+- Added dashboard , edited sidebar (including analytics tab)
+7) Fixed analytics mounting issue
+8) Tried to fix react rendering issue
+
+# Day14 : (15/6/26)
+1) Analyzed the react dom and recharts version for import
+2) Fix the react rendering issue
+3) Analyzed the folder structure package.json causing the react rendering issue
