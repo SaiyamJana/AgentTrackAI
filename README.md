@@ -161,6 +161,7 @@ Cloned the project repository to local system.
 6)  Performed end-to-end testing of project assignment, employee management, task delegation, and task tracking workflows.
 7)  Verified complete workflow functionality and fixed integration issues.
 
+
 # Day12 : (13/6/26)
 # Member1 : (2023CSB037)
 1) Started working on Reporting Agent : 
@@ -172,6 +173,17 @@ Cloned the project repository to local system.
 - coded the prompt generation for gemini model
 - coded a emergency fallback function (if gemini model fails)
 - wrap up the reporting Agent and tested it
+
+# Member2 : (2023CSB115)
+1) Built Risk Agent — rule-based, cron-scheduled, no LLM
+2) Created Risk.js and Notification.js models
+3) Detects overdue tasks and delayed projects automatically
+4) Auto-creates risks + notifications for employee, manager, admin
+5) Built /api/v1/risks and /api/v1/notifications APIs
+6) Wired hourly cron job in server.js
+7) Built live notification bell dropdown + Notifications page
+8) Built Active Risks page (/admin/risks, /manager/risks) with resolve toggle
+9) Verified full pipeline end-to-end — fully automatic 
 
 # Day13 : (14/6/26)
 # Member1 : (2023CSB037)
@@ -190,3 +202,4 @@ Cloned the project repository to local system.
 1) Analyzed the react dom and recharts version for import
 2) Fix the react rendering issue
 3) Analyzed the folder structure package.json causing the react rendering issue
+
