@@ -20,11 +20,17 @@ const taskSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    assignedTo: {
+    subManagerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+    teamMembers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      }
+    ],
     assignedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -65,8 +71,8 @@ const taskSchema = new mongoose.Schema(
 );
 
 taskSchema.index({ projectId: 1, status: 1 });
-taskSchema.index({ assignedTo: 1, status: 1 });
+taskSchema.index({ subManagerId: 1, status: 1 });
+taskSchema.index({ companyId: 1, subManagerId: 1 });
 taskSchema.index({ deadline: 1, status: 1 });
-taskSchema.index({ companyId: 1, assignedTo: 1 });
 
 export const Task = mongoose.model("Task", taskSchema);
