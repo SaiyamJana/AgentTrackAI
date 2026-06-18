@@ -65,9 +65,17 @@ const scanOverdueTasks = async (companyId, now) => {
             : "Check in with the assigned employee on progress.";
 
         const recipients = new Set();
-        recipients.add(task.assignedTo.toString());
+
+        if(task.subManagerId)
+            recipients.add(task.subManagerId.toString());
+
+        for(const memberId of project.teamMembers || [])
+            recipients.add(memberId.toString());
+
         recipients.add(task.assignedBy.toString());
-        recipients.add(project.managerId.toString());
+
+        if(project.managerId)
+            recipients.add(project.managerId.toString());
 
         if (riskLevel === "critical") {
             const company = await Company.findById(task.companyId).lean();
@@ -123,7 +131,8 @@ const scanDelayedProjects = async (companyId, now) => {
             : "Check overall project progress and address any blockers.";
 
         const recipients = new Set();
-        recipients.add(project.managerId.toString());
+        if(project.managerId)
+            recipients.add(project.managerId.toString());
 
         if (riskLevel === "critical" || riskLevel === "high") {
             const company = await Company.findById(project.companyId).lean();
