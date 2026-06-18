@@ -79,11 +79,11 @@ export const generateReport = asyncHandler(async (req, res) => {
     throw new ApiError(400, "reportType must be one of: daily, weekly, project-summary");
 
   const role = await getProjectRole(req.user._id, req.user.role, projectId);
-  if (!["admin", "manager", "sub-manager"].includes(role))
-    throw new ApiError(403, "Only project manager, sub-manager, or admin can generate reports");
 
   const project = await Project.findById(projectId).lean();
   if (!project) throw new ApiError(404, "Project not found");
+
+  
 
   const { periodStart, periodEnd } = periodRange(reportType);
   const { metrics, periodTasks } = await computeMetrics(project, periodStart);

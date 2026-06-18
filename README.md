@@ -227,3 +227,9 @@ Cloned the project repository to local system.
 - taskAssignment.js (new file for employee progress under that task)
 - EmployeeProject.js (changed the content since sub-manager is not related with project)
 - task.routes.js (new and changed api endpoints)
+
+# Day17 : (18/6/26)
+# Member1 : (2023CSB037)
+1) Working on solving the issues
+- controllers : analytics , task , project , employeeProject , risk , reports , notifications
+- Handled the routes of re-written controllers

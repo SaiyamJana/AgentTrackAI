@@ -14,7 +14,8 @@ export const getRisks = asyncHandler(async (req, res) => {
 
     const filter = { companyId: req.user.companyId };
     if (projectId) filter.projectId = projectId;
-    filter.resolved = resolved === "true";
+    if(resolved === "true") filter.resolved = true;
+    else if(resolved === "false") filter.resolved = false;
 
     const risks = await Risk.find(filter)
         .populate("projectId", "title status")
@@ -53,6 +54,12 @@ export const resolveRisk = asyncHandler(async (req, res) => {
  * Useful for testing without waiting for the cron schedule.
  */
 export const triggerRiskScan = asyncHandler(async (req, res) => {
+    if(req.user.role !== "admin"){
+        throw new ApiError(
+        403,
+        "Only admin can trigger risk scans"
+        );
+    }
     const { runRiskAgent } = await import("../agents/riskAgent.js");
     const result = await runRiskAgent(req.user.companyId);
 

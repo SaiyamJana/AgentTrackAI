@@ -1,6 +1,7 @@
 import { Task }            from "../models/Task.js";
 import { Project }         from "../models/Project.js";
 import { EmployeeProject } from "../models/EmployeeProject.js";
+import { TaskAssignment }  from "../models/TaskAssignment.js";
 import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
@@ -14,7 +15,8 @@ function resolveRange(query, anchorDate) {
   const { range = "30d", from, to } = query;
   const now = new Date();
 
-  if (range === "custom" && from && to) {
+  if (range === "custom") {
+    if(!from || !to) throw new ApiError(400, "Custom range requires 'from' and 'to' query parameters");
     const start = new Date(from);
     const end   = new Date(to);
     // include the full "to" day
@@ -168,12 +170,16 @@ function computeTaskAnalytics(allTasks, { start, end }) {
 }
 
 // ── GET /api/v1/analytics/me?range=&from=&to= ──────────────────────────────
-// Personal analytics for the logged-in employee (also used by managers
-// to view their own personal stats).
 export const getMyAnalytics = asyncHandler(async (req, res) => {
   const { start, end, label } = resolveRange(req.query, req.user.createdAt);
 
-  const tasks = await Task.find({ assignedTo: req.user._id })
+  const assignments = await TaskAssignment.find({
+    employeeId: req.user._id,
+  }).select("taskId");
+
+  const taskIds = assignments.map(a => a.taskId);
+
+  const tasks = await Task.find({ _id : {$in: taskIds} })
     .select("status priority deadline completionPercentage estimatedHours actualHours createdAt updatedAt projectId")
     .populate("projectId", "title status progressPercentage")
     .lean();
@@ -207,7 +213,6 @@ export const getMyAnalytics = asyncHandler(async (req, res) => {
 });
 
 // ── GET /api/v1/analytics/project/:projectId?range=&from=&to= ──────────────
-// Team analytics for a project — manager / sub-manager / admin only.
 export const getProjectAnalytics = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
 
@@ -217,7 +222,7 @@ export const getProjectAnalytics = asyncHandler(async (req, res) => {
     const ep = await EmployeeProject.findOne({ projectId, employeeId: req.user._id, isActive: true });
     role = ep ? ep.projectRole : null;
   }
-  if (!["admin", "manager", "sub-manager"].includes(role))
+  if (!["admin", "manager"].includes(role))
     throw new ApiError(403, "Access denied");
 
   const project = await Project.findById(projectId).lean();
@@ -226,45 +231,59 @@ export const getProjectAnalytics = asyncHandler(async (req, res) => {
   const { start, end, label } = resolveRange(req.query, project.createdAt);
 
   const tasks = await Task.find({ projectId })
-    .select("status priority deadline completionPercentage estimatedHours actualHours createdAt updatedAt assignedTo")
-    .populate("assignedTo", "name email")
+    .select("status priority deadline completionPercentage estimatedHours actualHours createdAt updatedAt subManagerId teamMembers")
+    .populate("subManagerId", "name email")
+    .populate("teamMembers", "name email")
     .lean();
 
   const { windowTasks, summary, statusBreakdown, priorityBreakdown, trend } =
     computeTaskAnalytics(tasks, { start, end });
 
   // Per-member breakdown — scoped to windowTasks
+  const assignments = await TaskAssignment.find({
+    taskId: { $in: windowTasks.map(t => t._id) }
+  }).populate("employeeId", "name email").lean();
+
   const byMember = {};
-  const now = Date.now();
-  for (const t of windowTasks) {
-    const uid = t.assignedTo?._id?.toString() ?? "unknown";
-    if (!byMember[uid]) {
-      byMember[uid] = {
-        employeeId: uid,
-        name: t.assignedTo?.name ?? "Unknown",
-        total: 0, completed: 0, inProgress: 0, pending: 0, overdue: 0,
+  for(const assignment of assignments) {
+    const emp = assignment.employeeId;
+    if (!emp) continue;
+
+    const empId = emp._id.toString();
+
+    if(!byMember[empId]) {
+      byMember[empId] = {
+        employeeId: empId,
+        name: emp.name,
+        email: emp.email,
+        total: 0, completed: 0, inProgress: 0, 
+        pending: 0,
+        avgCompletion: 0,
         completionSum: 0,
       };
     }
-    const m = byMember[uid];
-    m.total++;
-    if (t.status === "completed")   m.completed++;
-    if (t.status === "in-progress") m.inProgress++;
-    if (t.status === "pending")     m.pending++;
-    if (t.status !== "completed" && new Date(t.deadline).getTime() < now) m.overdue++;
-    m.completionSum += t.completionPercentage ?? 0;
+
+    const member = byMember[empId];
+    member.total++;
+
+    if(assignment.status === "completed") member.completed++;
+    if(assignment.status === "in-progress") member.inProgress++;
+    if(assignment.status === "pending") member.pending++;
+
+    member.completionSum += assignment.completionPercentage ?? 0;
   }
 
-  const memberBreakdown = Object.values(byMember).map(m => ({
-    employeeId: m.employeeId,
-    name: m.name,
-    total: m.total,
-    completed: m.completed,
-    inProgress: m.inProgress,
-    pending: m.pending,
-    overdue: m.overdue,
-    avgCompletion: m.total > 0 ? Math.round(m.completionSum / m.total) : 0,
-  })).sort((a, b) => b.total - a.total);
+  const memberBreakdown = Object.values(byMember).map(member => ({
+    employeeId: member.employeeId,
+    name: member.name,
+    email: member.email,
+    total: member.total,
+    completed: member.completed,
+    inProgress: member.inProgress,
+    pending: member.pending,
+    avgCompletion: member.total > 0 ? Math.round(member.completionSum / member.total) : 0,
+  }))
+  .sort((a, b) => b.total - a.total);
 
   return res.status(200).json(new ApiResponse(200, {
     range: label,

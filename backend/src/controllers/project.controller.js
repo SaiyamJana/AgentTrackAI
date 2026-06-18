@@ -27,6 +27,14 @@ export const createProject = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Employee does not belong to your company");
     }
 
+    const existingProject = await Project.findOne({
+        companyId: req.user.companyId,
+    title
+    });
+
+    if (existingProject) {
+        throw new ApiError(400, "Project with this title already exists");
+    }
     const project = await Project.create({
         title, description, priority, startDate, endDate, tags,
         companyId: req.user.companyId,
@@ -121,6 +129,16 @@ export const getProjectById = asyncHandler(async (req, res) => {
 export const updateProject = asyncHandler(async (req, res) => {
     const { title, description, priority, status, startDate, endDate, tags, progressPercentage } = req.body;
 
+    const updates = {};
+    if (title)       updates.title = title;
+    if (description) updates.description = description;
+    if (priority)    updates.priority = priority;
+    if (status)      updates.status = status;
+    if (startDate)   updates.startDate = startDate;
+    if (endDate)     updates.endDate = endDate;
+    if (tags)       updates.tags = tags;
+    if (progressPercentage !== undefined) updates.progressPercentage = progressPercentage;
+
     const project = await Project.findById(req.params.id);
     if (!project) throw new ApiError(404, "Project not found");
 
@@ -136,15 +154,23 @@ export const updateProject = asyncHandler(async (req, res) => {
 
     const previousStatus = project.status;
 
+    //date check 
+    const newStartDate = startDate || project.startDate;
+    const newEndDate = endDate || project.endDate;
+
+    if(new Date(newEndDate) < new Date(newStartDate)){
+        throw new ApiError( 400, "endDate must be after startDate");
+    }   
+
     const updated = await Project.findByIdAndUpdate(
         req.params.id,
-        { title, description, priority, status, startDate, endDate, tags, progressPercentage },
+        updates,
         { new: true, runValidators: true }
     );
+    const { Company } = await import("../models/Company.js");
 
     // ── Notify on status change ─────────────────────────────────────────
     if (status && status !== previousStatus) {
-        const { Company } = await import("../models/Company.js");
         const company = await Company.findById(req.user.companyId).lean();
 
         const recipients = new Set();
@@ -166,7 +192,6 @@ export const updateProject = asyncHandler(async (req, res) => {
 
     // ── Notify admin when project reaches 100% ──────────────────────────
     if (progressPercentage === 100 && project.progressPercentage !== 100) {
-        const { Company } = await import("../models/Company.js");
         const company = await Company.findById(req.user.companyId).lean();
         if (company?.adminId) {
             await Notification.create({
