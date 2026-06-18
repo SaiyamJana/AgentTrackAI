@@ -198,6 +198,12 @@ Cloned the project repository to local system.
 7) Fixed analytics mounting issue
 8) Tried to fix react rendering issue
 
+# Member2 : (2023CSB115)
+- Built complete event-driven notification system — added Notification.create() calls across project, task, and employeeProject controllers
+- Extended notification triggers beyond risk alerts: project lifecycle, team assignment, task lifecycle events
+- Verified Gemini fallback mechanism — confirmed reports were using template-based fallback, diagnosed ACCESS_TOKEN_TYPE_UNSUPPORTED root cause (wrong API key format)
+- Tested Saiyam's analytics and reports pages end-to-end (charts, custom date ranges, report generation)
+
 # Day14 : (15/6/26)
 # Member1 : (2023CSB037)
 1) Analyzed the react dom and recharts version for import
@@ -207,6 +213,12 @@ Cloned the project repository to local system.
 2) Analyzed and studied the various hits needed for notifications
 3) Analyzed the bug/issue needed to solve for analytics tab
 4) Trigger the duration hit for statcards in analytics dashboard
+
+# Member2 : (2023CSB115)
+- Installed missing dependencies (recharts, @google/generative-ai, node-cron) to unblock both branches
+- Verified analytics dashboard across personal/team views with custom date ranges
+- Confirmed Reporting Agent fallback working correctly (template-based reports) while real Gemini key issue pending
+- Identified missing Manager-side UI for sub-manager promotion — flagged as a gap
 
 # Day15 : (16/6/26)
 # Member1 : (2023CSB037)
@@ -219,7 +231,13 @@ Cloned the project repository to local system.
 7) Identified the sub - manager bug and controller system of manager and sub-manager relations (respect to tasks)
 - started to fix the issue 
 - changed the schema structure supporting task and sub-manager relations
-
+  
+# Member2 : (2023CSB115)
+- Merged 2023CSB037 branch into 2023CSB115 — resolved conflicts in server.js, App.jsx, useTasks.js, package.json
+- Removed duplicate ProtectedRoute.jsx file found during merge
+- Smoke-tested merged app (dashboard, bell icon, risks page, reports page, analytics) — confirmed nothing broke
+- Updated Notification.js model's type enum to support new notification types added during merge
+  
 # Day16 : (17/6/26)
 # Member1 : (2023CSB037)
 1) Changed files : 
@@ -227,3 +245,10 @@ Cloned the project repository to local system.
 - taskAssignment.js (new file for employee progress under that task)
 - EmployeeProject.js (changed the content since sub-manager is not related with project)
 - task.routes.js (new and changed api endpoints)
+
+# Member2 : (2023CSB115)
+- Identified and confirmed sub-manager promotion bug with Saiyam — root cause traced to missing control system at project-role level
+- Reviewed new schema redesign on 2023CSB037: Task.js (single→multi-employee relation), TaskAssignment.js (per-employee progress tracking)
+- Reviewed rewritten controllers (task, project, employeeProject, analytics) against new schema
+- Flagged missing Task import bug in employeeProject.controller.js (removeEmployee would crash)
+- Updated Notification.js enum with new types (task_deleted, task_member_added, task_member_removed, task_progress_updated)
