@@ -5,6 +5,7 @@ import { Notification }    from "../models/Notification.js";
 import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
+import { Task } from "../models/Task.js";
 
 /*
  * POST /api/v1/projects/:id/employees  (Admin only)

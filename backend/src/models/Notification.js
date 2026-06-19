@@ -15,6 +15,7 @@ const notificationSchema = new Schema({
     type: String,
     enum: [
       "risk_detected", "task_assigned", "task_updated", "task_completed", "task_removed",
+      "task_deleted", "task_member_added", "task_member_removed", "task_progress_updated",
       "project_assigned", "project_removed", "manager_promoted", "role_changed",
       "project_status_changed", "project_completed", "report_ready", "workload_alert"
     ],
