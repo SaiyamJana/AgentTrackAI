@@ -34,8 +34,11 @@ async function computeMetrics(project, periodStart) {
   const filter = { projectId: project._id };
   if (periodStart) filter.updatedAt = { $gte: periodStart };
 
-  const allTasks    = await Task.find({ projectId: project._id }).lean();
-  const periodTasks = periodStart ? await Task.find(filter).lean() : allTasks;
+  const allTasks = await Task.find({
+    projectId: project._id
+  }).lean();
+
+  const periodTasks = periodStart ? allTasks.filter( t => new Date(t.updatedAt) >= periodStart) : allTasks;
 
   const now = Date.now();
   const totalTasks        = allTasks.length;
@@ -79,11 +82,26 @@ export const generateReport = asyncHandler(async (req, res) => {
     throw new ApiError(400, "reportType must be one of: daily, weekly, project-summary");
 
   const role = await getProjectRole(req.user._id, req.user.role, projectId);
-  if (!["admin", "manager", "sub-manager"].includes(role))
-    throw new ApiError(403, "Only project manager, sub-manager, or admin can generate reports");
 
   const project = await Project.findById(projectId).lean();
   if (!project) throw new ApiError(404, "Project not found");
+
+  //role check
+  let canGenerate = role === "admin" || role === "manager";
+
+  if(!canGenerate){
+    //if the user is a sub-manager
+    const managesAnyTask = await Task.exists({
+      projectId,
+      subManagerId: req.user._id,
+    });
+
+    canGenerate = !!managesAnyTask;
+  }
+
+  if(!canGenerate){
+    throw new ApiError(403, "Access denied: insufficient permissions to generate report for this project");
+  }
 
   const { periodStart, periodEnd } = periodRange(reportType);
   const { metrics, periodTasks } = await computeMetrics(project, periodStart);
@@ -128,8 +146,21 @@ export const getReports = asyncHandler(async (req, res) => {
   if (!projectId) throw new ApiError(400, "projectId query param is required");
 
   const role = await getProjectRole(req.user._id, req.user.role, projectId);
-  if (!["admin", "manager", "sub-manager"].includes(role))
-    throw new ApiError(403, "Access denied");
+  let hasAccess = role === "admin" || role === "manager";
+
+  if(!hasAccess){
+    //if the user is a sub-manager
+    const managesAnyTask = await Task.exists({
+      projectId,
+      subManagerId: req.user._id,
+    });
+
+    hasAccess = !!managesAnyTask;
+  }
+
+  if(!hasAccess){
+    throw new ApiError(403, "Access denied: insufficient permissions to view reports for this project");
+  }
 
   const filter = { projectId };
   if (reportType) filter.reportType = reportType;
@@ -151,9 +182,25 @@ export const getReportById = asyncHandler(async (req, res) => {
     .lean();
   if (!report) throw new ApiError(404, "Report not found");
 
-  const role = await getProjectRole(req.user._id, req.user.role, report.projectId?._id ?? report.projectId);
-  if (!["admin", "manager", "sub-manager"].includes(role))
-    throw new ApiError(403, "Access denied");
+  const projectId = report.projectId?._id || report.projectId;
+  
+  const role = await getProjectRole(req.user._id , req.user.role, projectId);
+
+  let hasAccess = role === "admin" || role === "manager";
+
+  if(!hasAccess){
+    //if the user is a sub-manager
+    const managesAnyTask = await Task.exists({
+      projectId,
+      subManagerId: req.user._id,
+    });
+
+    hasAccess = !!managesAnyTask;
+  }
+
+  if(!hasAccess){
+    throw new ApiError(403, "Access denied: insufficient permissions to view this report");
+  }
 
   return res.status(200).json(new ApiResponse(200, report, "Report fetched"));
 });
@@ -163,9 +210,23 @@ export const deleteReport = asyncHandler(async (req, res) => {
   const report = await Report.findById(req.params.id);
   if (!report) throw new ApiError(404, "Report not found");
 
-  const role = await getProjectRole(req.user._id, req.user.role, report.projectId);
-  if (!["admin", "manager", "sub-manager"].includes(role))
-    throw new ApiError(403, "Access denied");
+  const projectId = report.projectId?._id || report.projectId;
+  const role = await getProjectRole(req.user._id , req.user.role, projectId);
+  let hasAccess = role === "admin" || role === "manager";
+
+  if(!hasAccess){
+    //if the user is a sub-manager
+    const managesAnyTask = await Task.exists({
+      projectId,
+      subManagerId: req.user._id,
+    });
+
+    hasAccess = !!managesAnyTask;
+
+  }
+  if(!hasAccess){
+    throw new ApiError(403, "Access denied: insufficient permissions to delete this report");
+  }
 
   await Report.findByIdAndDelete(req.params.id);
   return res.status(200).json(new ApiResponse(200, {}, "Report deleted"));

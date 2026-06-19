@@ -266,6 +266,11 @@ Cloned the project repository to local system.
 - Updated Notification.js enum with new types (task_deleted, task_member_added, task_member_removed, task_progress_updated)
 
 # Day17 : (18/6/26)
+# Member1 : (2023CSB037)
+1) Working on solving the issues
+- controllers : analytics , task , project , employeeProject , risk , reports , notifications
+- Handled the routes of re-written controllers
+
 # Member2 : (2023CSB115)
 1) Updated task routes to match new controller (added member/assignment endpoints, removed stale ones)
 2) Removed obsolete sub-manager promotion route (now task-level, not project-level)

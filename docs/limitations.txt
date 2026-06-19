@@ -1,0 +1,1 @@
+1) If employee is alloted to a active Tasks , he cant be removed from project first , he needed to be removed from active tasks first

@@ -6,7 +6,6 @@ import mongoose from "mongoose";
  *
  * projectRole values:
  *   "manager"     — the employee Admin designated as project manager
- *   "sub-manager" — elevated by the project manager for a subset of tasks
  *   "member"      — regular contributor
  */
 const employeeProjectSchema = new mongoose.Schema(
@@ -18,7 +17,7 @@ const employeeProjectSchema = new mongoose.Schema(
 
     projectRole: {
       type: String,
-      enum: ["manager", "sub-manager", "member"],
+      enum: ["manager", "member"],
       default: "member",
     },
 
