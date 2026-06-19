@@ -74,6 +74,12 @@ Cloned the project repository to local system.
 3) Handled and changed frontend code (in branch task2) for handling with created task api endpoints
 4) Discuseed a critical issue with gpt and members about relations between manager , employee and admin
 
+# Member 2 : (2023CSB115)
+1) Reviewed task management backend logic and API endpoints built by Member1
+2) Tested task-related APIs across employee, admin, and manager roles using Postman
+3) Participated in discussion on the critical issue around manager-employee-admin relationship design
+4) Began studying alternative database design approaches to resolve the role hierarchy problem
+
 # Day6 : (7/6/26)
 # Member 1 : (2023CSB037)
 1) Created a pdf for completely new design for : 
@@ -144,7 +150,13 @@ Cloned the project repository to local system.
 5) Backend logic and frontend design for projects and tasks
 6) Handled the logic for assigning manager for a project and sub manager for tasks
 
-
+# Member2 : (2023CSB115)
+1) Built complete auth flow: LoginPage, RegisterPage (employee self-registration), RegisterCompanyPage (admin registration with company details)
+2) Fixed ProtectedRoute.jsx — removed non-existent "manager" role checks, created AdminGuard and EmployeeGuard
+3) Updated api.js with authAPI (login/registerEmployee/registerCompany)
+4) Wired all auth routes into App.jsx
+5) Tested complete auth flow end-to-end via UI
+   
 # Day11 : (12/6/26)
 # Member1 : (2023CSB037)
 1) Tested the complete wrap up goal of flow between admin , manager , sub manager and employee for projects and tasks
@@ -252,3 +264,11 @@ Cloned the project repository to local system.
 - Reviewed rewritten controllers (task, project, employeeProject, analytics) against new schema
 - Flagged missing Task import bug in employeeProject.controller.js (removeEmployee would crash)
 - Updated Notification.js enum with new types (task_deleted, task_member_added, task_member_removed, task_progress_updated)
+
+# Day17 : (18/6/26)
+# Member2 : (2023CSB115)
+1) Updated task routes to match new controller (added member/assignment endpoints, removed stale ones)
+2) Removed obsolete sub-manager promotion route (now task-level, not project-level)
+3) Updated Notification model with new notification types
+4) Verified server boots cleanly, all routes mounted correctly
+5) End-to-end tested new Task/TaskAssignment schema via Postman — all working
