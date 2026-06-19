@@ -693,40 +693,47 @@ export const updateAssignmentProgress = asyncHandler(async (req , res) => {
   //status change notifications : 
 
   if(previousTaskStatus !== "completed" && task.status === "completed"){
+  const completionRecipients = new Set();
+  completionRecipients.add(project.managerId.toString());
+  completionRecipients.add(task.subManagerId.toString());
 
-  notifications.push(
-    Notification.create({
-      userId: project.managerId,
-      companyId: req.user.companyId,
-      type: "task_completed",
-      title: "Task Completed",
-      message: `Task "${task.title}" has been completed.`,
-      relatedEntity: {
-        type: "task",
-        id: task._id,
-      },
-      read: false,
-    })
-  );
+  for (const userId of completionRecipients) {
+    notifications.push(
+      Notification.create({
+        userId,
+        companyId: req.user.companyId,
+        type: "task_completed",
+        title: "Task Completed",
+        message: `Task "${task.title}" has been completed.`,
+        relatedEntity: { type: "task", id: task._id },
+        read: false,
+      })
+    );
   }
+}
 
   if(previousProjectProgress <100 && overallProjectProgress === 100){
+  const { Company } = await import("../models/Company.js");
+  const company = await Company.findById(req.user.companyId).lean();
 
-  notifications.push(
-    Notification.create({
-      userId: project.managerId,
-      companyId: req.user.companyId,
-      type: "project_completed",
-      title: "Project Completed",
-      message: `Project "${project.title}" has been completed.`,
-      relatedEntity: {
-        type: "project",
-        id: project._id,
-      },
-      read: false,
-    })
-  );
+  const projectCompletionRecipients = new Set();
+  projectCompletionRecipients.add(project.managerId.toString());
+  if (company?.adminId) projectCompletionRecipients.add(company.adminId.toString());
+
+  for (const userId of projectCompletionRecipients) {
+    notifications.push(
+      Notification.create({
+        userId,
+        companyId: req.user.companyId,
+        type: "project_completed",
+        title: "Project Completed",
+        message: `Project "${project.title}" has been completed.`,
+        relatedEntity: { type: "project", id: project._id },
+        read: false,
+      })
+    );
   }
+}
 
   await Promise.all(notifications);
 

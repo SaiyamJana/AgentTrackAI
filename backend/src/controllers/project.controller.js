@@ -190,21 +190,26 @@ export const updateProject = asyncHandler(async (req, res) => {
         }
     }
 
-    // ── Notify admin when project reaches 100% ──────────────────────────
-    if (progressPercentage === 100 && project.progressPercentage !== 100) {
-        const company = await Company.findById(req.user.companyId).lean();
-        if (company?.adminId) {
-            await Notification.create({
-                userId: company.adminId,
-                companyId: req.user.companyId,
-                type: "project_completed",
-                title: "Project Completed",
-                message: `Project "${updated.title}" has reached 100% completion.`,
-                relatedEntity: { type: "project", id: updated._id },
-                read: false,
-            });
-        }
+    // ── Notify admin + manager when project reaches 100% ─────────────────
+if (progressPercentage === 100 && project.progressPercentage !== 100) {
+    const company = await Company.findById(req.user.companyId).lean();
+
+    const recipients = new Set();
+    if (company?.adminId) recipients.add(company.adminId.toString());
+    recipients.add(updated.managerId.toString());
+
+    for (const userId of recipients) {
+        await Notification.create({
+            userId,
+            companyId: req.user.companyId,
+            type: "project_completed",
+            title: "Project Completed",
+            message: `Project "${updated.title}" has reached 100% completion.`,
+            relatedEntity: { type: "project", id: updated._id },
+            read: false,
+        });
     }
+}
 
     return res.status(200).json(new ApiResponse(200, updated, "Project updated successfully"));
 });
