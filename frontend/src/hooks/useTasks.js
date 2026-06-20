@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { taskAPI, projectAPI, memberAPI, userAPI, notificationAPI, riskAPI, reportAPI, analyticsAPI } from "../utils/api";
+import { taskAPI, taskMemberAPI , projectAPI, memberAPI, userAPI, notificationAPI, riskAPI, reportAPI, analyticsAPI } from "../utils/api";
 
 // ── useTaskList — manager/sub-manager list with full CRUD ─────────────────────
 export function useTaskList(filters = {}) {
@@ -74,18 +74,29 @@ export function useMyTasks(filters = {}) {
 
   useEffect(() => { fetch_(); }, [fetch_]);
 
-  const updateStatus = async (id, status) => {
-    const res = await taskAPI.updateStatus(id, status);
-    setTasks(prev => prev.map(t => t._id === id ? { ...t, ...res.data } : t));
-    return res.data;
-  };
+  // updateProgress hits PATCH /tasks/:id/assignments/progress
+  // status is auto-derived by backend from completionPercentage — no separate updateStatus call needed
   const updateProgress = async (id, payload) => {
     const res = await taskAPI.updateProgress(id, payload);
-    setTasks(prev => prev.map(t => t._id === id ? { ...t, ...res.data } : t));
+    // res.data = { assignment, taskProgress, projectProgress }
+    // Reflect the new overall task progress back onto the task list
+    const { taskProgress } = res.data;
+    setTasks(prev => prev.map(t =>
+      t._id === id
+        ? {
+            ...t,
+            completionPercentage: taskProgress ?? t.completionPercentage,
+            status:
+              taskProgress === 100 ? "completed"
+              : taskProgress > 0   ? "in-progress"
+              : "pending",
+          }
+        : t
+    ));
     return res.data;
   };
 
-  return { tasks, stats, loading, error, refetch: fetch_, updateStatus, updateProgress };
+  return { tasks, stats, loading, error, refetch: fetch_, updateProgress };
 }
 
 // ── useMyProjects — employee's assigned projects ──────────────────────────────
@@ -388,6 +399,43 @@ export function useAnalytics(params = {}) {
   useEffect(() => { fetch_(); }, [fetch_]);
 
   return { data, loading, error, refetch: fetch_ };
+}
+
+// useTaskMembers - manager : members assigned to a task
+export function useTaskMembers(taskId){
+  const [members,  setMembers]  = useState([]);
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState(null);
+
+  const fetch_ = useCallback(async () => {
+    if (!taskId) { setMembers([]); return; }
+    setLoading(true); 
+    setError(null);
+    try {
+      const res = await taskMemberAPI.list(taskId);
+      console.log("Fetched task members:", res.data);
+      setMembers(res.data ?? []);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [taskId]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  const addMembers = async (employeeIds) => {
+    console.log("Adding members to task", taskId, employeeIds);
+
+    const res = await taskMemberAPI.add(taskId, employeeIds);
+
+    console.log("Add members response:", res.data);
+    await fetch_();
+  };
+
+  const removeMember = async (employeeId) => {
+    await taskMemberAPI.remove(taskId, employeeId);
+    setMembers(prev => prev.filter(m => (m._id ?? m) !== employeeId));
+  };
+
+  return { members, loading, error, refetch: fetch_, addMembers, removeMember };
 }
 
 // ── useProjectAnalytics — team/project analytics (manager/sub-manager/admin) ──

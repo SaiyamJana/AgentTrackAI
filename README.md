@@ -271,9 +271,36 @@ Cloned the project repository to local system.
 - controllers : analytics , task , project , employeeProject , risk , reports , notifications
 - Handled the routes of re-written controllers
 
+# Day18 : (19/6/26)
+# Member1 : (2023CSB037)
+1) Handled the full frontend for this redesign 
+2) Tested and identifies addTaskMember to task hook bug 
+3) Fixed the addTaskMember bug and identified more logical bugs in hooks file and fixed them
+
+# Day19 : (20/6/26)
+# Member1 : (2023CSB037)
+1) Identified the add employee hooks issue in tasks management and fixed it 
+2) Identified json response parsing issue due to route mismatch in updateProgress of Task Management and fixed it
+
 # Member2 : (2023CSB115)
 1) Updated task routes to match new controller (added member/assignment endpoints, removed stale ones)
 2) Removed obsolete sub-manager promotion route (now task-level, not project-level)
 3) Updated Notification model with new notification types
 4) Verified server boots cleanly, all routes mounted correctly
 5) End-to-end tested new Task/TaskAssignment schema via Postman — all working
+
+# Day18 : (19/6/26)
+# Member2 : (2023CSB115)
+1) Audited all 16 notification creation points across task/project/employeeProject controllers against the Notification model's type enum
+2) Found and fixed 3 logic bugs: removeEmployee deactivating before role-check (silent data corruption), promotion/demotion notification type mismatch, task_completed/project_completed not reaching all relevant recipients
+3) Confirmed both completion-notification fixes with Saiyam, implemented and verified end-to-end via Postman (sub-manager, manager, and admin all correctly notified)
+4) Pushed verified fixes to 2023CSB037
+
+# Day19 : (20/6/26)
+# Member2 : (2023CSB115)
+1) Merged 2023CSB037 into main, then fast-forwarded 2023CSB115 to latest main
+2) Removed duplicate ProtectedRoute.jsx (recurring merge artifact)
+3) Tested Saiyam's frontend fixes for task member assignment and progress update bugs
+4) Diagnosed "Members modal crash" as stale pre-redesign task data (missing subManagerId field), confirmed via direct MongoDB inspection — 3+ old tasks still using deprecated assignedTo field
+5) Verified task progress averaging logic is working correctly (multi-assignee average, not a bug)
+6) Flagged stale data cleanup as a discussion point for the team
