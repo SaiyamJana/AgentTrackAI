@@ -192,3 +192,13 @@ export const riskAPI = {
   },
   resolve: (id) => request("PATCH", `/risks/${id}/resolve`),
 };
+
+// Task Member API
+export const taskMemberAPI = {
+  // GET /tasks/:id/members (List members assigned to a task)
+  List: (taskId) => request("GET", `/tasks/${taskId}/members`),
+  //POST /tasks/:id/members — { employeeId } (Assign employee to task)
+  add: (taskId , employeeIds) => request("POST", `/tasks/${taskId}/members`, { employeeIds }),
+  // DELETE /tasks/:id/members/:employeeId (Remove employee from task)
+  remove: (taskId, employeeId) => request("DELETE", `/tasks/${taskId}/members/${employeeId}`),
+};

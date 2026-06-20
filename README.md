@@ -233,3 +233,9 @@ Cloned the project repository to local system.
 1) Working on solving the issues
 - controllers : analytics , task , project , employeeProject , risk , reports , notifications
 - Handled the routes of re-written controllers
+
+# Day18 : (19/6/26)
+# Member1 : (2023CSB037)
+1) Handled the full frontend for this redesign 
+2) Tested and identifies addTaskMember to task hook bug 
+3) Fixed the addTaskMember bug and identified more logical bugs in hooks file and fixed them

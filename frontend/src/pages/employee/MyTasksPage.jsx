@@ -123,16 +123,17 @@ export default function MyTasksPage() {
   const [filterPriority, setFilterPriority] = useState("");
   const [updateTask,     setUpdateTask]     = useState(null);
 
-  const { tasks, stats, loading, error, updateStatus, updateProgress } = useMyTasks({
+  const { tasks, stats, loading, error, updateProgress } = useMyTasks({
     ...(filterStatus   ? { status: filterStatus }     : {}),
     ...(filterPriority ? { priority: filterPriority } : {}),
   });
 
+  // Backend derives status automatically from completionPercentage — one call only
   const handleSave = async (taskId, payload) => {
-    if (payload.status) await updateStatus(taskId, payload.status);
-    if (payload.actualHours !== undefined || payload.completionPercentage !== undefined) {
-      await updateProgress(taskId, payload);
-    }
+    await updateProgress(taskId, {
+      completionPercentage: payload.completionPercentage,
+      actualHours: payload.actualHours,
+    });
   };
 
   return (
