@@ -239,3 +239,8 @@ Cloned the project repository to local system.
 1) Handled the full frontend for this redesign 
 2) Tested and identifies addTaskMember to task hook bug 
 3) Fixed the addTaskMember bug and identified more logical bugs in hooks file and fixed them
+
+# Day19 : (20/6/26)
+# Member1 : (2023CSB037)
+1) Identified the add employee hooks issue in tasks management and fixed it 
+2) Identified json response parsing issue due to route mismatch in updateProgress of Task Management and fixed it

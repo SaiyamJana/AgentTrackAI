@@ -120,6 +120,7 @@ const CreateTaskModal = ({ projects, onClose, onCreate }) => {
 // The sub-manager is displayed separately (read-only) since they are assigned at creation.
 const ManageMembersModal = ({ task, onClose }) => {
   const { members: taskMembers, loading, error, addMembers, removeMember } = useTaskMembers(task._id);
+  console.log("Task members:", taskMembers);
   // All employees on this project — used to populate the "add" dropdown
   const { members: projectMembers, loading: projLoading } = useProjectMembers(task.projectId?._id ?? task.projectId);
 

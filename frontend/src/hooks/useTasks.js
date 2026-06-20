@@ -409,9 +409,11 @@ export function useTaskMembers(taskId){
 
   const fetch_ = useCallback(async () => {
     if (!taskId) { setMembers([]); return; }
-    setLoading(true); setError(null);
+    setLoading(true); 
+    setError(null);
     try {
       const res = await taskMemberAPI.list(taskId);
+      console.log("Fetched task members:", res.data);
       setMembers(res.data ?? []);
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
@@ -420,7 +422,11 @@ export function useTaskMembers(taskId){
   useEffect(() => { fetch_(); }, [fetch_]);
 
   const addMembers = async (employeeIds) => {
-    await taskMemberAPI.add(taskId, employeeIds);
+    console.log("Adding members to task", taskId, employeeIds);
+
+    const res = await taskMemberAPI.add(taskId, employeeIds);
+
+    console.log("Add members response:", res.data);
     await fetch_();
   };
 
