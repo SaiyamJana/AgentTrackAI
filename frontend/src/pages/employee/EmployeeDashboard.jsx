@@ -143,15 +143,15 @@ const UpdateModal = ({ task, onClose, onSave }) => {
 
 export default function EmployeeDashboard() {
   const { user } = useAuth();
-  const { tasks, stats, loading: tasksLoading, updateStatus, updateProgress } = useMyTasks();
+  const { tasks, stats, loading: tasksLoading, updateProgress } = useMyTasks();
   const { projects, loading: projLoading } = useMyProjects();
   const [updateTask, setUpdateTask] = useState(null);
 
   const handleSave = async (taskId, payload) => {
-    if (payload.status) await updateStatus(taskId, payload.status);
-    if (payload.actualHours !== undefined || payload.completionPercentage !== undefined) {
-      await updateProgress(taskId, { actualHours: payload.actualHours, completionPercentage: payload.completionPercentage });
-    }
+    await updateProgress(taskId, {
+      completionPercentage: payload.completionPercentage,
+      actualHours: payload.actualHours,
+    });
   };
 
   const recentTasks = tasks.slice(0, 4);

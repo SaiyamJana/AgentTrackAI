@@ -271,6 +271,17 @@ Cloned the project repository to local system.
 - controllers : analytics , task , project , employeeProject , risk , reports , notifications
 - Handled the routes of re-written controllers
 
+# Day18 : (19/6/26)
+# Member1 : (2023CSB037)
+1) Handled the full frontend for this redesign 
+2) Tested and identifies addTaskMember to task hook bug 
+3) Fixed the addTaskMember bug and identified more logical bugs in hooks file and fixed them
+
+# Day19 : (20/6/26)
+# Member1 : (2023CSB037)
+1) Identified the add employee hooks issue in tasks management and fixed it 
+2) Identified json response parsing issue due to route mismatch in updateProgress of Task Management and fixed it
+
 # Member2 : (2023CSB115)
 1) Updated task routes to match new controller (added member/assignment endpoints, removed stale ones)
 2) Removed obsolete sub-manager promotion route (now task-level, not project-level)

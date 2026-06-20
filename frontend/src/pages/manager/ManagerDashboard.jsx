@@ -137,7 +137,7 @@ export default function ManagerDashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-slate-700 truncate">{t.title}</p>
-                      <p className="text-[10px] text-slate-400">{t.assignedTo?.name ?? "Unassigned"}</p>
+                      <p className="text-[10px] text-slate-400">{t.subManagerId?.name ?? "Unassigned"}</p>
                     </div>
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg ${sc[t.status]??sc.pending}`}>
                       {t.status}
