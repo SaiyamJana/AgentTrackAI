@@ -1,3 +1,4 @@
+// task.controller.js
 import { Task }            from "../models/Task.js";
 import { Project }         from "../models/Project.js";
 import { EmployeeProject } from "../models/EmployeeProject.js";
@@ -63,8 +64,8 @@ export const createTask = asyncHandler(async (req, res) => {
       throw new ApiError(400 , "Deadline cannot exceed project end date");
     }
   
-    //create task
-    const task = await Task.create({
+    //create task — _performedBy tag added so Task.js can auto-log creation
+    const task = new Task({
       projectId, 
       companyId : req.user.companyId,
       title,
@@ -77,6 +78,8 @@ export const createTask = asyncHandler(async (req, res) => {
       estimatedHours,
       tags,
     });
+    task._performedBy = req.user._id;
+    await task.save();
   
     //sub-manager task relation
     await TaskAssignment.create({
@@ -167,7 +170,8 @@ export const addTaskMembers = asyncHandler(async (req , res) => {
       addedMembers.push(employeeId);
     }
   }
-
+  task._performedBy = req.user._id;
+  task._memberActionType = "added";
   await task.save();
 
   // ── Notify the added team members about their assignment ─────────────────────────────
@@ -220,7 +224,8 @@ export const removeTaskMembers = asyncHandler(async (req , res) => {
   task.teamMembers = task.teamMembers.filter(
     member => member.toString() !== employeeId.toString()
   );
-
+  task._performedBy = req.user._id;
+  task._memberActionType = "removed";
   await task.save();
 
   const existingAssignment = await TaskAssignment.findOne({
@@ -286,7 +291,6 @@ export const getTasksByProject = asyncHandler(async (req, res) => {
     .sort({ deadline: 1 })
     .lean();
 
-  // Return flat array — frontend reads res.data directly
   return res.status(200).json(new ApiResponse(200, tasks, "Tasks fetched"));
 });
 
@@ -487,12 +491,14 @@ export const updateTask = asyncHandler(async (req, res) => {
   }
   }
 
+  // ── _performedBy tag added so Task.js can auto-log this update ──
   const updated = await Task.findByIdAndUpdate(
   req.params.id,
   updates,
   {
     new: true,
     runValidators: true,
+    _performedBy: req.user._id,
   }
   ).populate("subManagerId","name email").populate("projectId","title");
 
@@ -501,7 +507,6 @@ export const updateTask = asyncHandler(async (req, res) => {
   recipients.add(task.subManagerId.toString());
   task.teamMembers.forEach(memberId => recipients.add(memberId.toString()));
 
-  // ── Notify all task members about the update ─────────────────────────────
   for (const userId of recipients) {
     await Notification.create({
       userId,
@@ -540,7 +545,8 @@ export const deleteTask = asyncHandler(async (req, res) => {
     taskId: task._id,
   });
 
-  await Task.findByIdAndDelete(req.params.id);
+  // ── _performedBy tag added (passed via options) so Task.js can auto-log deletion ──
+  await Task.findOneAndDelete({ _id: req.params.id }, { _performedBy: req.user._id });
 
   // ── Notify all task members about the deletion ─────────────────────────────
   const recipients = new Set();
@@ -629,26 +635,30 @@ export const updateAssignmentProgress = asyncHandler(async (req , res) => {
     task.status = "pending";
   }
 
+  // ── _performedBy + completion flag tags added so Task.js can auto-log task_completed ──
+  task._performedBy = req.user._id;
+  task._statusJustCompleted = (previousTaskStatus !== "completed" && task.status === "completed");
   await task.save();
 
-  //due to task progress change , project progress might also change — we can trigger a project progress recalculation here if needed (not implemented in this snippet)
-
+  //due to task progress change , project progress might also change
   const projectTasks = await Task.find({ projectId: task.projectId });
 
   const totalProjectProgress = projectTasks.reduce((sum, t) => sum + (t.completionPercentage || 0), 0);
 
   const overallProjectProgress = projectTasks.length ? totalProjectProgress / projectTasks.length : 0;
+const project = await Project.findById(task.projectId);
 
+const previousProjectProgress = project.progressPercentage;
 
-  const project = await Project.findById(task.projectId);
+project.progressPercentage = Math.round(overallProjectProgress);
 
-  const previousProjectProgress = project.progressPercentage;
+// ── Tags used by Project.js activity-log hook ──
+project._performedBy = req.user._id;
+project._justCompleted =
+  previousProjectProgress < 100 &&
+  Math.round(overallProjectProgress) === 100;
 
-  project.progressPercentage = Math.round(overallProjectProgress);
-
-  await project.save();
-  // ── Notify the project manager about the project progress update ─────────────────────────────
-  // Notify the task sub-manager about the task progress update
+await project.save();
 
   const notifications = [];
 

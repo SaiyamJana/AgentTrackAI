@@ -15,6 +15,7 @@ import notificationRouter    from "./src/routes/notification.routes.js";
 import reportRouter          from "./src/routes/report.routes.js";
 import analyticsRouter       from "./src/routes/analytics.routes.js";
 import { runRiskAgent }      from "./src/agents/riskAgent.js";
+import activityLogRouter from "./src/routes/activityLog.routes.js";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/v1/risks", riskRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/reports", reportRouter);
 app.use("/api/v1/analytics", analyticsRouter);
+app.use("/api/v1/activity-logs", activityLogRouter);
 
 app.get("/", (req, res) => res.send("AgentTrack AI — Server Running"));
 

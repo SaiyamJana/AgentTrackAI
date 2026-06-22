@@ -1,3 +1,4 @@
+// project.controller.js
 import { Project }         from "../models/Project.js";
 import { EmployeeProject } from "../models/EmployeeProject.js";
 import { Notification }    from "../models/Notification.js";
@@ -35,11 +36,15 @@ export const createProject = asyncHandler(async (req, res) => {
     if (existingProject) {
         throw new ApiError(400, "Project with this title already exists");
     }
-    const project = await Project.create({
+
+    // ── _performedBy tag added so Project.js can auto-log creation ───────
+    const project = new Project({
         title, description, priority, startDate, endDate, tags,
         companyId: req.user.companyId,
         managerId,
     });
+    project._performedBy = req.user._id;
+    await project.save();
 
     await EmployeeProject.create({
         projectId:   project._id,
@@ -162,10 +167,11 @@ export const updateProject = asyncHandler(async (req, res) => {
         throw new ApiError( 400, "endDate must be after startDate");
     }   
 
+    // ── _performedBy tag added so Project.js can auto-log status/manager/completion changes ──
     const updated = await Project.findByIdAndUpdate(
         req.params.id,
         updates,
-        { new: true, runValidators: true }
+        { new: true, runValidators: true, _performedBy: req.user._id }
     );
     const { Company } = await import("../models/Company.js");
 
@@ -191,25 +197,25 @@ export const updateProject = asyncHandler(async (req, res) => {
     }
 
     // ── Notify admin + manager when project reaches 100% ─────────────────
-if (progressPercentage === 100 && project.progressPercentage !== 100) {
-    const company = await Company.findById(req.user.companyId).lean();
+    if (progressPercentage === 100 && project.progressPercentage !== 100) {
+        const company = await Company.findById(req.user.companyId).lean();
 
-    const recipients = new Set();
-    if (company?.adminId) recipients.add(company.adminId.toString());
-    recipients.add(updated.managerId.toString());
+        const recipients = new Set();
+        if (company?.adminId) recipients.add(company.adminId.toString());
+        recipients.add(updated.managerId.toString());
 
-    for (const userId of recipients) {
-        await Notification.create({
-            userId,
-            companyId: req.user.companyId,
-            type: "project_completed",
-            title: "Project Completed",
-            message: `Project "${updated.title}" has reached 100% completion.`,
-            relatedEntity: { type: "project", id: updated._id },
-            read: false,
-        });
+        for (const userId of recipients) {
+            await Notification.create({
+                userId,
+                companyId: req.user.companyId,
+                type: "project_completed",
+                title: "Project Completed",
+                message: `Project "${updated.title}" has reached 100% completion.`,
+                relatedEntity: { type: "project", id: updated._id },
+                read: false,
+            });
+        }
     }
-}
 
     return res.status(200).json(new ApiResponse(200, updated, "Project updated successfully"));
 });
@@ -242,10 +248,11 @@ export const assignManager = asyncHandler(async (req, res) => {
         { upsert: true, new: true }
     );
 
+    // ── _performedBy tag added so Project.js can auto-log manager re-assignment ──
     const updated = await Project.findByIdAndUpdate(
         req.params.id,
         { managerId },
-        { new: true }
+        { new: true, _performedBy: req.user._id }
     );
 
     // ── Notify the newly assigned manager ───────────────────────────────
