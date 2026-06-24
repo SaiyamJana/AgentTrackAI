@@ -304,3 +304,31 @@ Cloned the project repository to local system.
 4) Diagnosed "Members modal crash" as stale pre-redesign task data (missing subManagerId field), confirmed via direct MongoDB inspection — 3+ old tasks still using deprecated assignedTo field
 5) Verified task progress averaging logic is working correctly (multi-assignee average, not a bug)
 6) Flagged stale data cleanup as a discussion point for the team
+
+# Day21 : (22/6/26)
+# Member1 : (2023CSB037)
+1) Analyzed the current design flow and issues for workload design
+2) Identified the schema design issues 
+3) Implemented the new schema design and studied the control flow and calculation criteria for workload calculation
+
+# Day22 : (23/6/26)
+# Member1 : (2023CSB037)
+1) Coded the controllers
+- workload (created)
+- analytics (modified)
+- task (modified)
+2) created workloadAgent using gemini API
+3) created a workload service for workloadCalculation 
+4) Defined the routes for new controllers 
+5) Used in server.js
+6) Designed the frontend pages for workload Analysis and Agent
+7) Added manager , admin , employee dashbaords for workload
+8) Used the backend endpoint for workload
+
+# Day23 : (24/6/26)
+# Member1 : (2023CSB037)
+1) Added workload components for employee , admin , manager workload dashboard
+2) Modified the api.js for new endpoints
+3) Identified 4 frontend design issues and fixed them 
+4) Identified 6 backend design issues and fixed them
+5) Wrapped up the frontend and backend designs for workload analysis
