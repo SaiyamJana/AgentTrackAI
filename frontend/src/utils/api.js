@@ -19,7 +19,6 @@ const request = async (method, path, body) => {
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const authAPI = {
-  // POST /companies/register — public bootstrap, creates company + admin
   registerCompany: async (payload) => {
     const res = await fetch(`${BASE}/companies/register`, {
       method: "POST",
@@ -31,7 +30,6 @@ export const authAPI = {
     return data;
   },
 
-  // POST /users/register — employee self-register with inviteCode
   register: async (payload) => {
     const res = await fetch(`${BASE}/users/register`, {
       method: "POST",
@@ -43,7 +41,6 @@ export const authAPI = {
     return data;
   },
 
-  // POST /users/login — requires companyId + email + password
   login: async (companyId, email, password) => {
     const res = await fetch(`${BASE}/users/login`, {
       method: "POST",
@@ -64,9 +61,9 @@ export const userAPI = {
     ).toString();
     return request("GET", `/users${qs ? `?${qs}` : ""}`);
   },
-  getById:    (id)         => request("GET",    `/users/${id}`),
-  update:     (id, body)   => request("PATCH",  `/users/${id}`, body),
-  deactivate: (id)         => request("DELETE", `/users/${id}`),
+  getById:    (id)       => request("GET",    `/users/${id}`),
+  update:     (id, body) => request("PATCH",  `/users/${id}`, body),
+  deactivate: (id)       => request("DELETE", `/users/${id}`),
 };
 
 // ── Companies ─────────────────────────────────────────────────────────────────
@@ -78,86 +75,81 @@ export const companyAPI = {
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 export const projectAPI = {
-  // GET /projects — Admin: all; Employee-manager: their own
   list: (params = {}) => {
     const qs = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v))
     ).toString();
     return request("GET", `/projects${qs ? `?${qs}` : ""}`);
   },
-  // GET /projects/my — employee: projects they are assigned to
-  my:       ()           => request("GET",    "/projects/my"),
-  getById:  (id)         => request("GET",    `/projects/${id}`),
-  create:   (body)       => request("POST",   "/projects", body),
-  update:   (id, body)   => request("PATCH",  `/projects/${id}`, body),
+  my:            ()              => request("GET",   "/projects/my"),
+  getById:       (id)            => request("GET",   `/projects/${id}`),
+  create:        (body)          => request("POST",  "/projects", body),
+  update:        (id, body)      => request("PATCH", `/projects/${id}`, body),
   assignManager: (id, managerId) => request("PATCH", `/projects/${id}/manager`, { managerId }),
 };
 
-// ── Project Members (EmployeeProject junction) ────────────────────────────────
+// ── Project Members ───────────────────────────────────────────────────────────
 export const memberAPI = {
-  // GET  /projects/:id/employees
-  list:   (projectId)                      => request("GET",    `/projects/${projectId}/employees`),
-  // POST /projects/:id/employees — { employeeId, projectRole: "manager"|"member" }
-  assign: (projectId, employeeId, projectRole = "member") =>
+  list:    (projectId)                           => request("GET",    `/projects/${projectId}/employees`),
+  assign:  (projectId, employeeId, projectRole = "member") =>
     request("POST",   `/projects/${projectId}/employees`, { employeeId, projectRole }),
-  // PATCH /projects/:id/employees/:eid/role — manager sets sub-manager
-  setRole:(projectId, employeeId, projectRole) =>
+  setRole: (projectId, employeeId, projectRole) =>
     request("PATCH",  `/projects/${projectId}/employees/${employeeId}/role`, { projectRole }),
-  // DELETE /projects/:id/employees/:eid
-  remove: (projectId, employeeId)          => request("DELETE", `/projects/${projectId}/employees/${employeeId}`),
+  remove:  (projectId, employeeId)               => request("DELETE", `/projects/${projectId}/employees/${employeeId}`),
 };
 
 // ── Tasks ─────────────────────────────────────────────────────────────────────
 export const taskAPI = {
-  // GET /tasks?projectId=&status=&priority=  (manager/sub-manager)
   list: (params = {}) => {
     const qs = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v))
     ).toString();
     return request("GET", `/tasks${qs ? `?${qs}` : ""}`);
   },
-  // GET /tasks/my  (employee — own tasks)
   my: (params = {}) => {
     const qs = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v))
     ).toString();
     return request("GET", `/tasks/my${qs ? `?${qs}` : ""}`);
   },
-  // GET /tasks/kanban?projectId=
-  kanban:  (projectId) => request("GET",    `/tasks/kanban?projectId=${projectId}`),
-  getById: (id)        => request("GET",    `/tasks/${id}`),
-  create:  (body)      => request("POST",   "/tasks", body),
-  update:  (id, body)  => request("PATCH",  `/tasks/${id}`, body),
-  updateStatus:   (id, status)  => request("PATCH", `/tasks/${id}/status`,   { status }),
-  updateProgress: (id, body)    => request("PATCH", `/tasks/${id}/assignments/progress`, body),
-  delete:  (id)        => request("DELETE", `/tasks/${id}`),
+  kanban:         (projectId) => request("GET",    `/tasks/kanban?projectId=${projectId}`),
+  getById:        (id)        => request("GET",    `/tasks/${id}`),
+  create:         (body)      => request("POST",   "/tasks", body),
+  update:         (id, body)  => request("PATCH",  `/tasks/${id}`, body),
+  updateStatus:   (id, status)=> request("PATCH",  `/tasks/${id}/status`, { status }),
+  updateProgress: (id, body)  => request("PATCH",  `/tasks/${id}/assignments/progress`, body),
+  delete:         (id)        => request("DELETE", `/tasks/${id}`),
+  getAssignments: (id)        => request("GET",    `/tasks/${id}/assignments`),
+};
+
+// ── Task Members ──────────────────────────────────────────────────────────────
+export const taskMemberAPI = {
+  list:   (taskId)                  => request("GET",    `/tasks/${taskId}/members`),
+  add:    (taskId, employeeIds)     => request("POST",   `/tasks/${taskId}/members`, { employeeIds }),
+  remove: (taskId, employeeId)      => request("DELETE", `/tasks/${taskId}/members/${employeeId}`),
 };
 
 // ── Reports ───────────────────────────────────────────────────────────────────
 export const reportAPI = {
-  // GET /reports?projectId=&reportType=
   list: (params = {}) => {
     const qs = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v))
     ).toString();
     return request("GET", `/reports${qs ? `?${qs}` : ""}`);
   },
-  getById:  (id)   => request("GET",  `/reports/${id}`),
-  // POST /reports/generate — { projectId, reportType: "daily"|"weekly"|"project-summary" }
-  generate: (body) => request("POST", "/reports/generate", body),
+  getById:  (id)   => request("GET",    `/reports/${id}`),
+  generate: (body) => request("POST",   "/reports/generate", body),
   delete:   (id)   => request("DELETE", `/reports/${id}`),
 };
 
 // ── Analytics ─────────────────────────────────────────────────────────────────
 export const analyticsAPI = {
-  // GET /analytics/me?range=1d|7d|30d|90d|all|custom&from=&to=
   me: (params = {}) => {
     const qs = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v))
     ).toString();
     return request("GET", `/analytics/me${qs ? `?${qs}` : ""}`);
   },
-  // GET /analytics/project/:projectId?range=...
   project: (projectId, params = {}) => {
     const qs = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v))
@@ -166,13 +158,9 @@ export const analyticsAPI = {
   },
 };
 
-// ── Role redirect ─────────────────────────────────────────────────────────────
-export const getRoleDashboard = (role) =>
-  role === "admin" ? "/admin/dashboard" : "/employee/dashboard";
-
-// ── Notifications ──────────────────────────────────────────────────────────
+// ── Notifications ─────────────────────────────────────────────────────────────
 export const notificationAPI = {
-  list:        (params = {}) => {
+  list: (params = {}) => {
     const qs = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== ""))
     ).toString();
@@ -182,23 +170,55 @@ export const notificationAPI = {
   markAllRead: ()   => request("PATCH", `/notifications/read-all`),
 };
 
-// ── Risks ──────────────────────────────────────────────────────────────────
+// ── Risks ─────────────────────────────────────────────────────────────────────
 export const riskAPI = {
-  list:    (params = {}) => {
+  list: (params = {}) => {
     const qs = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== ""))
     ).toString();
     return request("GET", `/risks${qs ? `?${qs}` : ""}`);
   },
-  resolve: (id) => request("PATCH", `/risks/${id}/resolve`),
+  resolve:   (id) => request("PATCH", `/risks/${id}/resolve`),
+  triggerScan: () => request("POST",  "/risks/scan"),
 };
 
-// Task Member API
-export const taskMemberAPI = {
-  // GET /tasks/:id/members (List members assigned to a task)
-  list: (taskId) => request("GET", `/tasks/${taskId}/members`),
-  //POST /tasks/:id/members — { employeeId } (Assign employee to task)
-  add: (taskId , employeeIds) => request("POST", `/tasks/${taskId}/members`, { employeeIds }),
-  // DELETE /tasks/:id/members/:employeeId (Remove employee from task)
-  remove: (taskId, employeeId) => request("DELETE", `/tasks/${taskId}/members/${employeeId}`),
+// ── Workload ──────────────────────────────────────────────────────────────────
+export const workloadAPI = {
+  // Employee: own workload snapshot + priority queue + AI summary
+  me: () => request("GET", "/workloads/me"),
+
+  // Manager: latest snapshot for every member of a project
+  team: (projectId) => request("GET", `/workloads/team?projectId=${projectId}`),
+
+  // Admin: latest snapshot for every employee in the company
+  company: () => request("GET", "/workloads/company"),
+
+  // Manager/Admin: specific employee's workload + 30-day history
+  employee: (employeeId) => request("GET", `/workloads/employee/${employeeId}`),
+
+  // Manager/Admin: employees currently overloaded or at burnout risk
+  alerts: () => request("GET", "/workloads/alerts"),
+
+  // Manager/Admin: snapshot history for an employee over N days
+  history: (params = {}) => {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v))
+    ).toString();
+    return request("GET", `/workloads/history${qs ? `?${qs}` : ""}`);
+  },
+
+  // Manager/Admin: manually trigger a full workload recalculation
+  recalculate: () => request("POST", "/workloads/recalculate"),
+
+  // Manager/Admin: set contribution% for a specific TaskAssignment
+  updateContribution: (assignmentId, contributionPercentage) =>
+    request("PATCH", `/workloads/assignments/${assignmentId}/contribution`, { contributionPercentage }),
+
+  // Admin: set capacityHoursPerWeek for an employee
+  updateCapacity: (employeeId, capacityHoursPerWeek) =>
+    request("PATCH", "/workloads/capacity", { employeeId, capacityHoursPerWeek }),
 };
+
+// ── Role redirect ─────────────────────────────────────────────────────────────
+export const getRoleDashboard = (role) =>
+  role === "admin" ? "/admin/dashboard" : "/employee/dashboard";

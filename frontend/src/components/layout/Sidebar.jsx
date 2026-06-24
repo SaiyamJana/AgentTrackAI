@@ -3,27 +3,29 @@ import { useAuth } from "../../context/AuthContext";
 import Icon from "../shared/Icon";
 
 const adminLinks = [
-  { to: "/admin/dashboard",  label: "Dashboard",          icon: "home"     },
-  { to: "/admin/employees",  label: "Employees",          icon: "users"    },
-  { to: "/admin/projects",   label: "Projects",           icon: "folder"   },
-  { to: "/analytics",        label: "Analytics",          icon: "chart"    },
-  { to: "/admin/settings",   label: "Settings",           icon: "settings" },
+  { to: "/admin/dashboard",  label: "Dashboard",      icon: "home"     },
+  { to: "/admin/employees",  label: "Employees",      icon: "users"    },
+  { to: "/admin/projects",   label: "Projects",       icon: "folder"   },
+  { to: "/analytics",        label: "Analytics",      icon: "chart"    },
+  { to: "/admin/workload",   label: "Workload",       icon: "workload" }, // NEW
+  { to: "/admin/settings",   label: "Settings",       icon: "settings" },
 ];
 
 // Employee links — everyone starts here.
 // If the employee is also a project manager, the Manager Tools section appears too.
 const employeeLinks = [
-  { to: "/employee/dashboard",     label: "My Dashboard",  icon: "home"  },
-  { to: "/employee/tasks",         label: "My Tasks",      icon: "task"  },
-  { to: "/employee/projects",      label: "My Projects",   icon: "folder"},
-  { to: "/analytics",              label: "Analytics",     icon: "chart" },
-  { to: "/employee/notifications", label: "Notifications", icon: "bell"  },
+  { to: "/employee/dashboard",     label: "My Dashboard",  icon: "home"     },
+  { to: "/employee/tasks",         label: "My Tasks",      icon: "task"     },
+  { to: "/employee/projects",      label: "My Projects",   icon: "folder"   },
+  { to: "/employee/workload",      label: "My Workload",   icon: "workload" }, // NEW
+  { to: "/analytics",              label: "Analytics",     icon: "chart"    },
+  { to: "/employee/notifications", label: "Notifications", icon: "bell"     },
 ];
 
 // These links appear for employees who manage at least one project
 const managerLinks = [
   { to: "/manager/dashboard", label: "Manager View",    icon: "chart"    },
-  { to: "/manager/tasks",     label: "Task Management", icon: "workload" },
+  { to: "/manager/tasks",     label: "Task Management", icon: "task"     },
   { to: "/manager/reports",   label: "Reports",         icon: "report"   },
   { to: "/manager/risks",     label: "Risk Alerts",     icon: "shield"   },
   { to: "/manager/workload",  label: "Team Workload",   icon: "workload" },
