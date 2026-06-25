@@ -332,3 +332,10 @@ Cloned the project repository to local system.
 3) Identified 4 frontend design issues and fixed them 
 4) Identified 6 backend design issues and fixed them
 5) Wrapped up the frontend and backend designs for workload analysis
+
+# Day24 : (25/6/26)
+# Member1 : (2023CSB037)
+1) Merged the new design supporting workload and activityLog
+2) Solved 5 merge conflicts
+3) Tested the resultant codebase
+4) Identifies the managerId issue for activityLog and fixed it (issue in use Hooks)

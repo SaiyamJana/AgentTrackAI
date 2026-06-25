@@ -460,21 +460,34 @@ export function useProjectAnalytics(projectId, params = {}) {
 }
 // ── useActivityLogs ───────────────────────────────────────────────────────────
 export function useActivityLogs(projectId = "") {
-  const [logs,    setLogs]    = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetch_ = useCallback(async () => {
-    setLoading(true); setError(null);
+    if (!projectId) {
+      setLogs([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
     try {
-      const params = projectId ? { projectId } : {};
-      const res = await activityLogAPI.list(params);
+      const res = await activityLogAPI.list({ projectId });
       setLogs(res.data ?? []);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [projectId]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   return { logs, loading, error, refetch: fetch_ };
 }

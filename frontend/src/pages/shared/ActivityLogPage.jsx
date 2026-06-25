@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState , useEffect } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Icon from "../../components/shared/Icon";
 import { useAuth } from "../../context/AuthContext";
@@ -62,6 +62,11 @@ export default function ActivityLogPage() {
   const projLoading = isAdmin ? apLoading : mpLoading;
 
   const [projectId, setProjectId] = useState("");
+  useEffect(() => {
+    if (!isAdmin && projects.length > 0 && !projectId) {
+      setProjectId(projects[0]._id);
+    }
+  }, [projects, projectId, isAdmin]);
   const [filterAction, setFilterAction] = useState("");
 
   const { logs, loading, error } = useActivityLogs(projectId);
