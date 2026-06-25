@@ -62,6 +62,9 @@ export default function ActivityLogPage() {
   const projLoading = isAdmin ? apLoading : mpLoading;
 
   const [projectId, setProjectId] = useState("");
+  if (!isAdmin && !projectId && !projLoading && projects.length > 0) {
+  setProjectId(projects[0]._id);
+  }
   const [filterAction, setFilterAction] = useState("");
 
   const { logs, loading, error } = useActivityLogs(projectId);
