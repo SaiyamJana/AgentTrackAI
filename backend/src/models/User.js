@@ -28,6 +28,18 @@ const userSchema = new mongoose.Schema(
     designation:  { type: String },
     refreshToken: { type: String },
     isActive:     { type: Boolean, default: true },
+
+    /*
+     * capacityHoursPerWeek — how many working hours this person has available per week.
+     * Used by the workload calculation engine as the denominator for utilization %.
+     * Default 40h (standard full-time). Admin can adjust per employee.
+     */
+    capacityHoursPerWeek: {
+      type: Number,
+      default: 40,
+      min: 1,
+      max: 80,
+    },
   },
   { timestamps: true }
 );

@@ -1,8 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AdminGuard, EmployeeGuard, AnyAuthGuard } from "./components/auth/ProtectedRoute";
-import NotificationsPage from "./pages/employee/NotificationsPage";
-import RisksPage from "./pages/manager/RisksPage";
 
 import LoginPage           from "./pages/auth/LoginPage";
 import RegisterPage        from "./pages/auth/RegisterPage";
@@ -13,11 +11,18 @@ import AdminEmployeesPage  from "./pages/admin/AdminEmployeesPage";
 import ManagerDashboard    from "./pages/manager/ManagerDashboard";
 import TasksPage           from "./pages/manager/TasksPage";
 import ReportsPage         from "./pages/manager/ReportsPage";
+import RisksPage           from "./pages/manager/RisksPage";
 import EmployeeDashboard   from "./pages/employee/EmployeeDashboard";
 import MyTasksPage         from "./pages/employee/MyTasksPage";
 import ProjectsPage        from "./pages/employee/ProjectsPage";
+import NotificationsPage   from "./pages/employee/NotificationsPage";
 import AnalyticsPage       from "./pages/shared/AnalyticsPage";
 import ActivityLogPage from "./pages/shared/ActivityLogPage";
+
+// ── NEW: Workload pages ────────────────────────────────────────────────────────
+import WorkloadDashboard   from "./pages/manager/WorkloadDashboard";   // replaces Placeholder
+import MyWorkloadPage      from "./pages/employee/MyWorkloadPage";
+import CompanyWorkloadPage from "./pages/admin/CompanyWorkloadPage";
 
 const Placeholder = ({ title }) => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -49,12 +54,12 @@ function AppRoutes() {
       <Route path="/register"         element={<RegisterPage />} />
       <Route path="/register-company" element={<RegisterCompanyPage />} />
 
-      {/* ── Shared ── */}
+      {/* ── Shared ─────────────────────────────────────────────────── */}
       <Route path="/analytics" element={
         <AnyAuthGuard><AnalyticsPage /></AnyAuthGuard>
       } />
 
-      {/* ── Admin ── */}
+      {/* ── Admin ──────────────────────────────────────────────────── */}
       <Route path="/admin/dashboard" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
       <Route path="/admin/projects"  element={<AdminGuard><AdminProjectsPage /></AdminGuard>} />
       <Route path="/admin/employees" element={<AdminGuard><AdminEmployeesPage /></AdminGuard>} />
@@ -62,20 +67,28 @@ function AppRoutes() {
       <Route path="/admin/risks"     element={<AdminGuard><RisksPage /></AdminGuard>} />
       <Route path="/admin/activity-log" element={<AdminGuard><ActivityLogPage /></AdminGuard>} />
 
-      {/* ── Employee (includes project-managers) ── */}
+      {/* NEW: Admin company-wide workload overview */}
+      <Route path="/admin/workload"  element={<AdminGuard><CompanyWorkloadPage /></AdminGuard>} />
+
+      {/* ── Employee (includes project-managers) ───────────────────── */}
       <Route path="/employee/dashboard"     element={<EmployeeGuard><EmployeeDashboard /></EmployeeGuard>} />
       <Route path="/employee/tasks"         element={<EmployeeGuard><MyTasksPage /></EmployeeGuard>} />
       <Route path="/employee/projects"      element={<EmployeeGuard><ProjectsPage /></EmployeeGuard>} />
       <Route path="/employee/notifications" element={<EmployeeGuard><NotificationsPage /></EmployeeGuard>} />
+
+      {/* NEW: Employee personal workload page */}
+      <Route path="/employee/workload"      element={<EmployeeGuard><MyWorkloadPage /></EmployeeGuard>} />
 
       {/* Manager-style pages — employee with projectRole=manager accesses these */}
       <Route path="/manager/dashboard" element={<EmployeeGuard><ManagerDashboard /></EmployeeGuard>} />
       <Route path="/manager/tasks"     element={<EmployeeGuard><TasksPage /></EmployeeGuard>} />
       <Route path="/manager/reports"   element={<EmployeeGuard><ReportsPage /></EmployeeGuard>} />
       <Route path="/manager/risks"     element={<EmployeeGuard><RisksPage /></EmployeeGuard>} />
-      <Route path="/manager/workload"  element={<EmployeeGuard><Placeholder title="Workload Analysis" /></EmployeeGuard>} />
       <Route path="/manager/chatbot"   element={<EmployeeGuard><Placeholder title="AI Chatbot" /></EmployeeGuard>} />
       <Route path="/manager/activity-log" element={<EmployeeGuard><ActivityLogPage /></EmployeeGuard>} />
+
+      {/* NEW: Manager team workload dashboard — replaces Placeholder */}
+      <Route path="/manager/workload"  element={<EmployeeGuard><WorkloadDashboard /></EmployeeGuard>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
