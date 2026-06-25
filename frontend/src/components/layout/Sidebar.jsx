@@ -8,6 +8,7 @@ const adminLinks = [
   { to: "/admin/projects",   label: "Projects",           icon: "folder"   },
   { to: "/analytics",        label: "Analytics",          icon: "chart"    },
   { to: "/admin/settings",   label: "Settings",           icon: "settings" },
+  { to: "/admin/activity-log", label: "Activity Log", icon: "clock" },
 ];
 
 // Employee links — everyone starts here.
@@ -25,6 +26,7 @@ const managerLinks = [
   { to: "/manager/dashboard", label: "Manager View",    icon: "chart"    },
   { to: "/manager/tasks",     label: "Task Management", icon: "workload" },
   { to: "/manager/reports",   label: "Reports",         icon: "report"   },
+  { to: "/manager/activity-log", label: "Activity Log", icon: "clock" },
   { to: "/manager/risks",     label: "Risk Alerts",     icon: "shield"   },
   { to: "/manager/workload",  label: "Team Workload",   icon: "workload" },
   { to: "/manager/chatbot",   label: "AI Chatbot",      icon: "chat"     },

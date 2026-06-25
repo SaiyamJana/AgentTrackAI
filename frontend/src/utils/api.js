@@ -202,3 +202,12 @@ export const taskMemberAPI = {
   // DELETE /tasks/:id/members/:employeeId (Remove employee from task)
   remove: (taskId, employeeId) => request("DELETE", `/tasks/${taskId}/members/${employeeId}`),
 };
+// ── Activity Log ──────────────────────────────────────────────────────────────
+export const activityLogAPI = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== ""))
+    ).toString();
+    return request("GET", `/activity-logs${qs ? `?${qs}` : ""}`);
+  },
+};

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { taskAPI, taskMemberAPI , projectAPI, memberAPI, userAPI, notificationAPI, riskAPI, reportAPI, analyticsAPI } from "../utils/api";
+import { taskAPI, taskMemberAPI , projectAPI, memberAPI, userAPI, notificationAPI, riskAPI, reportAPI, analyticsAPI, activityLogAPI } from "../utils/api";
 
 // ── useTaskList — manager/sub-manager list with full CRUD ─────────────────────
 export function useTaskList(filters = {}) {
@@ -457,4 +457,24 @@ export function useProjectAnalytics(projectId, params = {}) {
   useEffect(() => { fetch_(); }, [fetch_]);
 
   return { data, loading, error, refetch: fetch_ };
+}
+// ── useActivityLogs ───────────────────────────────────────────────────────────
+export function useActivityLogs(projectId = "") {
+  const [logs,    setLogs]    = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  const fetch_ = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const params = projectId ? { projectId } : {};
+      const res = await activityLogAPI.list(params);
+      setLogs(res.data ?? []);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [projectId]);
+
+  useEffect(() => { fetch_(); }, [fetch_]);
+
+  return { logs, loading, error, refetch: fetch_ };
 }
