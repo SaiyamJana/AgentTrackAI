@@ -18,6 +18,7 @@ import MyTasksPage         from "./pages/employee/MyTasksPage";
 import ProjectsPage        from "./pages/employee/ProjectsPage";
 import AnalyticsPage       from "./pages/shared/AnalyticsPage";
 import ActivityLogPage from "./pages/shared/ActivityLogPage";
+import SettingsPage from "./pages/admin/SettingsPage";
 
 const Placeholder = ({ title }) => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -58,7 +59,7 @@ function AppRoutes() {
       <Route path="/admin/dashboard" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
       <Route path="/admin/projects"  element={<AdminGuard><AdminProjectsPage /></AdminGuard>} />
       <Route path="/admin/employees" element={<AdminGuard><AdminEmployeesPage /></AdminGuard>} />
-      <Route path="/admin/settings"  element={<AdminGuard><Placeholder title="System Settings" /></AdminGuard>} />
+      <Route path="/admin/settings" element={<AdminGuard><SettingsPage /></AdminGuard>} />
       <Route path="/admin/risks"     element={<AdminGuard><RisksPage /></AdminGuard>} />
       <Route path="/admin/activity-log" element={<AdminGuard><ActivityLogPage /></AdminGuard>} />
 
