@@ -339,3 +339,7 @@ Cloned the project repository to local system.
 2) Solved 5 merge conflicts
 3) Tested the resultant codebase
 4) Identifies the managerId issue for activityLog and fixed it (issue in use Hooks)
+
+# Day25 : (27/6/26)
+# Member1 : (2023CSB037)
+1) Testing ..
