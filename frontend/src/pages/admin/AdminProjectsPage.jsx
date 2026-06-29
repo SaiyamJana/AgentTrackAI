@@ -70,86 +70,166 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
 
 /* ── Manage Team Modal ────────────────────────────────────────────── */
 const ManageTeamModal = ({ project, allEmployees, onClose }) => {
-  const { members, loading, assignMember, setRole, removeMember } = useProjectMembers(project._id);
-  const [assignId,   setAssignId]   = useState("");
-  const [assignRole, setAssignRole] = useState("member");
-  const [saving,     setSaving]     = useState(false);
-  const [err,        setErr]        = useState("");
+  const { members, loading, assignMember, removeMember } = useProjectMembers(project._id);
 
-  const memberIds = new Set(members.map(m => m.employeeId?._id ?? m.employeeId));
-  const available = allEmployees.filter(e => !memberIds.has(e._id));
+  const [assignId, setAssignId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  const memberIds = new Set(
+    members.map((m) => m.employeeId?._id ?? m.employeeId)
+  );
+
+  const available = allEmployees.filter((e) => !memberIds.has(e._id));
 
   const doAssign = async () => {
     if (!assignId) return;
-    setSaving(true); setErr("");
-    try { await assignMember(assignId, assignRole); setAssignId(""); }
-    catch(e) { setErr(e.message); }
-    finally { setSaving(false); }
-  };
 
-  const roleCfg = {
-    manager:       "bg-violet-50 text-violet-700",
-    "sub-manager": "bg-blue-50 text-blue-700",
-    member:        "bg-slate-100 text-slate-600",
+    setSaving(true);
+    setErr("");
+
+    try {
+      // Always assign as Member
+      await assignMember(assignId, "member");
+      setAssignId("");
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col">
+
+        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100 shrink-0">
-          <div><h2 className="text-base font-bold text-slate-800">Manage Team</h2><p className="text-xs text-slate-400 mt-0.5">{project.title}</p></div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center"><Icon name="x" className="w-4 h-4 text-slate-500"/></button>
+          <div>
+            <h2 className="text-base font-bold text-slate-800">
+              Manage Team
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {project.title}
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center"
+          >
+            <Icon name="x" className="w-4 h-4 text-slate-500" />
+          </button>
         </div>
+
+        {/* Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {/* Assign new member */}
+
+          {/* Assign Employee */}
           <div className="bg-slate-50 rounded-xl p-4 space-y-3">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Assign Employee</p>
-            {err && <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-xl">{err}</div>}
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+              Assign Employee
+            </p>
+
+            {err && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-xl">
+                {err}
+              </div>
+            )}
+
             <div className="flex gap-2">
-              <select value={assignId} onChange={e => setAssignId(e.target.value)} className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400">
-                <option value="">{available.length===0?"All employees assigned":"Select employee…"}</option>
-                {available.map(e => <option key={e._id} value={e._id}>{e.name}{e.designation?` — ${e.designation}`:""}</option>)}
+              <select
+                value={assignId}
+                onChange={(e) => setAssignId(e.target.value)}
+                className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400"
+              >
+                <option value="">
+                  {available.length === 0
+                    ? "All employees assigned"
+                    : "Select employee..."}
+                </option>
+
+                {available.map((e) => (
+                  <option key={e._id} value={e._id}>
+                    {e.name}
+                    {e.designation ? ` — ${e.designation}` : ""}
+                  </option>
+                ))}
               </select>
-              <select value={assignRole} onChange={e => setAssignRole(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400">
-                <option value="member">Member</option>
-                <option value="manager">Manager</option>
-              </select>
-              <button onClick={doAssign} disabled={saving||!assignId} className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 shrink-0">
-                {saving?"…":"Assign"}
+
+              <button
+                onClick={doAssign}
+                disabled={saving || !assignId}
+                className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 shrink-0"
+              >
+                {saving ? "..." : "Assign"}
               </button>
             </div>
           </div>
 
-          {/* Current members */}
+          {/* Current Team */}
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Current Team ({members.length})</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+              Current Team ({members.length})
+            </p>
+
             {loading ? (
-              [...Array(3)].map((_,i) => <div key={i} className="h-12 bg-slate-50 rounded-xl animate-pulse mb-2"/>)
+              [...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 bg-slate-50 rounded-xl animate-pulse mb-2"
+                />
+              ))
             ) : members.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">No members assigned yet.</p>
+              <p className="text-sm text-slate-400 text-center py-4">
+                No members assigned yet.
+              </p>
             ) : (
               <div className="space-y-2">
-                {members.map(m => {
-                  const emp  = m.employeeId;
-                  const eid  = emp?._id ?? m.employeeId;
+                {members.map((m) => {
+                  const emp = m.employeeId;
+                  const eid = emp?._id ?? m.employeeId;
                   const name = emp?.name ?? "Unknown";
                   const desg = emp?.designation ?? "";
                   const role = m.projectRole ?? "member";
+
                   return (
-                    <div key={eid} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-700 shrink-0">{name.charAt(0).toUpperCase()}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-slate-700 truncate">{name}</p>
-                        {desg && <p className="text-[10px] text-slate-400">{desg}</p>}
+                    <div
+                      key={eid}
+                      className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl"
+                    >
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-700 shrink-0">
+                        {name.charAt(0).toUpperCase()}
                       </div>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${roleCfg[role]??roleCfg.member}`}>{role}</span>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-700 truncate">
+                          {name}
+                        </p>
+
+                        {desg && (
+                          <p className="text-[10px] text-slate-400">
+                            {desg}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Show Manager badge only */}
+                      {role === "manager" && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700">
+                          Manager
+                        </span>
+                      )}
+
+                      {/* Don't allow removing manager */}
                       {role !== "manager" && (
-                        <button onClick={() => setRole(eid, role==="sub-manager"?"member":"sub-manager")}
-                          className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 transition-colors">
-                          {role==="sub-manager"?"→ Member":"→ Sub-Mgr"}
+                        <button
+                          onClick={() => removeMember(eid)}
+                          className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 transition-colors"
+                        >
+                          Remove
                         </button>
                       )}
-                      <button onClick={() => removeMember(eid)} className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 transition-colors">Remove</button>
                     </div>
                   );
                 })}
@@ -157,8 +237,15 @@ const ManageTeamModal = ({ project, allEmployees, onClose }) => {
             )}
           </div>
         </div>
+
+        {/* Footer */}
         <div className="p-5 pt-0 shrink-0 border-t border-slate-100">
-          <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">Close</button>
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
