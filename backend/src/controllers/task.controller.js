@@ -490,7 +490,7 @@ export const deleteTask = asyncHandler(async (req, res) => {
  *  - Sets task.completedAt when task status reaches "completed"
  */
 export const updateAssignmentProgress = asyncHandler(async (req, res) => {
-  const { completionPercentage, actualHours } = req.body;
+  const { completionPercentage, actualHours, remarks } = req.body;
   const taskId = req.params.id;
 
   const task = await Task.findById(taskId);
@@ -513,6 +513,9 @@ export const updateAssignmentProgress = asyncHandler(async (req, res) => {
       throw new ApiError(400, "actualHours must be a non-negative number");
     assignment.actualHours = actualHours;
   }
+  if (remarks !== undefined) {
+    assignment.remarks = remarks;
+}
 
   // Auto status
   if (assignment.completionPercentage === 100) {
