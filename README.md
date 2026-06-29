@@ -344,3 +344,7 @@ Cloned the project repository to local system.
 # Member1 : (2023CSB037)
 1) Testing ..
 2) Merged 115 branch having latest code and solved merge conflicts
+
+# Day27 : (28/6/26)
+# Member1 : (2023CSB037)
+1) Fixed and changed manage team section for admin
