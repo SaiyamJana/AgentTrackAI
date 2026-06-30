@@ -158,8 +158,11 @@ export function useAllProjects(filters = {}) {
     setProjects(prev => prev.map(p => p._id === id ? { ...p, ...res.data } : p));
     return res.data;
   };
-
-  return { projects, loading, error, refetch: fetch_, createProject, updateProject, assignManager };
+  const deleteProject = async (id, password) => {
+    await projectAPI.remove(id, password);
+    setProjects(prev => prev.filter(p => p._id !== id));
+};
+  return { projects, loading, error, refetch: fetch_, createProject, updateProject, assignManager, deleteProject };
 }
 
 // ── useProjectMembers — members of a project ─────────────────────────────────

@@ -276,60 +276,56 @@ export const assignManager = asyncHandler(async (req, res) => {
 });
 /*
  * DELETE /api/v1/projects/:id  (Admin only)
- * Soft-delete — blocks if any non-completed tasks exist on this project.
+ * HARD delete — permanently removes the project and ALL related data.
+ * Requires admin password re-verification.
  */
 export const deleteProject = asyncHandler(async (req, res) => {
     const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+        throw new ApiError(400, "Password is required to delete a project");
+    }
+
+    const admin = await User.findById(req.user._id);
+    if (!admin) throw new ApiError(404, "Admin user not found");
+
+    const isPasswordValid = await admin.isPasswordCorrect(password);
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Incorrect password");
+    }
 
     const project = await Project.findById(id);
     if (!project) throw new ApiError(404, "Project not found");
-    if (project.isDeleted) throw new ApiError(400, "Project already deleted");
 
-    const activeTasks = await Task.countDocuments({
-        projectId: id,
-        status: { $ne: "completed" },
-    });
+    const tasks = await Task.find({ projectId: id }).select("_id").lean();
+    const taskIds = tasks.map(t => t._id);
 
-    if (activeTasks > 0) {
-        throw new ApiError(
-            400,
-            `Cannot delete project — ${activeTasks} task(s) are not completed yet. Complete or remove them first.`
-        );
-    }
-
-    project.isDeleted = true;
-    project.isActive = false;
-    await project.save();
-
-    // Deactivate all employee assignments on this project
-    await EmployeeProject.updateMany(
-        { projectId: id, isActive: true },
-        { isActive: false }
+    await TaskAssignment.deleteMany({ taskId: { $in: taskIds } });
+    await Task.deleteMany({ projectId: id });
+    await EmployeeProject.deleteMany({ projectId: id });
+    await Risk.deleteMany({ projectId: id });
+    await Report.deleteMany({ projectId: id });
+    await Workload.updateMany(
+        { projectIds: id },
+        { $pull: { projectIds: id } }
     );
+    await ActivityLog.deleteMany({ projectId: id });
 
-    // Log the deletion
+    const projectTitle = project.title;
+    await Project.findByIdAndDelete(id);
+
     await ActivityLog.create({
+        userId: req.user._id,
         companyId: req.user.companyId,
-        projectId: project._id,
         action: "project_deleted",
-        performedBy: req.user._id,
-        details: `Project "${project.title}" was deleted.`,
+        entityType: "Project",
+        entityId: id,
+        details: `Project "${projectTitle}" and all related data were permanently deleted by ${req.user.name}.`,
+        adminOnly: true,
     });
-
-    // Notify the primary manager
-    if (project.managerId) {
-        await Notification.create({
-            userId: project.managerId,
-            companyId: req.user.companyId,
-            type: "project_deleted",
-            title: "Project Deleted",
-            message: `Project "${project.title}" has been deleted by an admin.`,
-            relatedEntity: { type: "project", id: project._id },
-            read: false,
-        });
-    }
 
     return res
         .status(200)
-        .json(new ApiResponse(200, null, "Project deleted successfully"));
+        .json(new ApiResponse(200, null, `Project "${projectTitle}" deleted permanently`));
 });
