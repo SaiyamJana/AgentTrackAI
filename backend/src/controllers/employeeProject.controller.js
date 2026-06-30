@@ -33,12 +33,7 @@ export const assignEmployee = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Employee does not belong to your company");
   }
 
-  if (projectRole === "manager") {
-    await EmployeeProject.findOneAndUpdate(
-      { projectId, projectRole: "manager", isActive: true },
-      { projectRole: "member" },
-    );
-  }
+  
 
   let assignment = await EmployeeProject.findOne({ projectId, employeeId });
   const isNewAssignment = !assignment || !assignment.isActive;
@@ -59,9 +54,9 @@ export const assignEmployee = asyncHandler(async (req, res) => {
     });
   }
 
-  if (projectRole === "manager") {
+  if (projectRole === "manager" && !project.managerId) {
     await Project.findByIdAndUpdate(projectId, { managerId: employeeId });
-  }
+}
 
   // ── Notify the employee about being assigned ────────────────────────
   if (isNewAssignment) {
@@ -83,8 +78,8 @@ export const assignEmployee = asyncHandler(async (req, res) => {
       type: isPromotion ? "manager_promoted" : "role_changed",
       title: isPromotion ? "Promoted to Manager" : "Role Updated",
       message: isPromotion
-        ? `You've been promoted to Manager on project "${project.title}".`
-        : `Your role on project "${project.title}" has been updated to ${projectRole}.`,
+    ? `You've been assigned as a manager on project "${project.title}".`
+    : `Your role on project "${project.title}" has been updated to ${projectRole}.`,
       relatedEntity: { type: "project", id: projectId },
       read: false,
     });
@@ -147,7 +142,6 @@ export const removeEmployee = asyncHandler(async (req, res) => {
 
   const project = await Project.findById(projectId);
 
-  // ── Check BEFORE deactivating — find the assignment first, don't mutate yet ──
   const existingAssignment = await EmployeeProject.findOne({
     projectId,
     employeeId,
@@ -156,21 +150,43 @@ export const removeEmployee = asyncHandler(async (req, res) => {
 
   if (!existingAssignment) throw new ApiError(404, "Assignment not found");
 
+  // If removing a manager, ensure at least one other manager remains
   if (existingAssignment.projectRole === "manager") {
-    throw new ApiError(
-      400,
-      "Assign a new manager before removing current manager",
-    );
+    const otherManagers = await EmployeeProject.countDocuments({
+      projectId,
+      projectRole: "manager",
+      isActive: true,
+      employeeId: { $ne: employeeId },
+    });
+    if (otherManagers === 0) {
+      throw new ApiError(
+        400,
+        "Cannot remove the only manager. Assign another manager first."
+      );
+    }
+
+    // If removing the primary manager, promote next available manager
+    if (project.managerId?.toString() === employeeId.toString()) {
+      const nextManager = await EmployeeProject.findOne({
+        projectId,
+        projectRole: "manager",
+        isActive: true,
+        employeeId: { $ne: employeeId },
+      });
+      if (nextManager) {
+        await Project.findByIdAndUpdate(projectId, {
+          managerId: nextManager.employeeId,
+        });
+      }
+    }
   }
 
-  // ── Only deactivate after all checks pass ──────────────────────────
   const assignment = await EmployeeProject.findOneAndUpdate(
     { projectId, employeeId, isActive: true },
     { isActive: false },
     { new: true },
   );
 
-  // ── Notify the removed employee ──────────────────────────────────────
   await Notification.create({
     userId: employeeId,
     companyId: req.user.companyId,
@@ -181,13 +197,7 @@ export const removeEmployee = asyncHandler(async (req, res) => {
     read: false,
   });
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        assignment,
-        "Employee removed from project successfully",
-      ),
-    );
+  return res.status(200).json(
+    new ApiResponse(200, assignment, "Employee removed from project successfully")
+  );
 });

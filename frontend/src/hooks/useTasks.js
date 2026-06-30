@@ -85,11 +85,7 @@ export function useMyTasks(filters = {}) {
       t._id === id
         ? {
             ...t,
-            completionPercentage: taskProgress ?? t.completionPercentage,
-            status:
-              taskProgress === 100 ? "completed"
-              : taskProgress > 0   ? "in-progress"
-              : "pending",
+            completionPercentage: taskProgress, remarks: payload.remarks ?? t.remarks
           }
         : t
     ));

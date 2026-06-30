@@ -33,6 +33,7 @@ const activityLogsSchema = new Schema({
             "task_progress_updated",
             "task_completed",
             "project_completed",
+            "project_deleted",
         ],
         required: true,
     },

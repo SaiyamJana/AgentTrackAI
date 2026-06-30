@@ -72,32 +72,33 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
 const ManageTeamModal = ({ project, allEmployees, onClose }) => {
   const { members, loading, assignMember, removeMember } = useProjectMembers(project._id);
 
-  const [assignId, setAssignId] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState("");
+  const [assignId,   setAssignId]   = useState("");
+  const [assignRole, setAssignRole] = useState("member");
+  const [saving,     setSaving]     = useState(false);
+  const [removing,   setRemoving]   = useState("");
+  const [err,        setErr]        = useState("");
 
-  const memberIds = new Set(
-    members.map((m) => m.employeeId?._id ?? m.employeeId)
-  );
-
-  const available = allEmployees.filter((e) => !memberIds.has(e._id));
+  const memberIds = new Set(members.map(m => m.employeeId?._id ?? m.employeeId));
+  const available = allEmployees.filter(e => !memberIds.has(e._id));
 
   const doAssign = async () => {
     if (!assignId) return;
-
-    setSaving(true);
-    setErr("");
-
+    setSaving(true); setErr("");
     try {
-      // Always assign as Member
-      await assignMember(assignId, "member");
-      setAssignId("");
-    } catch (e) {
-      setErr(e.message);
-    } finally {
-      setSaving(false);
-    }
+      await assignMember(assignId, assignRole);
+      setAssignId(""); setAssignRole("member");
+    } catch (e) { setErr(e.message); }
+    finally { setSaving(false); }
   };
+
+  const doRemove = async (eid) => {
+    setRemoving(eid); setErr("");
+    try { await removeMember(eid); }
+    catch (e) { setErr(e.message); }
+    finally { setRemoving(""); }
+  };
+
+  const managerCount = members.filter(m => m.projectRole === "manager").length;
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -106,19 +107,11 @@ const ManageTeamModal = ({ project, allEmployees, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100 shrink-0">
           <div>
-            <h2 className="text-base font-bold text-slate-800">
-              Manage Team
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {project.title}
-            </p>
+            <h2 className="text-base font-bold text-slate-800">Manage Team</h2>
+            <p className="text-xs text-slate-400 mt-0.5">{project.title}</p>
           </div>
-
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center"
-          >
-            <Icon name="x" className="w-4 h-4 text-slate-500" />
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center">
+            <Icon name="x" className="w-4 h-4 text-slate-500"/>
           </button>
         </div>
 
@@ -137,24 +130,30 @@ const ManageTeamModal = ({ project, allEmployees, onClose }) => {
               </div>
             )}
 
+            {/* Employee + Role selectors */}
             <div className="flex gap-2">
               <select
                 value={assignId}
-                onChange={(e) => setAssignId(e.target.value)}
+                onChange={e => setAssignId(e.target.value)}
                 className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400"
               >
                 <option value="">
-                  {available.length === 0
-                    ? "All employees assigned"
-                    : "Select employee..."}
+                  {available.length === 0 ? "All employees assigned" : "Select employee..."}
                 </option>
-
-                {available.map((e) => (
+                {available.map(e => (
                   <option key={e._id} value={e._id}>
-                    {e.name}
-                    {e.designation ? ` — ${e.designation}` : ""}
+                    {e.name}{e.designation ? ` — ${e.designation}` : ""}
                   </option>
                 ))}
+              </select>
+
+              <select
+                value={assignRole}
+                onChange={e => setAssignRole(e.target.value)}
+                className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400"
+              >
+                <option value="member">Member</option>
+                <option value="manager">Manager</option>
               </select>
 
               <button
@@ -175,61 +174,48 @@ const ManageTeamModal = ({ project, allEmployees, onClose }) => {
 
             {loading ? (
               [...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-12 bg-slate-50 rounded-xl animate-pulse mb-2"
-                />
+                <div key={i} className="h-12 bg-slate-50 rounded-xl animate-pulse mb-2"/>
               ))
             ) : members.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">
-                No members assigned yet.
-              </p>
+              <p className="text-sm text-slate-400 text-center py-4">No members assigned yet.</p>
             ) : (
               <div className="space-y-2">
-                {members.map((m) => {
-                  const emp = m.employeeId;
-                  const eid = emp?._id ?? m.employeeId;
+                {members.map(m => {
+                  const emp  = m.employeeId;
+                  const eid  = emp?._id ?? m.employeeId;
                   const name = emp?.name ?? "Unknown";
                   const desg = emp?.designation ?? "";
                   const role = m.projectRole ?? "member";
+                  const isOnlyManager = role === "manager" && managerCount <= 1;
 
                   return (
-                    <div
-                      key={eid}
-                      className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl"
-                    >
+                    <div key={eid} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-700 shrink-0">
                         {name.charAt(0).toUpperCase()}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-slate-700 truncate">
-                          {name}
-                        </p>
-
-                        {desg && (
-                          <p className="text-[10px] text-slate-400">
-                            {desg}
-                          </p>
-                        )}
+                        <p className="text-xs font-semibold text-slate-700 truncate">{name}</p>
+                        {desg && <p className="text-[10px] text-slate-400">{desg}</p>}
                       </div>
 
-                      {/* Show Manager badge only */}
-                      {role === "manager" && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700">
-                          Manager
-                        </span>
-                      )}
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                        role === "manager"
+                          ? "bg-violet-50 text-violet-700"
+                          : "bg-slate-100 text-slate-500"
+                      }`}>
+                        {role === "manager" ? "Manager" : "Member"}
+                      </span>
 
-                      {/* Don't allow removing manager */}
-                      {role !== "manager" && (
-                        <button
-                          onClick={() => removeMember(eid)}
-                          className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 transition-colors"
-                        >
-                          Remove
-                        </button>
-                      )}
+                      {/* Allow removing anyone — but block removing the only manager */}
+                      <button
+                        onClick={() => doRemove(eid)}
+                        disabled={removing === eid || isOnlyManager}
+                        title={isOnlyManager ? "Assign another manager before removing this one" : "Remove"}
+                        className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                      >
+                        {removing === eid ? "..." : "Remove"}
+                      </button>
                     </div>
                   );
                 })}
@@ -240,10 +226,8 @@ const ManageTeamModal = ({ project, allEmployees, onClose }) => {
 
         {/* Footer */}
         <div className="p-5 pt-0 shrink-0 border-t border-slate-100">
-          <button
-            onClick={onClose}
-            className="w-full py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50"
-          >
+          <button onClick={onClose}
+            className="w-full py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">
             Close
           </button>
         </div>
@@ -251,7 +235,6 @@ const ManageTeamModal = ({ project, allEmployees, onClose }) => {
     </div>
   );
 };
-
 /* ── Project Card ─────────────────────────────────────────────────── */
 const ProjectCard = ({ project, allEmployees, onStatusChange }) => {
   const [showTeam,   setShowTeam]   = useState(false);
