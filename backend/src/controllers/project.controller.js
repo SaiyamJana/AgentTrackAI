@@ -6,7 +6,12 @@ import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
 import { Task }         from "../models/Task.js";
-import { ActivityLog }  from "../models/ActivityLog.js";
+import { TaskAssignment } from "../models/TaskAssignment.js";
+import { ActivityLog }    from "../models/activityLogs.model.js";
+import { Risk }           from "../models/risks.model.js";
+import { Report }         from "../models/reports.model.js";
+import { Workload }       from "../models/workloads.model.js";
+import { User }           from "../models/User.js";
 /*
  * POST /api/v1/projects  (Admin only)
  */
@@ -268,4 +273,63 @@ export const assignManager = asyncHandler(async (req, res) => {
     });
 
     return res.status(200).json(new ApiResponse(200, updated, "Manager re-assigned successfully"));
+});
+/*
+ * DELETE /api/v1/projects/:id  (Admin only)
+ * Soft-delete — blocks if any non-completed tasks exist on this project.
+ */
+export const deleteProject = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const project = await Project.findById(id);
+    if (!project) throw new ApiError(404, "Project not found");
+    if (project.isDeleted) throw new ApiError(400, "Project already deleted");
+
+    const activeTasks = await Task.countDocuments({
+        projectId: id,
+        status: { $ne: "completed" },
+    });
+
+    if (activeTasks > 0) {
+        throw new ApiError(
+            400,
+            `Cannot delete project — ${activeTasks} task(s) are not completed yet. Complete or remove them first.`
+        );
+    }
+
+    project.isDeleted = true;
+    project.isActive = false;
+    await project.save();
+
+    // Deactivate all employee assignments on this project
+    await EmployeeProject.updateMany(
+        { projectId: id, isActive: true },
+        { isActive: false }
+    );
+
+    // Log the deletion
+    await ActivityLog.create({
+        companyId: req.user.companyId,
+        projectId: project._id,
+        action: "project_deleted",
+        performedBy: req.user._id,
+        details: `Project "${project.title}" was deleted.`,
+    });
+
+    // Notify the primary manager
+    if (project.managerId) {
+        await Notification.create({
+            userId: project.managerId,
+            companyId: req.user.companyId,
+            type: "project_deleted",
+            title: "Project Deleted",
+            message: `Project "${project.title}" has been deleted by an admin.`,
+            relatedEntity: { type: "project", id: project._id },
+            read: false,
+        });
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, null, "Project deleted successfully"));
 });
