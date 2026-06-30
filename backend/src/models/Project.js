@@ -9,6 +9,7 @@ const projectSchema = new mongoose.Schema(
     managerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     priority: { type: String, enum: ["low", "medium", "high"], default: "medium" },
     status:   { type: String, enum: ["active", "completed", "on-hold"], default: "active" },
+    isDeleted: { type: Boolean, default: false },
     startDate: { type: Date, required: true },
     endDate:   { type: Date, required: true },
     progressPercentage: { type: Number, default: 0, min: 0, max: 100 },
