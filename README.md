@@ -421,6 +421,8 @@ Cloned the project repository to local system.
 1) Added useChat hooks for frontend
 2) Added components for chat system and modified the api.js and new routes for chat
 3) Identified the bugs of chat system
+4) Task management Bug (Backend returns tasks with respect to project from manager , but it should return all tasks of all projects he is of manager)
+5) Fixed the task fetching from manager dashboard
 
 # Member2 : (2023CSB115)
 1) Added employee_created and employee_updated activity log hits in user.controller.js
