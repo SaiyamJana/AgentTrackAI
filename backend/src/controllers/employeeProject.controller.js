@@ -6,7 +6,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Task } from "../models/Task.js";
-
+import { ActivityLog } from "../models/activityLogs.model.js";
 /*
  * POST /api/v1/projects/:id/employees  (Admin only)
  */
@@ -59,6 +59,7 @@ export const assignEmployee = asyncHandler(async (req, res) => {
 }
 
   // ── Notify the employee about being assigned ────────────────────────
+  // ── Notify the employee about being assigned ────────────────────────
   if (isNewAssignment) {
     await Notification.create({
       userId: employeeId,
@@ -68,6 +69,17 @@ export const assignEmployee = asyncHandler(async (req, res) => {
       message: `You've been added to project "${project.title}" as ${projectRole}.`,
       relatedEntity: { type: "project", id: projectId },
       read: false,
+    });
+
+    // ✅ Activity log — new assignment
+    await ActivityLog.create({
+      userId: req.user._id,
+      companyId: req.user.companyId,
+      projectId,
+      action: projectRole === "manager" ? "manager_added" : "employee_assigned",
+      entityType: "EmployeeProject",
+      entityId: assignment._id,
+      details: `${employee.name} was added to project "${project.title}" as ${projectRole}.`,
     });
   } else {
     // Existing member's role changed — distinguish promotion vs demotion
@@ -82,6 +94,17 @@ export const assignEmployee = asyncHandler(async (req, res) => {
     : `Your role on project "${project.title}" has been updated to ${projectRole}.`,
       relatedEntity: { type: "project", id: projectId },
       read: false,
+    });
+
+    // ✅ Activity log — role change
+    await ActivityLog.create({
+      userId: req.user._id,
+      companyId: req.user.companyId,
+      projectId,
+      action: isPromotion ? "manager_added" : "employee_assigned",
+      entityType: "EmployeeProject",
+      entityId: assignment._id,
+      details: `${employee.name}'s role on project "${project.title}" changed to ${projectRole}.`,
     });
   }
 
@@ -133,6 +156,7 @@ export const removeEmployee = asyncHandler(async (req, res) => {
 
   const activeTask = await Task.findOne({
     projectId,
+    status: { $ne: "completed" },
     $or: [{ subManagerId: employeeId }, { teamMembers: employeeId }],
   });
 
@@ -195,6 +219,18 @@ export const removeEmployee = asyncHandler(async (req, res) => {
     message: `You've been removed from project "${project?.title ?? "a project"}".`,
     relatedEntity: { type: "project", id: projectId },
     read: false,
+  });
+
+  // ✅ Activity log — removal
+  const removedEmployee = await User.findById(employeeId).select("name").lean();
+  await ActivityLog.create({
+    userId: req.user._id,
+    companyId: req.user.companyId,
+    projectId,
+    action: existingAssignment.projectRole === "manager" ? "manager_removed" : "employee_removed",
+    entityType: "EmployeeProject",
+    entityId: existingAssignment._id,
+    details: `${removedEmployee?.name ?? "An employee"} was removed from project "${project?.title ?? "a project"}".`,
   });
 
   return res.status(200).json(

@@ -6,6 +6,7 @@ import {
     getProjectById,
     updateProject,
     assignManager,
+    deleteProject,
 } from "../controllers/project.controller.js";
 import { verifyJWT, authorizeRoles } from "../middleware/auth.middleware.js";
 
@@ -23,5 +24,6 @@ router.get("/",  authorizeRoles("admin", "employee"),  getAllProjects); // contr
 router.get("/:id",           authorizeRoles("admin", "employee"), getProjectById);
 router.patch("/:id",         authorizeRoles("admin", "employee"), updateProject);   // controller checks manager role
 router.patch("/:id/manager", authorizeRoles("admin"),             assignManager);
+router.delete("/:id",        authorizeRoles("admin"),             deleteProject);
 
 export default router;

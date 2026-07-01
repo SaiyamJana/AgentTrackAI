@@ -86,6 +86,7 @@ export const projectAPI = {
   create:        (body)          => request("POST",  "/projects", body),
   update:        (id, body)      => request("PATCH", `/projects/${id}`, body),
   assignManager: (id, managerId) => request("PATCH", `/projects/${id}/manager`, { managerId }),
+  remove:        (id, password)  => request("DELETE", `/projects/${id}`, { password }),
 };
 
 // ── Project Members ───────────────────────────────────────────────────────────

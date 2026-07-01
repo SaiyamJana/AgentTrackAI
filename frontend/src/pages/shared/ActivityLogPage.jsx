@@ -20,6 +20,10 @@ const ACTION_CFG = {
   task_member_added:      { label: "Member Added",          color: "bg-blue-50 text-blue-700",        icon: "users"      },
   task_member_removed:    { label: "Member Removed",        color: "bg-red-50 text-red-700",          icon: "users"      },
   task_completed:         { label: "Task Completed",        color: "bg-emerald-50 text-emerald-700",  icon: "checkCircle"},
+  task_progress_updated: { label: "Progress Updated", color: "bg-blue-50 text-blue-700", icon: "chart" },
+  user_login:              { label: "User Login",            color: "bg-slate-50 text-slate-600",      icon: "users"      },
+employee_deactivated:    { label: "Employee Deactivated",  color: "bg-red-50 text-red-700",          icon: "users"      },
+employee_reactivated:    { label: "Employee Reactivated",  color: "bg-emerald-50 text-emerald-700",  icon: "users"      },
 };
 
 const fmtDateTime = (d) =>
@@ -69,7 +73,7 @@ export default function ActivityLogPage() {
   }, [projects, projectId, isAdmin]);
   const [filterAction, setFilterAction] = useState("");
 
-  const { logs, loading, error } = useActivityLogs(projectId);
+  const { logs, loading, error } = useActivityLogs(projectId, !isAdmin);
 
   // Filter by action type client-side
   const filtered = filterAction
