@@ -253,6 +253,12 @@ export const canUsersChat = async (userA, userB) => {
  *
  * Returns the Conversation document on success so the caller doesn't
  * need to fetch it again.
+ *
+ * NOTE: this is the raw *membership* check. Most call sites should use
+ * assertConversationAccess() below instead, which also grants Admins
+ * company-wide access to group conversations without requiring them to
+ * be inserted into `members`. This function is kept because membership
+ * is still the correct/only rule for employees and for Direct Messages.
  */
 export const assertConversationMember = async (conversationId, userId) => {
     const conv = await Conversation.findOne({
@@ -266,6 +272,81 @@ export const assertConversationMember = async (conversationId, userId) => {
     }
 
     return conv;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Centralized conversation authorization (membership OR admin company-wide)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/*
+ * ADMIN_ACCESSIBLE_TYPES — conversation types an Admin may access without
+ * being a member. Direct Messages are intentionally excluded — Admin must
+ * never be able to read/open employee DMs.
+ */
+const ADMIN_ACCESSIBLE_TYPES = ["project_group", "task_group"];
+
+/*
+ * canAdminAccessConversation(conversation, user)
+ * Pure predicate — no DB access. Used by assertConversationAccess and by
+ * the socket layer when deciding which rooms to auto-join an admin to.
+ */
+export const canAdminAccessConversation = (conversation, user) => {
+    if (!conversation || user.role !== "admin") return false;
+    if (String(conversation.companyId) !== String(user.companyId)) return false;
+    return ADMIN_ACCESSIBLE_TYPES.includes(conversation.type);
+};
+
+/*
+ * assertConversationAccess(conversationId, user)
+ *
+ * THE single source of truth for "can this user open/read/write this
+ * conversation" — used by every REST controller and every Socket.IO
+ * handler. Do not inline permission checks anywhere else.
+ *
+ * Rules:
+ *   - Employees (and any non-admin role): must be in conversation.members.
+ *   - Admin: automatically authorized for project_group / task_group
+ *            conversations belonging to their own company — WITHOUT being
+ *            a member. Admin is NEVER authorized for "direct" conversations.
+ *
+ * Returns the Conversation document (lean) on success.
+ */
+export const assertConversationAccess = async (conversationId, user) => {
+    const conv = await Conversation.findOne({
+        _id: conversationId,
+        isActive: true,
+    }).lean();
+
+    if (!conv) {
+        throw new Error("Conversation not found");
+    }
+
+    const isMember = conv.members.some((m) => String(m) === String(user._id));
+    if (isMember) return conv;
+
+    if (canAdminAccessConversation(conv, user)) return conv;
+
+    if (user.role === "admin" && conv.type === "direct") {
+        throw new Error("Forbidden: Admins cannot access Direct Messages");
+    }
+
+    throw new Error("Forbidden: You are not a member of this conversation");
+};
+
+/*
+ * getAdminGroupConversationIds(companyId)
+ * All active project_group + task_group conversation ids for a company.
+ * Used to: (1) build the Admin conversation list, (2) auto-join an
+ * Admin's socket to every group room at connect time, (3) scope Admin
+ * search to allowed conversations.
+ */
+export const getAdminGroupConversationIds = async (companyId) => {
+    const convs = await Conversation.find({
+        companyId,
+        type: { $in: ADMIN_ACCESSIBLE_TYPES },
+        isActive: true,
+    }).select("_id").lean();
+    return convs.map((c) => String(c._id));
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

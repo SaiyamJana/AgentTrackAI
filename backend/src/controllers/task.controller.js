@@ -296,20 +296,36 @@ export const removeTaskMembers = asyncHandler(async (req, res) => {
 // GET /api/v1/tasks?projectId=  (manager / sub-manager / admin)
 export const getTasksByProject = asyncHandler(async (req, res) => {
   const { projectId, status, priority } = req.query;
-  if (!projectId) throw new ApiError(400, "projectId query param is required");
 
-  if (req.user.role !== "admin") {
-    const assignment = await EmployeeProject.findOne({
-      projectId,
-      employeeId: req.user._id,
-      isActive: true,
-    });
-    if (!assignment) throw new ApiError(403, "You are not assigned to this project");
+  let filter = {};
+
+  if (status) filter.status = status;
+  if (priority) filter.priority = priority;
+
+  if (req.user.role === "admin") {
+    if (projectId) filter.projectId = projectId;
+  } else {
+    // Projects where this user is the manager
+    const managedProjects = await Project.find({
+      managerId: req.user._id,
+    }).select("_id");
+
+    const projectIds = managedProjects.map(p => p._id);
+
+    if (projectId) {
+      // Verify manager owns this project
+      if (!projectIds.some(id => id.toString() === projectId)) {
+        throw new ApiError(403, "You are not the manager of this project");
+      }
+
+      filter.projectId = projectId;
+    } else {
+      // No project selected -> show tasks from ALL managed projects
+      filter.projectId = { $in: projectIds };
+    }
   }
 
-  const filter = { projectId };
-  if (status)   filter.status   = status;
-  if (priority) filter.priority = priority;
+  
 
   const tasks = await Task.find(filter)
     .populate("subManagerId", "name email department")
@@ -319,7 +335,9 @@ export const getTasksByProject = asyncHandler(async (req, res) => {
     .sort({ deadline: 1 })
     .lean();
 
-  return res.status(200).json(new ApiResponse(200, tasks, "Tasks fetched"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, tasks, "Tasks fetched"));
 });
 
 // GET /api/v1/tasks/kanban?projectId=

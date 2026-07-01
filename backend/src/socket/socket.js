@@ -1,6 +1,9 @@
 import { Server }          from "socket.io";
 import { socketAuth }      from "./socketAuth.js";
-import { assertConversationMember } from "./chatPermissions.js";
+import {
+    assertConversationAccess,
+    getAdminGroupConversationIds,
+} from "./chatPermissions.js";
 import { Conversation }    from "../models/Conversation.js";
 import { Message }         from "../models/Message.js";
 import { MessageRead }     from "../models/MessageRead.js";
@@ -37,7 +40,7 @@ const isOnline = (userId) => onlineUsers.has(String(userId));
 
 /*
  * getUserConversationIds(userId)
- * Returns all active conversation IDs the user belongs to.
+ * Returns all active conversation IDs the user belongs to via membership.
  * Used at connect-time to auto-join all rooms.
  */
 const getUserConversationIds = async (userId) => {
@@ -49,15 +52,32 @@ const getUserConversationIds = async (userId) => {
 };
 
 /*
- * broadcastOnlineStatus(io, userId, status)
- * Emits "user:status" to every room the user is a member of,
- * so all their contacts see the online/offline change.
+ * getRoomIdsForUser(user)
+ * Role-aware room resolution — mirrors assertConversationAccess:
+ *   - Employees/managers/sub-managers: rooms from conversation membership.
+ *   - Admin: rooms from EVERY Project Group + Task Group in their company
+ *            (company-wide access, no membership row required). Direct
+ *            Messages are never included for Admin.
+ * Used at connect-time to decide which "conv:*" rooms a socket should join.
  */
-const broadcastOnlineStatus = async (io, userId, status) => {
-    const convIds = await getUserConversationIds(userId);
+const getRoomIdsForUser = async (user) => {
+    if (user.role === "admin") {
+        return getAdminGroupConversationIds(user.companyId);
+    }
+    return getUserConversationIds(user._id);
+};
+
+/*
+ * broadcastOnlineStatus(io, user, status)
+ * Emits "user:status" to every room the user has access to,
+ * so all their contacts (or, for Admin, every group chat) see the
+ * online/offline change.
+ */
+const broadcastOnlineStatus = async (io, user, status) => {
+    const convIds = await getRoomIdsForUser(user);
     for (const convId of convIds) {
         io.to(`conv:${convId}`).emit("user:status", {
-            userId: String(userId),
+            userId: String(user._id),
             status,        // "online" | "offline"
             lastSeen: status === "offline" ? new Date() : null,
         });
@@ -122,9 +142,18 @@ export const initSocket = (httpServer) => {
         // 2. Join personal room — used for targeted notifications
         socket.join(`user:${userId}`);
 
-        // 3. Auto-join all conversation rooms the user belongs to
+        // 3. Auto-join conversation rooms.
+        //    - Employees/managers/sub-managers: rooms from membership.
+        //    - Admin: every Project Group + Task Group room in their
+        //      company, PLUS a company-wide "admin:<companyId>" room so
+        //      newly-created group chats can be socketsJoin()-ed onto
+        //      this socket later without a reconnect (see chat.controller.js
+        //      createProjectGroupChat / createTaskGroupChat).
         try {
-            const convIds = await getUserConversationIds(user._id);
+            if (user.role === "admin") {
+                socket.join(`admin:${String(user.companyId)}`);
+            }
+            const convIds = await getRoomIdsForUser(user);
             for (const convId of convIds) {
                 socket.join(`conv:${convId}`);
             }
@@ -133,8 +162,10 @@ export const initSocket = (httpServer) => {
         }
 
         // 4. Broadcast online status to all conversation partners
+        //    (for Admin: to every group chat room, since Admin isn't a
+        //    "member" but employees should still see Admin's presence).
         try {
-            await broadcastOnlineStatus(io, user._id, "online");
+            await broadcastOnlineStatus(io, user, "online");
         } catch (err) {
             console.error(`[Socket] Status broadcast error:`, err.message);
         }
@@ -149,7 +180,7 @@ export const initSocket = (httpServer) => {
         // at connect-time — this is a safe guard for rooms added after connect.
         socket.on("conv:join", async ({ conversationId }, callback) => {
             try {
-                await assertConversationMember(conversationId, user._id);
+                await assertConversationAccess(conversationId, user);
                 socket.join(`conv:${conversationId}`);
                 if (callback) callback({ success: true });
             } catch (err) {
@@ -162,8 +193,9 @@ export const initSocket = (httpServer) => {
             try {
                 const { conversationId, content, replyTo = null, mentions = [] } = payload;
 
-                // 1. Permission — must be a conversation member
-                const conv = await assertConversationMember(conversationId, user._id);
+                // 1. Permission — member (employee/manager/sub-manager) OR
+                //    Admin with company-wide access to this group conversation.
+                const conv = await assertConversationAccess(conversationId, user);
 
                 // 2. Validate — message content is required
                 if (!content?.trim()) {
@@ -276,7 +308,7 @@ export const initSocket = (httpServer) => {
         // ── Event: typing indicator ───────────────────────────────────────────
         socket.on("typing:start", async ({ conversationId }) => {
             try {
-                await assertConversationMember(conversationId, user._id);
+                await assertConversationAccess(conversationId, user);
                 socket.to(`conv:${conversationId}`).emit("typing:start", {
                     conversationId,
                     userId,
@@ -299,7 +331,7 @@ export const initSocket = (httpServer) => {
         // new messages scroll into view.
         socket.on("messages:seen", async ({ conversationId, messageIds }, callback) => {
             try {
-                await assertConversationMember(conversationId, user._id);
+                await assertConversationAccess(conversationId, user);
 
                 const now = new Date();
 
@@ -337,8 +369,8 @@ export const initSocket = (httpServer) => {
                 const message = await Message.findById(messageId);
                 if (!message) throw new Error("Message not found");
 
-                // Must be a member of the conversation
-                await assertConversationMember(String(message.conversationId), user._id);
+                // Must be a member OR Admin with company-wide group access
+                await assertConversationAccess(String(message.conversationId), user);
 
                 if (deleteForEveryone) {
                     // Only the sender can delete for everyone, within 60 minutes
@@ -397,7 +429,7 @@ export const initSocket = (httpServer) => {
             // Only broadcast offline if ALL tabs/devices are gone
             if (!isOnline(userId)) {
                 try {
-                    await broadcastOnlineStatus(io, user._id, "offline");
+                    await broadcastOnlineStatus(io, user, "offline");
                 } catch (err) {
                     console.error(`[Socket] Offline broadcast error:`, err.message);
                 }

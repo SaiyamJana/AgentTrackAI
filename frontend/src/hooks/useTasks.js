@@ -9,12 +9,14 @@ export function useTaskList(filters = {}) {
   const [stats,   setStats]   = useState({ total: 0, completed: 0, inProgress: 0, overdue: 0 });
 
   const fetch_ = useCallback(async () => {
-    if (!filters.projectId && Object.keys(filters).length === 0) {
-      setTasks([]); setLoading(false); return;
-    }
+    // if (!filters.projectId && Object.keys(filters).length === 0) {
+    //   setTasks([]); setLoading(false); return;
+    // }
     setLoading(true); setError(null);
     try {
       const res  = await taskAPI.list(filters);
+      console.log("Filters:", filters);
+      console.log("Response:", res.data);
       const list = res.data ?? [];
       setTasks(list);
       const now = Date.now();

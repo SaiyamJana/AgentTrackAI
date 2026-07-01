@@ -356,9 +356,12 @@ export default function TasksPage() {
     ...(filterPriority ? { priority:  filterPriority } : {}),
   }), [filterProject, filterStatus, filterPriority, projects]);
 
-  const { tasks, loading, error, stats, createTask, deleteTask } = useTaskList(
-    (filterProject || projects.length > 0) ? { ...apiFilters, projectId: filterProject || projects[0]?._id || "" } : {}
-  );
+  const { tasks, loading, error, stats, createTask, deleteTask } =
+  useTaskList({
+    ...(filterProject ? { projectId: filterProject } : {}),
+    ...(filterStatus ? { status: filterStatus } : {}),
+    ...(filterPriority ? { priority: filterPriority } : {}),
+  });
 
   const filtered = useMemo(() =>
     tasks.filter(t =>

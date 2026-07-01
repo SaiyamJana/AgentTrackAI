@@ -10,7 +10,13 @@ import { EmployeeProject }     from "../models/EmployeeProject.js";
 import { ApiError }            from "../utils/ApiError.js";
 import { ApiResponse }         from "../utils/ApiResponse.js";
 import { asyncHandler }        from "../utils/asyncHandler.js";
-import { canUsersChat, assertConversationMember, syncTaskGroupMembers, syncProjectGroupMembers } from "../socket/chatPermissions.js";
+import {
+    canUsersChat,
+    assertConversationAccess,
+    getAdminGroupConversationIds,
+    syncTaskGroupMembers,
+    syncProjectGroupMembers,
+} from "../socket/chatPermissions.js";
 import { getIO }               from "../socket/socket.js";
 
 const PAGE_SIZE = 30; // messages per page
@@ -68,6 +74,30 @@ const unreadCountsForUser = async (userId, conversationIds) => {
 export const getMyConversations = asyncHandler(async (req, res) => {
     const userId = req.user._id;
 
+    // ── ADMIN: company-wide view of every Project Group + Task Group ────────
+    // Admin is NOT inserted into `members`, so we query by companyId + type
+    // instead. Direct Messages are never returned to Admin. Unread counts
+    // are intentionally always 0 for Admin — Admin browsing group chats
+    // should not create per-message "unread" badges across the whole company.
+    if (req.user.role === "admin") {
+        const conversations = await Conversation.find({
+            companyId: req.user.companyId,
+            type:      { $in: ["project_group", "task_group"] },
+            isActive:  true,
+        })
+            .populate("members", "name email")
+            .populate("lastMessage.senderId", "name")
+            .sort({ "lastMessage.sentAt": -1 })
+            .lean();
+
+        const withBadges = conversations.map((c) => ({ ...c, unreadCount: 0 }));
+
+        return res.status(200).json(
+            new ApiResponse(200, withBadges, "Conversations fetched successfully")
+        );
+    }
+
+    // ── EMPLOYEE / MANAGER / SUB-MANAGER: membership-based listing ─────────
     const conversations = await Conversation.find({
         members:  userId,
         isActive: true,
@@ -158,7 +188,7 @@ export const openDirectConversation = asyncHandler(async (req, res) => {
  * Caller must be a member.
  */
 export const getConversationById = asyncHandler(async (req, res) => {
-    await assertConversationMember(req.params.id, req.user._id);
+    await assertConversationAccess(req.params.id, req.user);
 
     const conv = await Conversation.findById(req.params.id)
         .populate("members",           "name email designation department")
@@ -212,12 +242,18 @@ export const createProjectGroupChat = asyncHandler(async (req, res) => {
         projectId,
     });
 
-    // Push to all members' sockets
+    // Push to all members' sockets. Admin isn't a member, but has
+    // company-wide access — notify the admin room and pull any
+    // already-connected admin sockets into the new room so live updates
+    // work without a reconnect.
     const io = getIO();
     if (io) {
         for (const memberId of memberIds) {
             io.to(`user:${String(memberId)}`).emit("conv:new", conv);
         }
+        const adminRoom = `admin:${String(project.companyId)}`;
+        io.to(adminRoom).emit("conv:new", conv);
+        io.in(adminRoom).socketsJoin(`conv:${String(conv._id)}`);
     }
 
     return res.status(201).json(
@@ -270,6 +306,9 @@ export const createTaskGroupChat = asyncHandler(async (req, res) => {
         for (const memberId of memberSet) {
             io.to(`user:${memberId}`).emit("conv:new", conv);
         }
+        const adminRoom = `admin:${String(task.companyId)}`;
+        io.to(adminRoom).emit("conv:new", conv);
+        io.in(adminRoom).socketsJoin(`conv:${String(conv._id)}`);
     }
 
     return res.status(201).json(
@@ -296,7 +335,7 @@ export const getMessages = asyncHandler(async (req, res) => {
     const { id: conversationId } = req.params;
     const { before, limit = PAGE_SIZE } = req.query;
 
-    await assertConversationMember(conversationId, req.user._id);
+    await assertConversationAccess(conversationId, req.user);
 
     const filter = {
         conversationId,
@@ -380,7 +419,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
     const { id: conversationId } = req.params;
     const { content, replyTo, mentions = [] } = req.body;
 
-    const conv = await assertConversationMember(conversationId, req.user._id);
+    const conv = await assertConversationAccess(conversationId, req.user);
 
     if (!content?.trim()) {
         throw new ApiError(400, "Message content is required");
@@ -434,7 +473,7 @@ export const deleteMessage = asyncHandler(async (req, res) => {
     const message = await Message.findById(messageId);
     if (!message) throw new ApiError(404, "Message not found");
 
-    await assertConversationMember(String(message.conversationId), req.user._id);
+    await assertConversationAccess(String(message.conversationId), req.user);
 
     if (deleteForEveryone) {
         if (String(message.senderId) !== String(req.user._id)) {
@@ -483,7 +522,7 @@ export const markMessagesSeen = asyncHandler(async (req, res) => {
         throw new ApiError(400, "messageIds must be a non-empty array");
     }
 
-    await assertConversationMember(conversationId, req.user._id);
+    await assertConversationAccess(conversationId, req.user);
 
     const now = new Date();
     await MessageRead.bulkWrite(
@@ -531,7 +570,7 @@ export const searchMessages = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Search query must be at least 2 characters");
     }
 
-    await assertConversationMember(conversationId, req.user._id);
+    await assertConversationAccess(conversationId, req.user);
 
     const messages = await Message.find({
         conversationId,
@@ -561,11 +600,15 @@ export const globalSearch = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Search query must be at least 2 characters");
     }
 
-    // Conversations the user belongs to
-    const userConvIds = await Conversation.distinct("_id", {
-        members:  req.user._id,
-        isActive: true,
-    });
+    // Admin searches every Project Group + Task Group in the company
+    // (never Direct Messages). Everyone else searches only conversations
+    // they're a member of.
+    const userConvIds = req.user.role === "admin"
+        ? await getAdminGroupConversationIds(req.user.companyId)
+        : await Conversation.distinct("_id", {
+              members:  req.user._id,
+              isActive: true,
+          });
 
     // Matching conversations by name
     const matchingConvs = await Conversation.find({
