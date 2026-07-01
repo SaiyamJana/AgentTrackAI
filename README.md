@@ -348,3 +348,25 @@ Cloned the project repository to local system.
 # Day27 : (28/6/26)
 # Member1 : (2023CSB037)
 1) Fixed and changed manage team section for admin
+
+# Day28 : (29/6/26)
+# Member1 : (2023CSB037)
+1) socket-io and multer setup
+2) created models : 
+- Conversation.js
+- Message.js
+- MessageRead.js
+3) created socket middleware checking user authentication during connection (socketAuth.js)
+4) defined the chat permissions on different users according to users
+
+# Day29 : (30/6/26)
+# Member1 : (2023CSB037)
+1) Socket creation && defined socket structure in socket.js
+2) Added chat notification type
+3) Handled task and project related chat groups (in respective controllers)
+
+# Day30 : (1/7/26)
+# Member1 : (2023CSB037)
+1) Added useChat hooks for frontend
+2) Added components for chat system and modified the api.js and new routes for chat
+3) Identified the bugs of chat system
