@@ -60,7 +60,8 @@ projectSchema.post('save', async function (doc) {
 
 projectSchema.post('findOneAndUpdate', async function (doc) {
   if (!doc) return;
-  const update = this.getUpdate();
+  const rawUpdate = this.getUpdate();
+  const update = rawUpdate.$set || rawUpdate; // Mongoose nests changed fields under $set
   const performedBy = this.options?._performedBy;
   if (!performedBy) return;
 
@@ -102,6 +103,21 @@ projectSchema.post('findOneAndUpdate', async function (doc) {
       details: `Project "${doc.title}" reached 100% completion.`,
     });
   }
-});
 
+  const otherFieldsChanged = [
+    "title", "description", "priority", "startDate", "endDate", "tags",
+  ].some(field => update[field] !== undefined);
+
+  if (otherFieldsChanged) {
+    await ActivityLog.create({
+      userId: performedBy,
+      companyId: doc.companyId,
+      projectId: doc._id,
+      action: "project_updated",
+      entityType: "Project",
+      entityId: doc._id,
+      details: `Project "${doc.title}" details were updated.`,
+    });
+  }
+});
 export const Project = mongoose.model("Project", projectSchema);

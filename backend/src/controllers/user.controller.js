@@ -3,6 +3,7 @@ import { Company } from "../models/Company.js";
 import { ApiError }     from "../utils/ApiError.js";
 import { ApiResponse }  from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ActivityLog } from "../models/activityLogs.model.js";
 
 // POST /api/v1/users/register  ← PUBLIC
 export const registerUser = asyncHandler(async (req, res) => {
@@ -27,11 +28,20 @@ export const registerUser = asyncHandler(async (req, res) => {
         companyId: company._id,
     });
 
+    await ActivityLog.create({
+        userId: user._id,
+        companyId: company._id,
+        action: "employee_created",
+        entityType: "User",
+        entityId: user._id,
+        details: `${user.name} joined the company via invite code.`,
+        adminOnly: false,
+    });
+
     const accessToken  = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
     user.refreshToken  = refreshToken;
     await user.save({ validateBeforeSave: false });
-
     user.password     = undefined;
     user.refreshToken = undefined;
 
@@ -78,9 +88,18 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
-
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
+
+    await ActivityLog.create({
+        userId: user._id,
+        companyId: user.companyId,
+        action: "user_login",
+        entityType: "User",
+        entityId: user._id,
+        details: `${user.name} (${user.role}) logged in.`,
+        adminOnly: true,
+    });
 
     user.password = undefined;
     user.refreshToken = undefined;
@@ -110,6 +129,16 @@ export const createUser = asyncHandler(async (req, res) => {
         role:      "employee",        // always employee
         companyId: req.user.companyId, // inherits admin's companyId
         department, designation,
+    });
+
+    await ActivityLog.create({
+        userId: req.user._id,
+        companyId: req.user.companyId,
+        action: "employee_created",
+        entityType: "User",
+        entityId: user._id,
+        details: `${user.name} was added as a new employee by ${req.user.name}.`,
+        adminOnly: false,
     });
 
     user.password     = undefined;
@@ -142,15 +171,50 @@ export const getUserById = asyncHandler(async (req, res) => {
 });
 
 // PATCH /api/v1/users/:id  (Admin)
+// PATCH /api/v1/users/:id  (Admin)
 export const updateUser = asyncHandler(async (req, res) => {
     const { name, department, designation, isActive } = req.body;
+
+    const previousUser = await User.findById(req.params.id).select("isActive name department designation");
+    if (!previousUser) throw new ApiError(404, "User not found");
+
     const user = await User.findByIdAndUpdate(
         req.params.id,
         { name, department, designation, isActive },
         { new: true, runValidators: true }
     ).select("-password -refreshToken");
 
-    if (!user) throw new ApiError(404, "User not found");
+    if (isActive !== undefined && isActive !== previousUser.isActive) {
+        await ActivityLog.create({
+            userId: req.user._id,
+            companyId: req.user.companyId,
+            action: isActive ? "employee_reactivated" : "employee_deactivated",
+            entityType: "User",
+            entityId: user._id,
+            details: isActive
+                ? `${user.name} was reactivated by ${req.user.name}.`
+                : `${user.name} was deactivated by ${req.user.name}.`,
+            adminOnly: false,
+        });
+    }
+
+    const fieldChanged =
+        (name        !== undefined && name        !== previousUser.name) ||
+        (department  !== undefined && department  !== previousUser.department) ||
+        (designation !== undefined && designation !== previousUser.designation);
+
+    if (fieldChanged) {
+        await ActivityLog.create({
+            userId: req.user._id,
+            companyId: req.user.companyId,
+            action: "employee_updated",
+            entityType: "User",
+            entityId: user._id,
+            details: `${user.name}'s profile was updated by ${req.user.name}.`,
+            adminOnly: false,
+        });
+    }
+
     return res.status(200).json(new ApiResponse(200, user, "User updated successfully"));
 });
 

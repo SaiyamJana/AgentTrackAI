@@ -1,34 +1,60 @@
 import { useState, useEffect, useCallback } from "react";
-import { taskAPI, taskMemberAPI , projectAPI, memberAPI, userAPI, notificationAPI, riskAPI, reportAPI, analyticsAPI, activityLogAPI } from "../utils/api";
+import {
+  taskAPI,
+  taskMemberAPI,
+  projectAPI,
+  memberAPI,
+  userAPI,
+  notificationAPI,
+  riskAPI,
+  reportAPI,
+  analyticsAPI,
+  activityLogAPI,
+} from "../utils/api";
 
 // ── useTaskList — manager/sub-manager list with full CRUD ─────────────────────
 export function useTaskList(filters = {}) {
-  const [tasks,   setTasks]   = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
-  const [stats,   setStats]   = useState({ total: 0, completed: 0, inProgress: 0, overdue: 0 });
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    completed: 0,
+    inProgress: 0,
+    overdue: 0,
+  });
 
   const fetch_ = useCallback(async () => {
     if (!filters.projectId && Object.keys(filters).length === 0) {
-      setTasks([]); setLoading(false); return;
+      setTasks([]);
+      setLoading(false);
+      return;
     }
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
-      const res  = await taskAPI.list(filters);
+      const res = await taskAPI.list(filters);
       const list = res.data ?? [];
       setTasks(list);
       const now = Date.now();
       setStats({
-        total:      list.length,
-        completed:  list.filter(t => t.status === "completed").length,
-        inProgress: list.filter(t => t.status === "in-progress").length,
-        overdue:    list.filter(t => t.status !== "completed" && new Date(t.deadline) < now).length,
+        total: list.length,
+        completed: list.filter((t) => t.status === "completed").length,
+        inProgress: list.filter((t) => t.status === "in-progress").length,
+        overdue: list.filter(
+          (t) => t.status !== "completed" && new Date(t.deadline) < now,
+        ).length,
       });
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [JSON.stringify(filters)]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   const createTask = async (payload) => {
     const res = await taskAPI.create(payload);
@@ -37,42 +63,66 @@ export function useTaskList(filters = {}) {
   };
   const updateTask = async (id, payload) => {
     const res = await taskAPI.update(id, payload);
-    setTasks(prev => prev.map(t => t._id === id ? { ...t, ...res.data } : t));
+    setTasks((prev) =>
+      prev.map((t) => (t._id === id ? { ...t, ...res.data } : t)),
+    );
     return res.data;
   };
   const deleteTask = async (id) => {
     await taskAPI.delete(id);
-    setTasks(prev => prev.filter(t => t._id !== id));
+    setTasks((prev) => prev.filter((t) => t._id !== id));
   };
 
-  return { tasks, loading, error, stats, refetch: fetch_, createTask, updateTask, deleteTask };
+  return {
+    tasks,
+    loading,
+    error,
+    stats,
+    refetch: fetch_,
+    createTask,
+    updateTask,
+    deleteTask,
+  };
 }
 
 // ── useMyTasks — employee's own tasks ────────────────────────────────────────
 export function useMyTasks(filters = {}) {
-  const [tasks,   setTasks]   = useState([]);
-  const [stats,   setStats]   = useState({ total: 0, completed: 0, inProgress: 0, overdue: 0 });
+  const [tasks, setTasks] = useState([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    completed: 0,
+    inProgress: 0,
+    overdue: 0,
+  });
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [error, setError] = useState(null);
 
   const fetch_ = useCallback(async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
-      const res  = await taskAPI.my(filters);
+      const res = await taskAPI.my(filters);
       const list = res.data ?? [];
       setTasks(list);
       const now = Date.now();
       setStats({
-        total:      list.length,
-        completed:  list.filter(t => t.status === "completed").length,
-        inProgress: list.filter(t => t.status === "in-progress").length,
-        overdue:    list.filter(t => t.status !== "completed" && new Date(t.deadline) < now).length,
+        total: list.length,
+        completed: list.filter((t) => t.status === "completed").length,
+        inProgress: list.filter((t) => t.status === "in-progress").length,
+        overdue: list.filter(
+          (t) => t.status !== "completed" && new Date(t.deadline) < now,
+        ).length,
       });
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [JSON.stringify(filters)]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   // updateProgress hits PATCH /tasks/:id/assignments/progress
   // status is auto-derived by backend from completionPercentage — no separate updateStatus call needed
@@ -81,14 +131,17 @@ export function useMyTasks(filters = {}) {
     // res.data = { assignment, taskProgress, projectProgress }
     // Reflect the new overall task progress back onto the task list
     const { taskProgress } = res.data;
-    setTasks(prev => prev.map(t =>
-      t._id === id
-        ? {
-            ...t,
-            completionPercentage: taskProgress, remarks: payload.remarks ?? t.remarks
-          }
-        : t
-    ));
+    setTasks((prev) =>
+      prev.map((t) =>
+        t._id === id
+          ? {
+              ...t,
+              completionPercentage: taskProgress,
+              remarks: payload.remarks ?? t.remarks,
+            }
+          : t,
+      ),
+    );
     return res.data;
   };
 
@@ -98,13 +151,14 @@ export function useMyTasks(filters = {}) {
 // ── useMyProjects — employee's assigned projects ──────────────────────────────
 export function useMyProjects() {
   const [projects, setProjects] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    projectAPI.my()
-      .then(res => setProjects(res.data ?? []))
-      .catch(err => setError(err.message))
+    projectAPI
+      .my()
+      .then((res) => setProjects(res.data ?? []))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
@@ -114,11 +168,12 @@ export function useMyProjects() {
 // ── useManagerProjects — projects where employee is manager ───────────────────
 export function useManagerProjects() {
   const [projects, setProjects] = useState([]);
-  const [loading,  setLoading]  = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    projectAPI.list()
-      .then(res => setProjects(res.data ?? []))
+    projectAPI
+      .list()
+      .then((res) => setProjects(res.data ?? []))
       .catch(() => setProjects([]))
       .finally(() => setLoading(false));
   }, []);
@@ -129,19 +184,25 @@ export function useManagerProjects() {
 // ── useAllProjects — admin: all company projects with CRUD ────────────────────
 export function useAllProjects(filters = {}) {
   const [projects, setProjects] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetch_ = useCallback(async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const res = await projectAPI.list(filters);
       setProjects(res.data ?? []);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [JSON.stringify(filters)]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   const createProject = async (payload) => {
     const res = await projectAPI.create(payload);
@@ -150,19 +211,32 @@ export function useAllProjects(filters = {}) {
   };
   const updateProject = async (id, payload) => {
     const res = await projectAPI.update(id, payload);
-    setProjects(prev => prev.map(p => p._id === id ? { ...p, ...res.data } : p));
+    setProjects((prev) =>
+      prev.map((p) => (p._id === id ? { ...p, ...res.data } : p)),
+    );
     return res.data;
   };
   const assignManager = async (id, managerId) => {
     const res = await projectAPI.assignManager(id, managerId);
-    setProjects(prev => prev.map(p => p._id === id ? { ...p, ...res.data } : p));
+    setProjects((prev) =>
+      prev.map((p) => (p._id === id ? { ...p, ...res.data } : p)),
+    );
     return res.data;
   };
   const deleteProject = async (id, password) => {
     await projectAPI.remove(id, password);
-    setProjects(prev => prev.filter(p => p._id !== id));
-};
-  return { projects, loading, error, refetch: fetch_, createProject, updateProject, assignManager, deleteProject };
+    setProjects((prev) => prev.filter((p) => p._id !== id));
+  };
+  return {
+    projects,
+    loading,
+    error,
+    refetch: fetch_,
+    createProject,
+    updateProject,
+    assignManager,
+    deleteProject,
+  };
 }
 
 // ── useProjectMembers — members of a project ─────────────────────────────────
@@ -171,16 +245,24 @@ export function useProjectMembers(projectId) {
   const [loading, setLoading] = useState(false);
 
   const fetch_ = useCallback(async () => {
-    if (!projectId) { setMembers([]); return; }
+    if (!projectId) {
+      setMembers([]);
+      return;
+    }
     setLoading(true);
     try {
       const res = await memberAPI.list(projectId);
       setMembers(res.data ?? []);
-    } catch { setMembers([]); }
-    finally { setLoading(false); }
+    } catch {
+      setMembers([]);
+    } finally {
+      setLoading(false);
+    }
   }, [projectId]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   const assignMember = async (employeeId, projectRole = "member") => {
     const res = await memberAPI.assign(projectId, employeeId, projectRole);
@@ -194,20 +276,30 @@ export function useProjectMembers(projectId) {
   };
   const removeMember = async (employeeId) => {
     await memberAPI.remove(projectId, employeeId);
-    setMembers(prev => prev.filter(m => (m.employeeId?._id ?? m.employeeId) !== employeeId));
+    setMembers((prev) =>
+      prev.filter((m) => (m.employeeId?._id ?? m.employeeId) !== employeeId),
+    );
   };
 
-  return { members, loading, refetch: fetch_, assignMember, setRole, removeMember };
+  return {
+    members,
+    loading,
+    refetch: fetch_,
+    assignMember,
+    setRole,
+    removeMember,
+  };
 }
 
 // ── useAllEmployees — admin: all company employees ────────────────────────────
 export function useAllEmployees() {
   const [employees, setEmployees] = useState([]);
-  const [loading,   setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    userAPI.list({ role: "employee" })
-      .then(res => setEmployees(res.data ?? []))
+    userAPI
+      .list({ role: "employee" })
+      .then((res) => setEmployees(res.data ?? []))
       .catch(() => setEmployees([]))
       .finally(() => setLoading(false));
   }, []);
@@ -218,46 +310,69 @@ export function useAllEmployees() {
 // ── useAllEmployeesAdmin — admin: full employee list with edit/deactivate ──
 export function useAllEmployeesAdmin(filters = {}) {
   const [employees, setEmployees] = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetch_ = useCallback(async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const res = await userAPI.list({ role: "employee", ...filters });
       setEmployees(res.data ?? []);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [JSON.stringify(filters)]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   const updateEmployee = async (id, payload) => {
     const res = await userAPI.update(id, payload);
-    setEmployees(prev => prev.map(e => e._id === id ? { ...e, ...res.data } : e));
+    setEmployees((prev) =>
+      prev.map((e) => (e._id === id ? { ...e, ...res.data } : e)),
+    );
     return res.data;
   };
 
   const deactivateEmployee = async (id) => {
     const res = await userAPI.deactivate(id);
-    setEmployees(prev => prev.map(e => e._id === id ? { ...e, ...res.data } : e));
+    setEmployees((prev) =>
+      prev.map((e) => (e._id === id ? { ...e, ...res.data } : e)),
+    );
     return res.data;
   };
 
-  const reactivateEmployee = async (id) => updateEmployee(id, { isActive: true });
+  const reactivateEmployee = async (id) =>
+    updateEmployee(id, { isActive: true });
 
-  return { employees, loading, error, refetch: fetch_, updateEmployee, deactivateEmployee, reactivateEmployee };
+  return {
+    employees,
+    loading,
+    error,
+    refetch: fetch_,
+    updateEmployee,
+    deactivateEmployee,
+    reactivateEmployee,
+  };
 }
 
 // ── useEmployeeProjects — admin: a single employee's project assignments ──
 export function useEmployeeProjects(employeeId) {
   const [assignments, setAssignments] = useState([]);
-  const [loading,     setLoading]     = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!employeeId) { setAssignments([]); return; }
+    if (!employeeId) {
+      setAssignments([]);
+      return;
+    }
     setLoading(true);
-    projectAPI.list()
+    projectAPI
+      .list()
       .then(async (res) => {
         const projects = res.data ?? [];
         const results = await Promise.all(
@@ -265,11 +380,15 @@ export function useEmployeeProjects(employeeId) {
             try {
               const m = await memberAPI.list(p._id);
               const match = (m.data ?? []).find(
-                x => (x.employeeId?._id ?? x.employeeId) === employeeId
+                (x) => (x.employeeId?._id ?? x.employeeId) === employeeId,
               );
-              return match ? { project: p, projectRole: match.projectRole } : null;
-            } catch { return null; }
-          })
+              return match
+                ? { project: p, projectRole: match.projectRole }
+                : null;
+            } catch {
+              return null;
+            }
+          }),
         );
         setAssignments(results.filter(Boolean));
       })
@@ -283,16 +402,19 @@ export function useEmployeeProjects(employeeId) {
 // ── useNotifications — bell icon dropdown ──────────────────────────────────
 export function useNotifications() {
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount,   setUnreadCount]   = useState(0);
-  const [loading,       setLoading]       = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const fetch_ = useCallback(async () => {
     try {
       const res = await notificationAPI.list();
       setNotifications(res.data?.notifications ?? []);
       setUnreadCount(res.data?.unreadCount ?? 0);
-    } catch { /* silently ignore */ }
-    finally { setLoading(false); }
+    } catch {
+      /* silently ignore */
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -303,39 +425,56 @@ export function useNotifications() {
 
   const markAsRead = async (id) => {
     await notificationAPI.markAsRead(id);
-    setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    setNotifications((prev) =>
+      prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
   };
 
   const markAllRead = async () => {
     await notificationAPI.markAllRead();
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
   };
 
-  return { notifications, unreadCount, loading, refetch: fetch_, markAsRead, markAllRead };
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    refetch: fetch_,
+    markAsRead,
+    markAllRead,
+  };
 }
 
 // ── useRisks — active/resolved risk alerts ──────────────────────────────────
 export function useRisks(filters = {}) {
-  const [risks,   setRisks]   = useState([]);
+  const [risks, setRisks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [error, setError] = useState(null);
 
   const fetch_ = useCallback(async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const res = await riskAPI.list(filters);
       setRisks(res.data ?? []);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [JSON.stringify(filters)]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   const resolveRisk = async (id) => {
     const res = await riskAPI.resolve(id);
-    setRisks(prev => prev.map(r => r._id === id ? { ...r, ...res.data } : r));
+    setRisks((prev) =>
+      prev.map((r) => (r._id === id ? { ...r, ...res.data } : r)),
+    );
     return res.data;
   };
 
@@ -346,20 +485,32 @@ export function useRisks(filters = {}) {
 export function useReports(projectId, reportType = "") {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [error, setError] = useState(null);
   const [generating, setGenerating] = useState(false);
 
   const fetch_ = useCallback(async () => {
-    if (!projectId) { setReports([]); setLoading(false); return; }
-    setLoading(true); setError(null);
+    if (!projectId) {
+      setReports([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
     try {
-      const res = await reportAPI.list(reportType ? { projectId, reportType } : { projectId });
+      const res = await reportAPI.list(
+        reportType ? { projectId, reportType } : { projectId },
+      );
       setReports(res.data ?? []);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [projectId, reportType]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   const generateReport = async (type) => {
     setGenerating(true);
@@ -374,51 +525,73 @@ export function useReports(projectId, reportType = "") {
 
   const deleteReport = async (id) => {
     await reportAPI.delete(id);
-    setReports(prev => prev.filter(r => r._id !== id));
+    setReports((prev) => prev.filter((r) => r._id !== id));
   };
 
-  return { reports, loading, error, generating, refetch: fetch_, generateReport, deleteReport };
+  return {
+    reports,
+    loading,
+    error,
+    generating,
+    refetch: fetch_,
+    generateReport,
+    deleteReport,
+  };
 }
 
 // ── useAnalytics — personal productivity analytics ─────────────────────────────
 export function useAnalytics(params = {}) {
-  const [data,    setData]    = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [error, setError] = useState(null);
 
   const fetch_ = useCallback(async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const res = await analyticsAPI.me(params);
       setData(res.data);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [JSON.stringify(params)]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   return { data, loading, error, refetch: fetch_ };
 }
 
 // useTaskMembers - manager : members assigned to a task
-export function useTaskMembers(taskId){
-  const [members,  setMembers]  = useState([]);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState(null);
+export function useTaskMembers(taskId) {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetch_ = useCallback(async () => {
-    if (!taskId) { setMembers([]); return; }
-    setLoading(true); 
+    if (!taskId) {
+      setMembers([]);
+      return;
+    }
+    setLoading(true);
     setError(null);
     try {
       const res = await taskMemberAPI.list(taskId);
       console.log("Fetched task members:", res.data);
       setMembers(res.data ?? []);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [taskId]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   const addMembers = async (employeeIds) => {
     console.log("Adding members to task", taskId, employeeIds);
@@ -431,7 +604,7 @@ export function useTaskMembers(taskId){
 
   const removeMember = async (employeeId) => {
     await taskMemberAPI.remove(taskId, employeeId);
-    setMembers(prev => prev.filter(m => (m._id ?? m) !== employeeId));
+    setMembers((prev) => prev.filter((m) => (m._id ?? m) !== employeeId));
   };
 
   return { members, loading, error, refetch: fetch_, addMembers, removeMember };
@@ -439,32 +612,42 @@ export function useTaskMembers(taskId){
 
 // ── useProjectAnalytics — team/project analytics (manager/sub-manager/admin) ──
 export function useProjectAnalytics(projectId, params = {}) {
-  const [data,    setData]    = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [error, setError] = useState(null);
 
   const fetch_ = useCallback(async () => {
-    if (!projectId) { setData(null); setLoading(false); return; }
-    setLoading(true); setError(null);
+    if (!projectId) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
     try {
       const res = await analyticsAPI.project(projectId, params);
       setData(res.data);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [projectId, JSON.stringify(params)]);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    fetch_();
+  }, [fetch_]);
 
   return { data, loading, error, refetch: fetch_ };
 }
 // ── useActivityLogs ───────────────────────────────────────────────────────────
-export function useActivityLogs(projectId = "") {
+export function useActivityLogs(projectId = "", requireProject = false) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const fetch_ = useCallback(async () => {
-    if (!projectId) {
+    if (requireProject && !projectId) {
       setLogs([]);
       setError(null);
       setLoading(false);
@@ -475,14 +658,14 @@ export function useActivityLogs(projectId = "") {
     setError(null);
 
     try {
-      const res = await activityLogAPI.list({ projectId });
+      const res = await activityLogAPI.list(projectId ? { projectId } : {});
       setLogs(res.data ?? []);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [projectId, requireProject]);
 
   useEffect(() => {
     fetch_();

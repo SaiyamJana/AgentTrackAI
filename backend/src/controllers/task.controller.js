@@ -8,6 +8,7 @@ import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
 import { computePersonalHours } from "../services/workloadCalculation.service.js";
+import { ActivityLog } from "../models/activityLogs.model.js";
 
 async function isProjectManager(projectId, userId) {
   const assignment = await EmployeeProject.findOne({
@@ -623,7 +624,15 @@ export const updateAssignmentProgress = asyncHandler(async (req, res) => {
       read: false,
     }));
   }
-
+  await ActivityLog.create({
+    userId: req.user._id,
+    companyId: req.user.companyId,
+    projectId: task.projectId,
+    action: "task_progress_updated",
+    entityType: "Task",
+    entityId: task._id,
+    details: `${req.user.name} updated progress on task "${task.title}" to ${assignment.completionPercentage}%.`,
+  });
   if (previousTaskStatus !== "completed" && task.status === "completed") {
     const completionRecipients = new Set([
       project.managerId.toString(),
