@@ -17,7 +17,10 @@ const notificationSchema = new Schema({
       "risk_detected", "task_assigned", "task_updated", "task_completed", "task_removed",
       "task_deleted", "task_member_added", "task_member_removed", "task_progress_updated",
       "project_assigned", "project_removed", "manager_promoted", "role_changed",
-      "project_status_changed", "project_completed", "report_ready", "workload_alert"
+      "project_status_changed", "project_completed", "report_ready", "workload_alert",
+      // ── Chat notifications ────────────────────────────────────────
+      "chat_message",  // new message in a DM or group the user is in
+      "chat_mention"   // user was @-mentioned in a message
     ],
     required: true
     },
@@ -34,7 +37,7 @@ const notificationSchema = new Schema({
     relatedEntity: {
         type: {
             type: String,
-            enum: ["risk", "task", "project", "report"],
+            enum: ["risk", "task", "project", "report", "conversation"],
         },
         id: {
             type: Schema.Types.ObjectId,

@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useChats } from "../../context/ChatContext"; // NEW
 import Icon from "../shared/Icon";
 
 const adminLinks = [
@@ -8,6 +9,7 @@ const adminLinks = [
   { to: "/admin/projects",   label: "Projects",       icon: "folder"   },
   { to: "/analytics",        label: "Analytics",      icon: "chart"    },
   { to: "/admin/workload",   label: "Workload",       icon: "workload" }, // NEW
+  { to: "/chat",             label: "Messages",       icon: "chat"     }, // NEW
   { to: "/admin/settings",   label: "Settings",       icon: "settings" },
   { to: "/admin/activity-log", label: "Activity Log", icon: "clock" },
 ];
@@ -20,6 +22,7 @@ const employeeLinks = [
   { to: "/employee/projects",      label: "My Projects",   icon: "folder"   },
   { to: "/employee/workload",      label: "My Workload",   icon: "workload" }, // NEW
   { to: "/analytics",              label: "Analytics",     icon: "chart"    },
+  { to: "/chat",                   label: "Messages",      icon: "chat"     }, // NEW
   { to: "/employee/notifications", label: "Notifications", icon: "bell"     },
 ];
 
@@ -39,34 +42,44 @@ const roleBadgeStyle = {
   employee: "bg-emerald-100 text-emerald-700",
 };
 
-const NavSection = ({ title, links, onClose }) => (
-  <>
-    {title && (
-      <p className="px-3 pt-3 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
-    )}
-    {links.map((link) => (
-      <NavLink
-        key={link.to}
-        to={link.to}
-        onClick={onClose}
-        className={({ isActive }) =>
-          `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
-          ${isActive
-            ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-          }`
-        }
-      >
-        {({ isActive }) => (
-          <>
-            <Icon name={link.icon} className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-blue-600"}`} />
-            <span className="truncate">{link.label}</span>
-          </>
-        )}
+const NavSection = ({ title, links, onClose }) => {
+  const { totalUnread } = useChats(); // NEW — for Messages badge
+
+  return (
+    <>
+      {title && (
+        <p className="px-3 pt-3 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
+      )}
+      {links.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          onClick={onClose}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+            ${isActive
+              ? "bg-blue-600 text-white shadow-md shadow-blue-200"
+              : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+            }`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <Icon name={link.icon} className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-blue-600"}`} />
+              <span className="truncate flex-1">{link.label}</span>
+              {link.to === "/chat" && totalUnread > 0 && (
+                <span className={`shrink-0 min-w-4.5 h-4.5 text-[10px] font-bold rounded-full flex items-center justify-center px-1
+                  ${isActive ? "bg-white text-blue-600" : "bg-blue-600 text-white"}`}>
+                  {totalUnread > 99 ? "99+" : totalUnread}
+                </span>
+              )}
+            </>
+          )}
       </NavLink>
     ))}
-  </>
-);
+    </>
+  );
+};
 
 const Sidebar = ({ open, onClose, isManager = false }) => {
   const { user, logout } = useAuth();
