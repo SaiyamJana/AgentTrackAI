@@ -5,13 +5,11 @@ import { Notification }    from "../models/Notification.js";
 import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
-import { Task }         from "../models/Task.js";
-import { TaskAssignment } from "../models/TaskAssignment.js";
-import { ActivityLog }    from "../models/activityLogs.model.js";
-import { Risk }           from "../models/risks.model.js";
-import { Report }         from "../models/reports.model.js";
-import { Workload }       from "../models/workloads.model.js";
-import { User }           from "../models/User.js";
+// ── Chat integration ─────────────────────────────────────────────────────────
+import { Conversation }              from "../models/Conversation.js";
+import { syncProjectGroupMembers, syncTaskGroupMembers }   from "../socket/chatPermissions.js";
+import { getIO }                     from "../socket/socket.js";
+
 /*
  * POST /api/v1/projects  (Admin only)
  */
@@ -70,6 +68,27 @@ export const createProject = asyncHandler(async (req, res) => {
         relatedEntity: { type: "project", id: project._id },
         read: false,
     });
+
+    // ── Auto-create project group chat ──────────────────────────────────────
+    // Non-blocking: chat failure must never break project creation.
+    try {
+        const existing = await Conversation.findOne({ type: "project_group", projectId: project._id });
+        if (!existing) {
+            const projConv = await Conversation.create({
+                companyId: project.companyId,
+                type:      "project_group",
+                name:      `${project.title} — Project Chat`,
+                members:   [managerId],   // manager is the only member at creation; others join as they're added
+                projectId: project._id,
+            });
+            const io = getIO();
+            if (io) {
+                io.to(`user:${String(managerId)}`).emit("conv:new", projConv);
+            }
+        }
+    } catch (chatErr) {
+        console.error("[Chat] Project group creation failed (non-fatal):", chatErr.message);
+    }
 
     return res.status(201).json(new ApiResponse(201, project, "Project created successfully"));
 });
@@ -271,6 +290,23 @@ export const assignManager = asyncHandler(async (req, res) => {
         relatedEntity: { type: "project", id: updated._id },
         read: false,
     });
+
+    // ── Sync chat memberships ────────────────────────────────────────────
+    // Manager change affects: the project group chat (old manager out, new in)
+    // AND every task group chat in this project (project manager is a member
+    // of each task's group chat per spec). Non-blocking — chat sync failure
+    // must never break manager reassignment.
+    try {
+        await syncProjectGroupMembers(req.params.id);
+
+        const { Task } = await import("../models/Task.js");
+        const projectTasks = await Task.find({ projectId: req.params.id }).select("_id").lean();
+        for (const t of projectTasks) {
+            await syncTaskGroupMembers(t._id);
+        }
+    } catch (chatErr) {
+        console.error("[Chat] Manager reassignment sync failed (non-fatal):", chatErr.message);
+    }
 
     return res.status(200).json(new ApiResponse(200, updated, "Manager re-assigned successfully"));
 });

@@ -1,8 +1,11 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import StatCard from "../../components/shared/StatCard";
 import Icon from "../../components/shared/Icon";
 import { useTaskList, useManagerProjects, useProjectMembers, useTaskMembers } from "../../hooks/useTasks";
+// ── Chat integration ──────────────────────────────────────────────────────────
+import MemberListWithChat from "../../components/chat/MemberListWithChat";
 
 const P_CFG = {
   high:   "bg-red-50 text-red-700 border-red-200",
@@ -175,7 +178,7 @@ const ManageMembersModal = ({ task, onClose }) => {
           </button>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
           {err && <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-xl">{err}</div>}
 
           {/* Sub-manager (read-only) */}
@@ -265,6 +268,11 @@ const ManageMembersModal = ({ task, onClose }) => {
               </div>
             )}
           </div>
+
+          {/* ── Chat panel ─────────────────────────────────────────────── */}
+          {/* Lets the manager message any task member directly, without */}
+          {/* leaving this modal. Read-only context panel — no add/remove. */}
+          <MemberListWithChat mode="task" contextId={task._id} />
         </div>
 
         <div className="px-5 pb-5">
@@ -348,9 +356,12 @@ export default function TasksPage() {
     ...(filterPriority ? { priority:  filterPriority } : {}),
   }), [filterProject, filterStatus, filterPriority, projects]);
 
-  const { tasks, loading, error, stats, createTask, deleteTask } = useTaskList(
-    (filterProject || projects.length > 0) ? { ...apiFilters, projectId: filterProject || projects[0]?._id || "" } : {}
-  );
+  const { tasks, loading, error, stats, createTask, deleteTask } =
+  useTaskList({
+    ...(filterProject ? { projectId: filterProject } : {}),
+    ...(filterStatus ? { status: filterStatus } : {}),
+    ...(filterPriority ? { priority: filterPriority } : {}),
+  });
 
   const filtered = useMemo(() =>
     tasks.filter(t =>

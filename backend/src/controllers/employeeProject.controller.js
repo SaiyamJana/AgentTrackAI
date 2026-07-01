@@ -6,6 +6,9 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Task } from "../models/Task.js";
+// ── Chat integration ──────────────────────────────────────────────────────────
+import { syncProjectGroupMembers } from "../socket/chatPermissions.js";
+
 import { ActivityLog } from "../models/activityLogs.model.js";
 /*
  * POST /api/v1/projects/:id/employees  (Admin only)
@@ -33,7 +36,12 @@ export const assignEmployee = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Employee does not belong to your company");
   }
 
-  
+  if (projectRole === "manager") {
+    await EmployeeProject.findOneAndUpdate(
+      { projectId, projectRole: "manager", isActive: true },
+      { projectRole: "member" },
+    );
+  }
 
   let assignment = await EmployeeProject.findOne({ projectId, employeeId });
   const isNewAssignment = !assignment || !assignment.isActive;
@@ -54,9 +62,9 @@ export const assignEmployee = asyncHandler(async (req, res) => {
     });
   }
 
-  if (projectRole === "manager" && !project.managerId) {
+  if (projectRole === "manager") {
     await Project.findByIdAndUpdate(projectId, { managerId: employeeId });
-}
+  }
 
   // ── Notify the employee about being assigned ────────────────────────
   // ── Notify the employee about being assigned ────────────────────────
@@ -90,12 +98,11 @@ export const assignEmployee = asyncHandler(async (req, res) => {
       type: isPromotion ? "manager_promoted" : "role_changed",
       title: isPromotion ? "Promoted to Manager" : "Role Updated",
       message: isPromotion
-    ? `You've been assigned as a manager on project "${project.title}".`
-    : `Your role on project "${project.title}" has been updated to ${projectRole}.`,
+        ? `You've been promoted to Manager on project "${project.title}".`
+        : `Your role on project "${project.title}" has been updated to ${projectRole}.`,
       relatedEntity: { type: "project", id: projectId },
       read: false,
     });
-
     // ✅ Activity log — role change
     await ActivityLog.create({
       userId: req.user._id,
@@ -108,6 +115,9 @@ export const assignEmployee = asyncHandler(async (req, res) => {
     });
   }
 
+  // ── Sync project group chat membership (non-blocking) ──────────────────
+  syncChatAfterMembershipChange(projectId);
+
   return res
     .status(201)
     .json(
@@ -118,6 +128,13 @@ export const assignEmployee = asyncHandler(async (req, res) => {
       ),
     );
 });
+
+// ── Internal helper: fire-and-forget chat sync (non-blocking) ─────────────────
+const syncChatAfterMembershipChange = (projectId) => {
+  syncProjectGroupMembers(projectId).catch((e) =>
+    console.error("[Chat] syncProjectGroupMembers failed (non-fatal):", e.message)
+  );
+};
 
 // GET /api/v1/projects/:id/employees  (Admin / project manager)
 export const getProjectEmployees = asyncHandler(async (req, res) => {
@@ -166,6 +183,7 @@ export const removeEmployee = asyncHandler(async (req, res) => {
 
   const project = await Project.findById(projectId);
 
+  // ── Check BEFORE deactivating — find the assignment first, don't mutate yet ──
   const existingAssignment = await EmployeeProject.findOne({
     projectId,
     employeeId,
@@ -174,43 +192,21 @@ export const removeEmployee = asyncHandler(async (req, res) => {
 
   if (!existingAssignment) throw new ApiError(404, "Assignment not found");
 
-  // If removing a manager, ensure at least one other manager remains
   if (existingAssignment.projectRole === "manager") {
-    const otherManagers = await EmployeeProject.countDocuments({
-      projectId,
-      projectRole: "manager",
-      isActive: true,
-      employeeId: { $ne: employeeId },
-    });
-    if (otherManagers === 0) {
-      throw new ApiError(
-        400,
-        "Cannot remove the only manager. Assign another manager first."
-      );
-    }
-
-    // If removing the primary manager, promote next available manager
-    if (project.managerId?.toString() === employeeId.toString()) {
-      const nextManager = await EmployeeProject.findOne({
-        projectId,
-        projectRole: "manager",
-        isActive: true,
-        employeeId: { $ne: employeeId },
-      });
-      if (nextManager) {
-        await Project.findByIdAndUpdate(projectId, {
-          managerId: nextManager.employeeId,
-        });
-      }
-    }
+    throw new ApiError(
+      400,
+      "Assign a new manager before removing current manager",
+    );
   }
 
+  // ── Only deactivate after all checks pass ──────────────────────────
   const assignment = await EmployeeProject.findOneAndUpdate(
     { projectId, employeeId, isActive: true },
     { isActive: false },
     { new: true },
   );
 
+  // ── Notify the removed employee ──────────────────────────────────────
   await Notification.create({
     userId: employeeId,
     companyId: req.user.companyId,
@@ -233,7 +229,16 @@ export const removeEmployee = asyncHandler(async (req, res) => {
     details: `${removedEmployee?.name ?? "An employee"} was removed from project "${project?.title ?? "a project"}".`,
   });
 
-  return res.status(200).json(
-    new ApiResponse(200, assignment, "Employee removed from project successfully")
-  );
+  // ── Sync project group chat membership (non-blocking) ──────────────────
+  syncChatAfterMembershipChange(projectId);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        assignment,
+        "Employee removed from project successfully",
+      ),
+    );
 });

@@ -1,9 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import http    from "http";
 import express from "express";
-import cors from "cors";
-import cron from "node-cron";
+import cors    from "cors";
+import cron    from "node-cron";
 import connectDB from "./src/db/index.js";
 import userRouter            from "./src/routes/user.routes.js";
 import companyRouter         from "./src/routes/company.routes.js";
@@ -14,14 +15,22 @@ import riskRouter            from "./src/routes/risk.routes.js";
 import notificationRouter    from "./src/routes/notification.routes.js";
 import reportRouter          from "./src/routes/report.routes.js";
 import analyticsRouter       from "./src/routes/analytics.routes.js";
-import workloadRouter        from "./src/routes/workload.routes.js";       // NEW
+import workloadRouter        from "./src/routes/workload.routes.js";
+import activityLogRouter     from "./src/routes/activityLog.routes.js";
+import chatRouter            from "./src/routes/chat.routes.js";        // NEW
 import { runRiskAgent }      from "./src/agents/riskAgent.js";
-import { runWorkloadAgent, refreshEffortScores } from "./src/agents/workloadAgent.js"; // NEW
-import activityLogRouter from "./src/routes/activityLog.routes.js";
+import { runWorkloadAgent, refreshEffortScores } from "./src/agents/workloadAgent.js";
+import { initSocket, setIO } from "./src/socket/socket.js";             // NEW
 
 const app = express();
 
-app.use(cors());
+// ── CORS ──────────────────────────────────────────────────────────────────────
+// Must use explicit origin (not "*") so Socket.IO credentials work.
+const corsOptions = {
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -35,13 +44,29 @@ app.use("/api/v1/risks",              riskRouter);
 app.use("/api/v1/notifications",      notificationRouter);
 app.use("/api/v1/reports",            reportRouter);
 app.use("/api/v1/analytics",          analyticsRouter);
-app.use("/api/v1/workloads",          workloadRouter);  // NEW
-app.use("/api/v1/activity-logs", activityLogRouter);
+app.use("/api/v1/workloads",          workloadRouter);
+app.use("/api/v1/activity-logs",      activityLogRouter);
+app.use("/api/v1/chat",               chatRouter);                       // NEW
 
 app.get("/", (req, res) => res.send("AgentTrack AI — Server Running"));
 
+// ── Static file serving for chat attachments ──────────────────────────────────
+// Files are saved to src/uploads/chat/<companyId>/<filename> by chatUpload.middleware.js
+// and referenced in Message.attachments.url as /uploads/chat/<companyId>/<filename>.
+app.use("/uploads", express.static("src/uploads"));
+
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
+    // Multer-specific errors (file too large, too many files, wrong field name)
+    // arrive as MulterError instances — give a clearer message than the generic 500.
+    if (err.name === "MulterError") {
+        const message =
+            err.code === "LIMIT_FILE_SIZE" ? "File exceeds the 15MB size limit" :
+            err.code === "LIMIT_FILE_COUNT" ? "Too many files — max 5 per message" :
+            err.message;
+        return res.status(400).json({ success: false, message, errors: [] });
+    }
+
     const statusCode = err.statusCode || 500;
     res.status(statusCode).json({
         success: false,
@@ -50,13 +75,24 @@ app.use((err, req, res, next) => {
     });
 });
 
+// ── HTTP server — shared between Express and Socket.IO ───────────────────────
+// Previously: app.listen(PORT)
+// Now:        httpServer.listen(PORT) so Socket.IO can attach to the same port.
+const httpServer = http.createServer(app);
+
 const PORT = process.env.PORT || 5000;
 
 connectDB()
     .then(() => {
-        app.listen(PORT, () => {
+        httpServer.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
+
+        // ── Socket.IO init — must happen AFTER DB is connected ────────────────
+        // Reason: socket event handlers query MongoDB, so the connection must
+        // be established before any socket events can fire.
+        const io = initSocket(httpServer);
+        setIO(io); // make io accessible to REST controllers via getIO()
 
         // ── Risk Agent — runs every hour ──────────────────────────────────────
         cron.schedule("0 * * * *", async () => {
@@ -70,8 +106,6 @@ connectDB()
         });
 
         // ── Workload Agent — full snapshot, runs daily at 2 AM ────────────────
-        // Builds WorkloadSnapshot for every active employee (rule-based + Gemini AI).
-        // Sends overload/burnout notifications.
         cron.schedule("0 2 * * *", async () => {
             console.log("[WorkloadAgent] Running daily snapshot...");
             try {
@@ -83,9 +117,6 @@ connectDB()
         });
 
         // ── effortScore refresh — every 6 hours ───────────────────────────────
-        // Deadline proximity changes over time — an effort score computed yesterday
-        // may be stale today. This lightweight pass only updates Task.effortScore
-        // without creating new WorkloadSnapshots.
         cron.schedule("0 */6 * * *", async () => {
             console.log("[WorkloadAgent] Refreshing effort scores...");
             try {
