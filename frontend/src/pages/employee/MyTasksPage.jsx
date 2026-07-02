@@ -242,6 +242,35 @@ const TaskCard = ({ task, onUpdate }) => {
             Done
           </span>
         )}
+        {(task.subManagerId || task.teamMembers?.length > 0) && (
+  <div className="flex items-center gap-1.5 mb-3">
+    {task.subManagerId && (
+      <div className="relative shrink-0" title={`${task.subManagerId.name} (Sub-Manager) — ${task.subManagerId.isOnline ? "Online" : "Offline"}`}>
+        <div className="w-6 h-6 rounded-full bg-violet-200 flex items-center justify-center text-[9px] font-bold text-violet-700">
+          {task.subManagerId.name?.[0]?.toUpperCase()}
+        </div>
+        <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 border-white ${
+          task.subManagerId.isOnline ? "bg-emerald-500" : "bg-slate-300"
+        }`} />
+      </div>
+    )}
+    {task.teamMembers?.slice(0, 4).map(member => (
+      <div key={member._id} className="relative shrink-0" title={`${member.name} — ${member.isOnline ? "Online" : "Offline"}`}>
+        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-bold text-slate-500">
+          {member.name?.[0]?.toUpperCase()}
+        </div>
+        <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 border-white ${
+          member.isOnline ? "bg-emerald-500" : "bg-slate-300"
+        }`} />
+      </div>
+    ))}
+    {task.teamMembers?.length > 4 && (
+      <span className="text-[10px] font-semibold text-slate-400 ml-0.5">
+        +{task.teamMembers.length - 4}
+      </span>
+    )}
+  </div>
+)}
       </div>
     </div>
   );

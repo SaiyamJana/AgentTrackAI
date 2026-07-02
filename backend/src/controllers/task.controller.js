@@ -321,9 +321,17 @@ export const getMyTasks = asyncHandler(async (req, res) => {
   const tasks = await Task.find({ _id: { $in: taskIds } })
     .populate("projectId", "title status")
     .populate("subManagerId", "name email lastSeen")
-    .sort({ deadline: 1 });
+    .populate("teamMembers", "name email lastSeen")
+    .sort({ deadline: 1 })
+    .lean();
 
-  return res.status(200).json(new ApiResponse(200, tasks, "My tasks fetched successfully"));
+  const tasksWithStatus = tasks.map(task => ({
+    ...task,
+    subManagerId: withOnlineStatus(task.subManagerId),
+    teamMembers: withOnlineStatusArray(task.teamMembers),
+  }));
+
+  return res.status(200).json(new ApiResponse(200, tasksWithStatus, "My tasks fetched successfully"));
 });
 
 // GET /api/v1/tasks/:id
