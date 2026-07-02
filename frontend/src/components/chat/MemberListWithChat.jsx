@@ -65,7 +65,11 @@ const MemberListWithChat = ({ mode, contextId }) => {
         ? { targetUserId: targetUser._id, contextTaskId: contextId }
         : { targetUserId: targetUser._id, contextProjectId: contextId };
       const res = await chatAPI.openDirect(body);
-      openConversation(res.data._id);
+      // BUGFIX: pass the full conversation object through — for a brand
+      // new DM it doesn't exist in ChatContext's `conversations` list yet,
+      // so without this the chat window would just show its empty
+      // "Select a conversation" placeholder after navigating to /chat.
+      openConversation(res.data._id, res.data);
       navigate("/chat");
     } catch (err) {
       console.error("[Chat] Failed to open conversation:", err.message);

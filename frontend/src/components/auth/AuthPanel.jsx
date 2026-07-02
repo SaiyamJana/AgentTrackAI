@@ -17,7 +17,7 @@ export const AuthPanel = () => {
   return (
     <div className="hidden lg:flex flex-col justify-between h-full px-12 py-14 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900" />
+      <div className="absolute inset-0 bg-linear-to-br from-blue-700 via-blue-800 to-slate-900" />
 
       {/* Decorative grid */}
       <div
@@ -29,8 +29,8 @@ export const AuthPanel = () => {
       />
 
       {/* Glowing orbs */}
-      <div className="absolute top-[-80px] right-[-80px] w-80 h-80 bg-blue-400 rounded-full opacity-10 blur-3xl" />
-      <div className="absolute bottom-[-60px] left-[-60px] w-64 h-64 bg-cyan-400 rounded-full opacity-10 blur-3xl" />
+      <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-400 rounded-full opacity-10 blur-3xl" />
+      <div className="absolute -bottom-15 -left-15 w-64 h-64 bg-cyan-400 rounded-full opacity-10 blur-3xl" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-300 rounded-full opacity-5 blur-3xl" />
 
       {/* Top: Logo */}
@@ -72,7 +72,7 @@ export const AuthPanel = () => {
               key={i}
               className="flex items-start gap-3 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-4 py-3.5"
             >
-              <span className="text-xl flex-shrink-0 mt-0.5">{f.icon}</span>
+              <span className="text-xl shrink-0 mt-0.5">{f.icon}</span>
               <div>
                 <div className="text-white font-semibold text-sm">{f.title}</div>
                 <div className="text-blue-200/80 text-xs mt-0.5 leading-relaxed">{f.desc}</div>
