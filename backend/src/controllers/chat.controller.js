@@ -171,10 +171,15 @@ export const openDirectConversation = asyncHandler(async (req, res) => {
         .populate("members", "name email")
         .lean();
 
-    // Tell the target user's socket to join this new room
+    // Tell both participants' sockets about the new conversation. The
+    // initiator needs this too (not just the target) so that other tabs/
+    // devices they're logged in on stay in sync — the tab that made this
+    // very request updates its own local state directly (see
+    // openDirectConversation in api.js / MemberListWithChat.jsx).
     const io = getIO();
     if (io) {
         io.to(`user:${String(targetUserId)}`).emit("conv:new", populated);
+        io.to(`user:${String(req.user._id)}`).emit("conv:new", populated);
     }
 
     return res.status(201).json(

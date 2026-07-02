@@ -5,8 +5,21 @@ import { Notification }    from "../models/Notification.js";
 import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
+// ── BUGFIX: deleteProject() referenced User, Task, TaskAssignment, Risk,
+// Report, Workload, and ActivityLog without importing any of them — every
+// call to DELETE /api/v1/projects/:id was throwing a ReferenceError and
+// crashing before anything was deleted. Added the missing imports below.
+import { User }             from "../models/User.js";
+import { Task }             from "../models/Task.js";
+import { TaskAssignment }   from "../models/TaskAssignment.js";
+import { Risk }             from "../models/risks.model.js";
+import { Report }           from "../models/reports.model.js";
+import { Workload }         from "../models/workloads.model.js";
+import { ActivityLog }      from "../models/activityLogs.model.js";
 // ── Chat integration ─────────────────────────────────────────────────────────
 import { Conversation }              from "../models/Conversation.js";
+import { Message }                   from "../models/Message.js";
+import { MessageRead }               from "../models/MessageRead.js";
 import { syncProjectGroupMembers, syncTaskGroupMembers }   from "../socket/chatPermissions.js";
 import { getIO }                     from "../socket/socket.js";
 
@@ -262,6 +275,8 @@ export const assignManager = asyncHandler(async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) throw new ApiError(404, "Project not found");
 
+    const oldManagerId = project.managerId ? String(project.managerId) : null;
+
     await EmployeeProject.findOneAndUpdate(
         { projectId: req.params.id, projectRole: "manager", isActive: true },
         { projectRole: "member" }
@@ -297,12 +312,35 @@ export const assignManager = asyncHandler(async (req, res) => {
     // of each task's group chat per spec). Non-blocking — chat sync failure
     // must never break manager reassignment.
     try {
-        await syncProjectGroupMembers(req.params.id);
+        const updatedProjectConv = await syncProjectGroupMembers(req.params.id);
 
-        const { Task } = await import("../models/Task.js");
         const projectTasks = await Task.find({ projectId: req.params.id }).select("_id").lean();
+        const updatedTaskConvs = [];
         for (const t of projectTasks) {
-            await syncTaskGroupMembers(t._id);
+            const c = await syncTaskGroupMembers(t._id);
+            if (c) updatedTaskConvs.push(c);
+        }
+
+        const io = getIO();
+        if (io) {
+            const newManagerId = String(managerId);
+            const allConvs = [updatedProjectConv, ...updatedTaskConvs].filter(Boolean);
+            for (const conv of allConvs) {
+                io.to(`user:${newManagerId}`).emit("conv:new", conv);
+                io.in(`user:${newManagerId}`).socketsJoin(`conv:${String(conv._id)}`);
+
+                // Old manager loses access unless they're still a member some
+                // other way (e.g. still assigned as sub-manager on the task) —
+                // syncProjectGroupMembers / syncTaskGroupMembers already
+                // recomputed `members` correctly, so just check membership.
+                if (oldManagerId && oldManagerId !== newManagerId) {
+                    const stillMember = conv.members?.some((m) => String(m) === oldManagerId);
+                    if (!stillMember) {
+                        io.to(`user:${oldManagerId}`).emit("conv:removed", { conversationId: String(conv._id) });
+                        io.in(`user:${oldManagerId}`).socketsLeave(`conv:${String(conv._id)}`);
+                    }
+                }
+            }
         }
     } catch (chatErr) {
         console.error("[Chat] Manager reassignment sync failed (non-fatal):", chatErr.message);
@@ -336,6 +374,46 @@ export const deleteProject = asyncHandler(async (req, res) => {
 
     const tasks = await Task.find({ projectId: id }).select("_id").lean();
     const taskIds = tasks.map(t => t._id);
+
+    // ── Chat cleanup ─────────────────────────────────────────────────────
+    // BUGFIX (issue #2): deleting a project never touched its chat data —
+    // the project group conversation and every task group conversation
+    // (plus their messages and read receipts) were left as orphans in the
+    // database. Unlike single-task deletion (which archives the task's
+    // chat for audit purposes), a full project delete is a hard delete of
+    // everything else, so we hard-delete the chat data too rather than
+    // just flipping isActive.
+    try {
+        const conversations = await Conversation.find({
+            $or: [{ type: "project_group", projectId: id }, { type: "task_group", taskId: { $in: taskIds } }],
+        }).select("_id members").lean();
+        const conversationIds = conversations.map(c => c._id);
+
+        if (conversationIds.length > 0) {
+            await Message.deleteMany({ conversationId: { $in: conversationIds } });
+            await MessageRead.deleteMany({ conversationId: { $in: conversationIds } });
+            await Conversation.deleteMany({ _id: { $in: conversationIds } });
+
+            // Let any connected clients know these conversations are gone
+            // so they disappear from the sidebar without a manual refresh.
+            const io = getIO();
+            if (io) {
+                for (const conv of conversations) {
+                    for (const memberId of conv.members) {
+                        io.to(`user:${String(memberId)}`).emit("conv:removed", {
+                            conversationId: String(conv._id),
+                        });
+                    }
+                    io.socketsLeave(`conv:${String(conv._id)}`);
+                }
+                io.to(`admin:${String(req.user.companyId)}`).emit("conv:removed:bulk", {
+                    conversationIds: conversationIds.map(String),
+                });
+            }
+        }
+    } catch (chatErr) {
+        console.error("[Chat] Project chat cleanup failed (non-fatal):", chatErr.message);
+    }
 
     await TaskAssignment.deleteMany({ taskId: { $in: taskIds } });
     await Task.deleteMany({ projectId: id });

@@ -237,13 +237,29 @@ export const addTaskMembers = asyncHandler(async (req, res) => {
     });
   }
 
+  // ── Sync task group chat membership ────────────────────────────────────
+  // BUGFIX: this used to sit after `return`, so it was dead code and the
+  // task group chat was never updated when members were added. Now it runs
+  // (and completes) before we respond, and newly-added members are pushed
+  // a "conv:new" event + joined into the conversation's socket room so
+  // they see the group chat appear immediately without a page refresh.
+  try {
+    const updatedConv = await syncTaskGroupMembers(task._id);
+    if (updatedConv) {
+      const io = getIO();
+      if (io) {
+        for (const memberId of addedMembers) {
+          io.to(`user:${memberId}`).emit("conv:new", updatedConv);
+          io.in(`user:${memberId}`).socketsJoin(`conv:${String(updatedConv._id)}`);
+        }
+      }
+    }
+  } catch (e) {
+    console.error("[Chat] syncTaskGroupMembers (add) failed:", e.message);
+  }
+
   return res.status(200).json(
     new ApiResponse(200, { taskId: task._id, addedMembers }, "Members added to task successfully")
-  );
-
-  // Sync task group chat membership (non-blocking)
-  syncTaskGroupMembers(task._id).catch((e) =>
-    console.error("[Chat] syncTaskGroupMembers (add) failed:", e.message)
   );
 });
 
@@ -287,10 +303,26 @@ export const removeTaskMembers = asyncHandler(async (req, res) => {
     read: false,
   });
 
-  // Sync task group chat membership (non-blocking)
-  syncTaskGroupMembers(taskId).catch((e) =>
-    console.error("[Chat] syncTaskGroupMembers (remove) failed:", e.message)
-  );
+  // ── Sync task group chat membership ────────────────────────────────────
+  // Also push a "conv:removed" event and evict the removed employee's
+  // active sockets from the conversation room — otherwise they'd keep
+  // receiving real-time messages/typing events for a group they're no
+  // longer part of, since Socket.IO room membership doesn't update itself
+  // just because the DB's `members` array changed.
+  try {
+    const updatedConv = await syncTaskGroupMembers(taskId);
+    if (updatedConv) {
+      const io = getIO();
+      if (io) {
+        io.to(`user:${employeeId}`).emit("conv:removed", {
+          conversationId: String(updatedConv._id),
+        });
+        io.in(`user:${employeeId}`).socketsLeave(`conv:${String(updatedConv._id)}`);
+      }
+    }
+  } catch (e) {
+    console.error("[Chat] syncTaskGroupMembers (remove) failed:", e.message);
+  }
 
   return res.status(200).json(new ApiResponse(200, {}, "Task Member removed Successfully"));
 });

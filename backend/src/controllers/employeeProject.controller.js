@@ -8,6 +8,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Task } from "../models/Task.js";
 // ── Chat integration ──────────────────────────────────────────────────────────
 import { syncProjectGroupMembers } from "../socket/chatPermissions.js";
+import { getIO } from "../socket/socket.js";
 
 import { ActivityLog } from "../models/activityLogs.model.js";
 /*
@@ -115,8 +116,11 @@ export const assignEmployee = asyncHandler(async (req, res) => {
     });
   }
 
-  // ── Sync project group chat membership (non-blocking) ──────────────────
-  syncChatAfterMembershipChange(projectId);
+  // ── Sync project group chat membership ──────────────────────────────────
+  // Also emits "conv:new" + joins the employee's active sockets into the
+  // conversation room, so the project group chat shows up immediately
+  // without a page refresh.
+  await syncChatAfterMembershipChange(projectId, { added: isNewAssignment ? [employeeId] : [] });
 
   return res
     .status(201)
@@ -129,11 +133,26 @@ export const assignEmployee = asyncHandler(async (req, res) => {
     );
 });
 
-// ── Internal helper: fire-and-forget chat sync (non-blocking) ─────────────────
-const syncChatAfterMembershipChange = (projectId) => {
-  syncProjectGroupMembers(projectId).catch((e) =>
-    console.error("[Chat] syncProjectGroupMembers failed (non-fatal):", e.message)
-  );
+// ── Internal helper: chat sync + real-time room updates (non-blocking on failure) ──
+const syncChatAfterMembershipChange = async (projectId, { added = [], removed = [] } = {}) => {
+  try {
+    const updatedConv = await syncProjectGroupMembers(projectId);
+    if (!updatedConv) return;
+
+    const io = getIO();
+    if (!io) return;
+
+    for (const memberId of added) {
+      io.to(`user:${memberId}`).emit("conv:new", updatedConv);
+      io.in(`user:${memberId}`).socketsJoin(`conv:${String(updatedConv._id)}`);
+    }
+    for (const memberId of removed) {
+      io.to(`user:${memberId}`).emit("conv:removed", { conversationId: String(updatedConv._id) });
+      io.in(`user:${memberId}`).socketsLeave(`conv:${String(updatedConv._id)}`);
+    }
+  } catch (e) {
+    console.error("[Chat] syncProjectGroupMembers failed (non-fatal):", e.message);
+  }
 };
 
 // GET /api/v1/projects/:id/employees  (Admin / project manager)
@@ -229,8 +248,8 @@ export const removeEmployee = asyncHandler(async (req, res) => {
     details: `${removedEmployee?.name ?? "An employee"} was removed from project "${project?.title ?? "a project"}".`,
   });
 
-  // ── Sync project group chat membership (non-blocking) ──────────────────
-  syncChatAfterMembershipChange(projectId);
+  // ── Sync project group chat membership ──────────────────────────────────
+  await syncChatAfterMembershipChange(projectId, { removed: [employeeId] });
 
   return res
     .status(200)
