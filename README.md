@@ -430,3 +430,13 @@ Cloned the project repository to local system.
 3) Updated activityLogs.model.js enum with employee_created, employee_updated, employee_deactivated, employee_reactivated, user_login
 4) Updated entityType enum to include "User" for user-scoped log entries
 5) Updated Activity Log frontend ACTION_CFG and filter tabs for all newly added action types
+
+# Day31 : (2/7/26)
+# Member1 : (2023CSB037)
+1) Added drop down system for group chats to see the current members 
+2) Identfied the chat group auto deletion system bug 
+3) Fixed the auto deletion system
+4) Identified the task group chat bug (auto addition and deletion of employees)
+5) Fixed the bug
+6) Identified and fixed the bug for DMs between two members
+7) Reassignment manager -> chat member bug fixed
