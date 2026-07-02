@@ -182,9 +182,17 @@ const ManageMembersModal = ({ task, onClose }) => {
           <div>
             <p className="text-xs font-semibold text-slate-500 mb-2">Sub-Manager</p>
             <div className="flex items-center gap-3 bg-violet-50 border border-violet-100 rounded-xl px-3.5 py-2.5">
-              <div className="w-7 h-7 rounded-full bg-violet-200 flex items-center justify-center text-[10px] font-bold text-violet-700 shrink-0">
-                {(task.subManagerId?.name ?? "?")[0].toUpperCase()}
-              </div>
+              <div className="relative shrink-0">
+  <div className="w-7 h-7 rounded-full bg-violet-200 flex items-center justify-center text-[10px] font-bold text-violet-700">
+    {(task.subManagerId?.name ?? "?")[0].toUpperCase()}
+  </div>
+  <span
+    title={task.subManagerId?.isOnline ? "Online" : "Offline"}
+    className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${
+      task.subManagerId?.isOnline ? "bg-emerald-500" : "bg-slate-300"
+    }`}
+  />
+</div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 truncate">{task.subManagerId?.name ?? "—"}</p>
                 <p className="text-[10px] text-slate-400 truncate">{task.subManagerId?.email ?? ""}</p>
@@ -245,9 +253,17 @@ const ManageMembersModal = ({ task, onClose }) => {
                   const isRemoving = removing === empId;
                   return (
                     <div key={empId} className="flex items-center gap-3 border border-slate-100 rounded-xl px-3.5 py-2.5 bg-white">
-                      <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
-                        {name[0].toUpperCase()}
-                      </div>
+                      <div className="relative shrink-0">
+  <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+    {name[0].toUpperCase()}
+  </div>
+  <span
+    title={member.isOnline ? "Online" : "Offline"}
+    className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${
+      member.isOnline ? "bg-emerald-500" : "bg-slate-300"
+    }`}
+  />
+</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-700 truncate">{name}</p>
                         <p className="text-[10px] text-slate-400 truncate">{email}</p>

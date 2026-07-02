@@ -9,16 +9,18 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
     const token =
         req.cookies?.accessToken ||
         req.header("Authorization")?.replace("Bearer ", "");
-
     if (!token) throw new ApiError(401, "Unauthorized: No token provided");
-
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     const user = await User.findById(decoded._id).select("-password -refreshToken");
-
     if (!user) throw new ApiError(401, "Unauthorized: Invalid token");
     if (!user.isActive) throw new ApiError(403, "Account is deactivated");
-
     req.user = user;
+
+    // 🟢 Update lastSeen — fire-and-forget, never blocks the request
+    User.findByIdAndUpdate(user._id, { lastSeen: new Date() }).catch(err =>
+        console.error("[lastSeen] update failed:", err.message)
+    );
+
     next();
 });
 
