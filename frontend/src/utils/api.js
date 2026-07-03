@@ -42,6 +42,7 @@ export const authAPI = {
   },
 
   login: async (companyId, email, password) => {
+    console.log("API URL:", import.meta.env.VITE_API_URL);
     const res = await fetch(`${BASE}/users/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
