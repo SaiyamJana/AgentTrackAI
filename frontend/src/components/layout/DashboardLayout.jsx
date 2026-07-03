@@ -17,9 +17,11 @@ const DashboardLayout = ({ title, children }) => {
   useEffect(() => {
     if (user?.role !== "employee") return;
     // Check managed projects via GET /projects (controller filters to manager's own)
-    fetch("http://localhost:5000/api/v1/projects", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    })
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/projects`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })  
       .then(r => r.json())
       .then(d => {
         const list = d.data ?? [];
