@@ -112,7 +112,7 @@ export const getAllProjects = asyncHandler(async (req, res) => {
     if (status)     filter.status = status;
 
     const projects = await Project.find(filter)
-        .populate("managerId", "name email department")
+        .populate("managerId", "name email department lastSeen")
         .sort({ createdAt: -1 })
         .lean();
 
@@ -129,7 +129,7 @@ export const getMyProjects = asyncHandler(async (req, res) => {
     const projectIds = assignments.map(a => a.projectId);
 
     const projects = await Project.find({ _id: { $in: projectIds } })
-        .populate("managerId", "name email")
+        .populate("managerId", "name email lastSeen")
         .sort({ createdAt: -1 })
         .lean();
 
@@ -139,7 +139,7 @@ export const getMyProjects = asyncHandler(async (req, res) => {
 // GET /api/v1/projects/:id  (Admin / any assigned employee)
 export const getProjectById = asyncHandler(async (req, res) => {
     const project = await Project.findById(req.params.id)
-        .populate("managerId", "name email department")
+        .populate("managerId", "name email department lastSeen")
         .lean();
     if (!project) throw new ApiError(404, "Project not found");
 

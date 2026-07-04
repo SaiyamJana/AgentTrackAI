@@ -13,6 +13,7 @@ import { Conversation }         from "../models/Conversation.js";
 import { syncTaskGroupMembers } from "../socket/chatPermissions.js";
 import { getIO }                from "../socket/socket.js";
 import { ActivityLog } from "../models/activityLogs.model.js";
+import { withOnlineStatus, withOnlineStatusArray } from "../utils/attachOnlineStatus.js";
 
 async function isProjectManager(projectId, userId) {
   const assignment = await EmployeeProject.findOne({
@@ -137,8 +138,8 @@ export const createTask = asyncHandler(async (req, res) => {
   });
 
   const populatedTask = await Task.findById(task._id)
-    .populate("subManagerId", "name email")
-    .populate("teamMembers", "name email")
+    .populate("subManagerId", "name email lastSeen")
+    .populate("teamMembers", "name email lastSeen")
     .populate("assignedBy", "name email")
     .populate("projectId", "title");
 
@@ -329,16 +330,18 @@ export const getTasksByProject = asyncHandler(async (req, res) => {
   
 
   const tasks = await Task.find(filter)
-    .populate("subManagerId", "name email department")
-    .populate("teamMembers", "name email")
+    .populate("subManagerId", "name email department lastSeen")
+    .populate("teamMembers", "name email lastSeen")
     .populate("assignedBy", "name email")
     .populate("projectId", "title status")
     .sort({ deadline: 1 })
     .lean();
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, tasks, "Tasks fetched"));
+const tasksWithStatus = tasks.map(task => ({
+    ...task,
+    subManagerId: withOnlineStatus(task.subManagerId),
+    teamMembers: withOnlineStatusArray(task.teamMembers),
+  }));
+  return res.status(200).json(new ApiResponse(200, tasks, "Tasks fetched"));
 });
 
 // GET /api/v1/tasks/kanban?projectId=
@@ -356,8 +359,8 @@ export const getKanbanTasks = asyncHandler(async (req, res) => {
   }
 
   const tasks = await Task.find({ projectId })
-    .populate("subManagerId", "name email")
-    .populate("teamMembers", "name email")
+    .populate("subManagerId", "name email lastSeen")
+    .populate("teamMembers", "name email lastSeen")
     .populate("assignedBy", "name email")
     .lean();
 
@@ -375,21 +378,32 @@ export const getMyTasks = asyncHandler(async (req, res) => {
 
   const tasks = await Task.find({ _id: { $in: taskIds } })
     .populate("projectId", "title status")
-    .populate("subManagerId", "name email")
-    .sort({ deadline: 1 });
+    .populate("subManagerId", "name email lastSeen")
+    .populate("teamMembers", "name email lastSeen")
+    .sort({ deadline: 1 })
+    .lean();
 
-  return res.status(200).json(new ApiResponse(200, tasks, "My tasks fetched successfully"));
+  const tasksWithStatus = tasks.map(task => ({
+    ...task,
+    subManagerId: withOnlineStatus(task.subManagerId),
+    teamMembers: withOnlineStatusArray(task.teamMembers),
+  }));
+
+  return res.status(200).json(new ApiResponse(200, tasksWithStatus, "My tasks fetched successfully"));
 });
 
 // GET /api/v1/tasks/:id
 export const getTaskById = asyncHandler(async (req, res) => {
   const task = await Task.findById(req.params.id)
-    .populate("subManagerId", "name email")
-    .populate("teamMembers", "name email")
+    .populate("subManagerId", "name email lastSeen")
+    .populate("teamMembers", "name email lastSeen")
     .populate("assignedBy", "name email")
     .populate("projectId", "title")
     .lean();
   if (!task) throw new ApiError(404, "Task not found");
+
+  task.subManagerId = withOnlineStatus(task.subManagerId);
+  task.teamMembers  = withOnlineStatusArray(task.teamMembers);
 
   const assignment = await TaskAssignment.findOne({
     taskId: task._id,
@@ -421,9 +435,12 @@ export const getTaskMembers = asyncHandler(async (req, res) => {
   }
 
   const assignments = await TaskAssignment.find({ taskId: task._id })
-    .populate("employeeId", "name email");
+    .populate("employeeId", "name email lastSeen")
+    .lean();
 
-  return res.status(200).json(new ApiResponse(200, assignments.map(a => a.employeeId), "Task members fetched"));
+  const members = assignments.map(a => withOnlineStatus(a.employeeId));
+
+  return res.status(200).json(new ApiResponse(200, members, "Task members fetched"));
 });
 
 export const getTaskAssignments = asyncHandler(async (req, res) => {
@@ -436,9 +453,15 @@ export const getTaskAssignments = asyncHandler(async (req, res) => {
   }
 
   const assignments = await TaskAssignment.find({ taskId: req.params.id })
-    .populate("employeeId", "name email");
+    .populate("employeeId", "name email lastSeen")
+    .lean();
 
-  return res.status(200).json(new ApiResponse(200, assignments, "Assignments fetched"));
+  const assignmentsWithStatus = assignments.map(a => ({
+    ...a,
+    employeeId: withOnlineStatus(a.employeeId),
+  }));
+
+  return res.status(200).json(new ApiResponse(200, assignmentsWithStatus, "Assignments fetched"));
 });
 
 // PATCH /api/v1/tasks/:id
@@ -481,7 +504,7 @@ export const updateTask = asyncHandler(async (req, res) => {
     runValidators: true,
     _performedBy: req.user._id, // custom field to track who performed the update
   }
-  ).populate("subManagerId","name email").populate("projectId","title");
+  ).populate("subManagerId","name email lastSeen").populate("projectId","title");
 
   // If estimatedHours changed, recalculate estimatedPersonalHours for null-contribution assignments
   if (estimatedHours !== undefined) {

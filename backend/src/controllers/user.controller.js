@@ -5,6 +5,14 @@ import { ApiResponse }  from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ActivityLog } from "../models/activityLogs.model.js";
 
+const ONLINE_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutes
+
+const withOnlineStatus = (user) => ({
+    ...user,
+    isOnline: user.lastSeen
+        ? (Date.now() - new Date(user.lastSeen).getTime()) < ONLINE_THRESHOLD_MS
+        : false,
+});
 // POST /api/v1/users/register  ← PUBLIC
 export const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password, inviteCode, department, designation } = req.body;
@@ -160,14 +168,16 @@ export const getAllUsers = asyncHandler(async (req, res) => {
         .sort({ createdAt: -1 })
         .lean();
 
-    return res.status(200).json(new ApiResponse(200, users, "Users fetched successfully"));
+    const usersWithStatus = users.map(withOnlineStatus);
+
+    return res.status(200).json(new ApiResponse(200, usersWithStatus, "Users fetched successfully"));
 });
 
 // GET /api/v1/users/:id  (Admin)
 export const getUserById = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id).select("-password -refreshToken").lean();
     if (!user) throw new ApiError(404, "User not found");
-    return res.status(200).json(new ApiResponse(200, user, "User fetched successfully"));
+    return res.status(200).json(new ApiResponse(200, withOnlineStatus(user), "User fetched successfully"));
 });
 
 // PATCH /api/v1/users/:id  (Admin)

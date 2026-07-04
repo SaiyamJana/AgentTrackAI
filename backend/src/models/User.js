@@ -28,6 +28,8 @@ const userSchema = new mongoose.Schema(
     designation:  { type: String },
     refreshToken: { type: String },
     isActive:     { type: Boolean, default: true },
+    lastSeen:     { type: Date, default: Date.now },
+    
 
     /*
      * capacityHoursPerWeek — how many working hours this person has available per week.
@@ -41,9 +43,12 @@ const userSchema = new mongoose.Schema(
       max: 80,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
-
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
@@ -66,5 +71,8 @@ userSchema.methods.generateRefreshToken = function () {
     expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
   });
 };
-
+userSchema.virtual("isOnline").get(function () {
+  if (!this.lastSeen) return false;
+  return (Date.now() - new Date(this.lastSeen).getTime()) < 3 * 60 * 1000; // 3 min
+});
 export const User = mongoose.model("User", userSchema);

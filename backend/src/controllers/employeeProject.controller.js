@@ -156,7 +156,7 @@ export const getProjectEmployees = asyncHandler(async (req, res) => {
   }
 
   const employees = await EmployeeProject.find({ projectId, isActive: true })
-    .populate("employeeId", "name email department designation")
+    .populate("employeeId", "name email department designation lastSeen")
     .populate("assignedBy", "name email")
     .lean();
 

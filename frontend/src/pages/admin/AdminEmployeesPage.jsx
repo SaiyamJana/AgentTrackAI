@@ -143,9 +143,17 @@ const EmployeeCard = ({ employee, onEdit, onViewProjects, onToggleActive, toggli
     <div className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-md hover:shadow-slate-100 hover:-translate-y-0.5 transition-all">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold text-blue-700 shrink-0">
-            {employee.name?.charAt(0).toUpperCase()}
-          </div>
+          <div className="relative shrink-0">
+  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold text-blue-700">
+    {employee.name?.charAt(0).toUpperCase()}
+  </div>
+  <span
+    title={employee.isOnline ? "Online" : "Offline"}
+    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+      employee.isOnline ? "bg-emerald-500" : "bg-slate-300"
+    }`}
+  />
+</div>
           <div className="min-w-0">
             <h3 className="text-sm font-bold text-slate-800 truncate">{employee.name}</h3>
             <p className="text-xs text-slate-400 truncate">{employee.email}</p>
