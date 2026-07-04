@@ -101,7 +101,7 @@ export default function RegisterPage() {
           <div className="mb-7">
             <p className="text-xs font-bold text-blue-600 tracking-widest uppercase mb-2">Employee sign up</p>
             <h1 className="text-3xl font-black text-slate-800 tracking-tight leading-tight">Join your team</h1>
-            <p className="mt-2 text-sm text-slate-500">You need an invite code from your Admin to register.</p>
+            <p className="mt-2 text-sm text-slate-500">You need an Secure Code from your Admin to register.</p>
           </div>
 
           {/* Step indicator */}
@@ -129,9 +129,9 @@ export default function RegisterPage() {
           {step === 1 && (
             <form onSubmit={handleNext} noValidate className="space-y-5">
               <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-                <p className="text-xs text-blue-700 font-semibold">Ask your Admin for the invite code before registering.</p>
+                <p className="text-xs text-blue-700 font-semibold">Ask your Admin for the Secure Code before registering.</p>
               </div>
-              <FormInput label="Invite Code" type="text" value={form.inviteCode} onChange={handle("inviteCode")} error={errors.inviteCode} placeholder="24-character code from Admin" required />
+              <FormInput label="Secure Code" type="text" value={form.inviteCode} onChange={handle("inviteCode")} error={errors.inviteCode} placeholder="Code from your Admin" required />
               <FormInput label="Full Name"   type="text" value={form.name}       onChange={handle("name")}       error={errors.name}       placeholder="Jane Doe" required autoComplete="name" />
               <FormInput label="Email"       type="email" value={form.email}     onChange={handle("email")}      error={errors.email}      placeholder="you@company.com" required autoComplete="email" />
               <div>
