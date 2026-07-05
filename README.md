@@ -430,3 +430,33 @@ Cloned the project repository to local system.
 3) Updated activityLogs.model.js enum with employee_created, employee_updated, employee_deactivated, employee_reactivated, user_login
 4) Updated entityType enum to include "User" for user-scoped log entries
 5) Updated Activity Log frontend ACTION_CFG and filter tabs for all newly added action types
+
+
+# Day31 : (2/7/26)
+# Member2 : (2023CSB115)
+1) Implemented online/offline status (Limitation 3) end-to-end:
+   - Added lastSeen field to User model, updated via fire-and-forget write in verifyJWT middleware
+   - Built attachOnlineStatus.js utility (computeIsOnline, withOnlineStatus, withOnlineStatusArray) for use across .lean() queries
+   - Wired isOnline into user listing, task detail, task members, and getMyTasks endpoints
+   - Added green/gray status dot UI to Admin Employees page, Manager task detail view, and Employee/Sub-manager task cards
+   - Fixed lastseen→lastSeen casing typo across multiple populate calls
+2) Found and fixed real bug in Project.js findOneAndUpdate hook — was reading update.status directly instead of update.$set.status, silently breaking project_status_changed and manager_assigned logging
+3) Wired up previously-unused project_updated activity log action for title/description/priority/date edits
+4) Verified full activity log system end-to-end — 22/22 defined actions confirmed wired and tested
+5) Reviewed Saiyam's chat system (2023CSB037 branch) — found syncProjectGroupMembers existed but was never called from employeeProject.controller.js, meaning project-level chat groups never synced on employee add/remove (reported to Saiyam, since fixed)
+
+# Day32 : (3/7/26)
+# Member2 : (2023CSB115)
+1) Deployed frontend to Vercel (agenttrackai.vercel.app), backend deployed separately to Render by Member1
+2) Fixed hardcoded localhost:5000 URLs in api.js and useChat.js — switched to VITE_API_URL / VITE_SOCKET_URL env vars with local fallback
+3) Diagnosed and resolved Vercel misconfiguration — deployment was building from a disconnected personal fork instead of the shared repo; fixed Root Directory (frontend) and re-imported from correct source
+4) Debugged "Failed to fetch" / ERR_CONNECTION_REFUSED errors down to stale env vars requiring redeploy after being set
+5) Diagnosed CORS mismatch between preview deployment URLs and allowed production origin
+6) Confirmed full login + dashboard flow working live end-to-end on deployed frontend + backend
+
+# Day33 : (4/7/26)
+# Member2 : (2023CSB115)
+1) Fixed invite code display wrapping awkwardly on company registration success page
+2) Renamed "Invite Code" / "Company ID" labels to "Secure Code" across LoginPage, RegisterPage, RegisterCompanyPage, AdminDashboard, AdminEmployeesPage, and SettingsPage (UI text only — no backend/variable changes)
+3) Removed misleading "Company ID (for login)" box from registration success page — was displaying internal Mongo _id, unused by actual login logic
+4) Clarified login credential design with team: invite code is the single, permanent credential for both registration and login; Company _id is backend-internal only
