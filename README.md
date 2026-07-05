@@ -460,3 +460,9 @@ Cloned the project repository to local system.
 2) Renamed "Invite Code" / "Company ID" labels to "Secure Code" across LoginPage, RegisterPage, RegisterCompanyPage, AdminDashboard, AdminEmployeesPage, and SettingsPage (UI text only — no backend/variable changes)
 3) Removed misleading "Company ID (for login)" box from registration success page — was displaying internal Mongo _id, unused by actual login logic
 4) Clarified login credential design with team: invite code is the single, permanent credential for both registration and login; Company _id is backend-internal only
+
+# Day34 : (5/7/26)
+# Member1 : (2023CSB037)
+1) Deployed backend on render
+2) Deployed frontend on vercel
+3) Solved the issue of reloading on live link
