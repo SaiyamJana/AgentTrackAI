@@ -19,6 +19,7 @@ import NotificationsPage   from "./pages/employee/NotificationsPage";
 import AnalyticsPage       from "./pages/shared/AnalyticsPage";
 import ActivityLogPage from "./pages/shared/ActivityLogPage";
 import SettingsPage from "./pages/admin/SettingsPage";
+import LandingPage from "./pages/public/LandingPage";
 
 // ── NEW: Workload pages ────────────────────────────────────────────────────────
 import WorkloadDashboard   from "./pages/manager/WorkloadDashboard";   // replaces Placeholder
@@ -42,7 +43,7 @@ const Placeholder = ({ title }) => (
 const RootRedirect = () => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (!user)   return <Navigate to="/login" replace />;
+  if (!user)   return <Navigate to="/login" replace />;   // ← skips straight to login, no landing page
   return <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/employee/dashboard"} replace />;
 };
 
