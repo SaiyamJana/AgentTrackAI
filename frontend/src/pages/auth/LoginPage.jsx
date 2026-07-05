@@ -30,7 +30,7 @@ export default function LoginPage() {
 
   const validate = () => {
     const errs = {};
-    if (!form.companyId.trim()) errs.companyId = "Company ID is required";
+    if (!form.companyId.trim()) errs.companyId = "Secure Code is required";
     if (!form.email)            errs.email     = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Enter a valid email";
     if (!form.password)         errs.password  = "Password is required";
@@ -71,7 +71,7 @@ export default function LoginPage() {
             <h1 className="text-3xl font-black text-slate-800 tracking-tight leading-tight">
               Sign in to your<br />workspace
             </h1>
-            <p className="mt-2 text-sm text-slate-500">Enter your company ID and credentials.</p>
+            <p className="mt-2 text-sm text-slate-500">Enter your Secure Code and credentials.</p>
           </div>
 
           {apiError && (
@@ -85,7 +85,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <FormInput
-              label="Company ID"
+              label="Secure Code"
               type="text"
               value={form.companyId}
               onChange={handleChange("companyId")}
@@ -129,7 +129,7 @@ export default function LoginPage() {
           </div>
 
           <Link to="/register" className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-blue-700 tracking-wide bg-blue-50 hover:bg-blue-100 border-2 border-blue-100 hover:border-blue-200 transition-all duration-150 active:scale-[0.98]">
-            Register with invite code
+            Register with Secure Code
           </Link>
 
           <div className="relative my-4">

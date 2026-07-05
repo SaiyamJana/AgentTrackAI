@@ -204,107 +204,169 @@ export const getMyAnalytics = asyncHandler(async (req, res) => {
 });
 
 // ── GET /api/v1/analytics/project/:projectId?range=&from=&to= ────────────────
+// ── GET /api/v1/analytics/project/:projectId?range=&from=&to= ────────────────
 export const getProjectAnalytics = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
 
+  // Check access
   const isAdmin = req.user.role === "admin";
-  let role      = isAdmin ? "admin" : null;
+  let role = isAdmin ? "admin" : null;
+
   if (!isAdmin) {
-    const ep = await EmployeeProject.findOne({ projectId, employeeId: req.user._id, isActive: true });
+    const ep = await EmployeeProject.findOne({
+      projectId,
+      employeeId: req.user._id,
+      isActive: true,
+    });
+
     role = ep ? ep.projectRole : null;
   }
-  if (!["admin", "manager"].includes(role))
-    throw new ApiError(403, "Access denied");
 
+  if (!["admin", "manager"].includes(role)) {
+    throw new ApiError(403, "Access denied");
+  }
+
+  // Get project
   const project = await Project.findById(projectId).lean();
-  if (!project) throw new ApiError(404, "Project not found");
+
+  if (!project) {
+    throw new ApiError(404, "Project not found");
+  }
 
   const { start, end, label } = resolveRange(req.query, project.createdAt);
 
+  // Get project tasks
   const tasks = await Task.find({ projectId })
-    .select("status priority deadline completionPercentage estimatedHours actualHours createdAt updatedAt subManagerId teamMembers")
+    .select(
+      "status priority deadline completionPercentage estimatedHours actualHours createdAt updatedAt subManagerId teamMembers"
+    )
     .populate("subManagerId", "name email")
     .populate("teamMembers", "name email")
     .lean();
 
-  const { windowTasks, summary, statusBreakdown, priorityBreakdown, trend } =
-    computeTaskAnalytics(tasks, { start, end });
+  const {
+    windowTasks,
+    summary,
+    statusBreakdown,
+    priorityBreakdown,
+    trend,
+  } = computeTaskAnalytics(tasks, { start, end });
 
+  // Get task assignments
   const assignments = await TaskAssignment.find({
-    taskId: { $in: windowTasks.map(t => t._id) },
-  }).populate("employeeId", "name email").lean();
+    taskId: { $in: windowTasks.map((t) => t._id) },
+  })
+    .populate("employeeId", "name email")
+    .lean();
 
+  // Member analytics
   const byMember = {};
+
   for (const assignment of assignments) {
     const emp = assignment.employeeId;
+
     if (!emp) continue;
 
     const empId = emp._id.toString();
+
     if (!byMember[empId]) {
       byMember[empId] = {
         employeeId: empId,
-        name: emp.name, email: emp.email,
-        total: 0, completed: 0, inProgress: 0, pending: 0,
-        avgCompletion: 0, completionSum: 0,
+        name: emp.name,
+        email: emp.email,
+        total: 0,
+        completed: 0,
+        inProgress: 0,
+        pending: 0,
+        completionSum: 0,
       };
     }
+
     const member = byMember[empId];
+
     member.total++;
-    if (assignment.status === "completed")   member.completed++;
+
+    if (assignment.status === "completed") member.completed++;
     if (assignment.status === "in-progress") member.inProgress++;
-    if (assignment.status === "pending")     member.pending++;
+    if (assignment.status === "pending") member.pending++;
+
     member.completionSum += assignment.completionPercentage ?? 0;
   }
 
-  const memberBreakdown = Object.values(byMember).map(m => ({
-    employeeId:    m.employeeId,
-    name:          m.name,
-    email:         m.email,
-    total:         m.total,
-    completed:     m.completed,
-    inProgress:    m.inProgress,
-    pending:       m.pending,
-    avgCompletion: m.total > 0 ? Math.round(m.completionSum / m.total) : 0,
-  })).sort((a, b) => b.total - a.total);
+  const memberBreakdown = Object.values(byMember)
+    .map((m) => ({
+      employeeId: m.employeeId,
+      name: m.name,
+      email: m.email,
+      total: m.total,
+      completed: m.completed,
+      inProgress: m.inProgress,
+      pending: m.pending,
+      avgCompletion:
+        m.total > 0 ? Math.round(m.completionSum / m.total) : 0,
+    }))
+    .sort((a, b) => b.total - a.total);
 
-  // ── NEW: append team workload metrics for this project ────────────────────
-  const projectMembers = await require("../models/EmployeeProject.js").EmployeeProject
-    ? [] // dynamic import guard
-    : [];
+  // ===========================
+  // Team Workload Analytics
+  // ===========================
 
-  const { EmployeeProject: EP } = await import("../models/EmployeeProject.js");
-  const projectMemberRecords = await EP.find({ projectId, isActive: true }).lean();
-  const memberIds = projectMemberRecords.map(pm => pm.employeeId);
+  const projectMemberRecords = await EmployeeProject.find({
+    projectId,
+    isActive: true,
+  }).lean();
 
-  const memberSnapshots = await Workload.find({
+  const memberIds = projectMemberRecords.map((m) => m.employeeId);
+
+  const workloadSnapshots = await Workload.find({
     employeeId: { $in: memberIds },
   })
-  // For each employee, only keep the latest snapshot
-  .sort({ calculatedAt: -1 })
-  .lean();
+    .sort({ calculatedAt: -1 })
+    .lean();
 
-  // Deduplicate to one snapshot per employee
-  const seenEmployees = new Set();
-  const latestSnapshots = memberSnapshots.filter(s => {
-    const key = s.employeeId.toString();
-    if (seenEmployees.has(key)) return false;
-    seenEmployees.add(key);
+  // Keep latest snapshot of each employee
+  const seen = new Set();
+
+  const latestSnapshots = workloadSnapshots.filter((snapshot) => {
+    const id = snapshot.employeeId.toString();
+
+    if (seen.has(id)) return false;
+
+    seen.add(id);
     return true;
   });
 
   const workloadMetrics = computeTeamMetrics(latestSnapshots);
 
-  return res.status(200).json(new ApiResponse(200, {
-    range: label,
-    period: { start, end },
-    project: {
-      _id: project._id,
-      title: project.title,
-      status: project.status,
-      progressPercentage: project.progressPercentage,
-    },
-    summary, statusBreakdown, priorityBreakdown, trend,
-    memberBreakdown,
-    workloadMetrics, // NEW — team-level workload summary
-  }, "Project analytics fetched"));
+  // ===========================
+  // Response
+  // ===========================
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        range: label,
+        period: {
+          start,
+          end,
+        },
+
+        project: {
+          _id: project._id,
+          title: project.title,
+          status: project.status,
+          progressPercentage: project.progressPercentage,
+        },
+
+        summary,
+        statusBreakdown,
+        priorityBreakdown,
+        trend,
+        memberBreakdown,
+        workloadMetrics,
+      },
+      "Project analytics fetched"
+    )
+  );
 });

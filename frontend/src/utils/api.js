@@ -1,4 +1,4 @@
-const BASE = "http://localhost:5000/api/v1";
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 
 const getToken = () => localStorage.getItem("token");
 const authHeaders = () => ({
@@ -42,6 +42,7 @@ export const authAPI = {
   },
 
   login: async (companyId, email, password) => {
+    console.log("API URL:", import.meta.env.VITE_API_URL);
     const res = await fetch(`${BASE}/users/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -233,3 +234,32 @@ export const activityLogAPI = {
 // ── Role redirect ─────────────────────────────────────────────────────────────
 export const getRoleDashboard = (role) =>
   role === "admin" ? "/admin/dashboard" : "/employee/dashboard";
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+export const chatAPI = {
+  // Conversations
+  getConversations:       ()                        => request("GET",    "/chat/conversations"),
+  getConversationById:    (id)                      => request("GET",    `/chat/conversations/${id}`),
+  openDirect:             (body)                    => request("POST",   "/chat/conversations/direct", body),
+  createProjectGroup:     (projectId)               => request("POST",   "/chat/conversations/project-group", { projectId }),
+  createTaskGroup:        (taskId)                  => request("POST",   "/chat/conversations/task-group",    { taskId }),
+
+  // Messages
+  getMessages:  (convId, params = {}) => {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v))
+    ).toString();
+    return request("GET", `/chat/conversations/${convId}/messages${qs ? `?${qs}` : ""}`);
+  },
+  sendMessage:   (convId, body)       => request("POST",   `/chat/conversations/${convId}/messages`, body),
+  deleteMessage: (msgId, everyone)    => request("DELETE", `/chat/messages/${msgId}?everyone=${everyone}`),
+  markSeen:      (convId, messageIds) => request("POST",   `/chat/conversations/${convId}/seen`, { messageIds }),
+
+  // Search
+  searchInConversation: (convId, q)  => request("GET", `/chat/conversations/${convId}/search?q=${encodeURIComponent(q)}`),
+  globalSearch:         (q)          => request("GET", `/chat/search?q=${encodeURIComponent(q)}`),
+
+  // Chat member context panels
+  getTaskChatMembers:    (taskId)    => request("GET", `/chat/task/${taskId}/members`),
+  getProjectChatMembers: (projectId) => request("GET", `/chat/project/${projectId}/members`),
+};

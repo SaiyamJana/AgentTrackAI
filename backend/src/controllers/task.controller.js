@@ -8,6 +8,10 @@ import { ApiError }        from "../utils/ApiError.js";
 import { ApiResponse }     from "../utils/ApiResponse.js";
 import { asyncHandler }    from "../utils/asyncHandler.js";
 import { computePersonalHours } from "../services/workloadCalculation.service.js";
+// ── Chat integration ─────────────────────────────────────────────────────────
+import { Conversation }         from "../models/Conversation.js";
+import { syncTaskGroupMembers } from "../socket/chatPermissions.js";
+import { getIO }                from "../socket/socket.js";
 import { ActivityLog } from "../models/activityLogs.model.js";
 import { withOnlineStatus, withOnlineStatusArray } from "../utils/attachOnlineStatus.js";
 
@@ -139,6 +143,34 @@ export const createTask = asyncHandler(async (req, res) => {
     .populate("assignedBy", "name email")
     .populate("projectId", "title");
 
+  // ── Auto-create task group chat ──────────────────────────────────────────
+  // Non-blocking: chat failure must never break task creation.
+  try {
+    const existingTaskConv = await Conversation.findOne({ type: "task_group", taskId: task._id });
+    if (!existingTaskConv) {
+      const memberSet = new Set([
+        String(task.subManagerId),
+        String(project.managerId),
+      ]);
+      const taskConv = await Conversation.create({
+        companyId: task.companyId,
+        type:      "task_group",
+        name:      `${task.title} — Task Chat`,
+        members:   [...memberSet],
+        projectId: task.projectId,
+        taskId:    task._id,
+      });
+      const io = getIO();
+      if (io) {
+        for (const memberId of memberSet) {
+          io.to(`user:${memberId}`).emit("conv:new", taskConv);
+        }
+      }
+    }
+  } catch (chatErr) {
+    console.error("[Chat] Task group creation failed (non-fatal):", chatErr.message);
+  }
+
   return res.status(201).json(new ApiResponse(201, populatedTask, "Task created successfully"));
 });
 
@@ -208,6 +240,11 @@ export const addTaskMembers = asyncHandler(async (req, res) => {
   return res.status(200).json(
     new ApiResponse(200, { taskId: task._id, addedMembers }, "Members added to task successfully")
   );
+
+  // Sync task group chat membership (non-blocking)
+  syncTaskGroupMembers(task._id).catch((e) =>
+    console.error("[Chat] syncTaskGroupMembers (add) failed:", e.message)
+  );
 });
 
 export const removeTaskMembers = asyncHandler(async (req, res) => {
@@ -250,26 +287,47 @@ export const removeTaskMembers = asyncHandler(async (req, res) => {
     read: false,
   });
 
+  // Sync task group chat membership (non-blocking)
+  syncTaskGroupMembers(taskId).catch((e) =>
+    console.error("[Chat] syncTaskGroupMembers (remove) failed:", e.message)
+  );
+
   return res.status(200).json(new ApiResponse(200, {}, "Task Member removed Successfully"));
 });
 
 // GET /api/v1/tasks?projectId=  (manager / sub-manager / admin)
 export const getTasksByProject = asyncHandler(async (req, res) => {
   const { projectId, status, priority } = req.query;
-  if (!projectId) throw new ApiError(400, "projectId query param is required");
 
-  if (req.user.role !== "admin") {
-    const assignment = await EmployeeProject.findOne({
-      projectId,
-      employeeId: req.user._id,
-      isActive: true,
-    });
-    if (!assignment) throw new ApiError(403, "You are not assigned to this project");
+  let filter = {};
+
+  if (status) filter.status = status;
+  if (priority) filter.priority = priority;
+
+  if (req.user.role === "admin") {
+    if (projectId) filter.projectId = projectId;
+  } else {
+    // Projects where this user is the manager
+    const managedProjects = await Project.find({
+      managerId: req.user._id,
+    }).select("_id");
+
+    const projectIds = managedProjects.map(p => p._id);
+
+    if (projectId) {
+      // Verify manager owns this project
+      if (!projectIds.some(id => id.toString() === projectId)) {
+        throw new ApiError(403, "You are not the manager of this project");
+      }
+
+      filter.projectId = projectId;
+    } else {
+      // No project selected -> show tasks from ALL managed projects
+      filter.projectId = { $in: projectIds };
+    }
   }
 
-  const filter = { projectId };
-  if (status)   filter.status   = status;
-  if (priority) filter.priority = priority;
+  
 
   const tasks = await Task.find(filter)
     .populate("subManagerId", "name email department lastSeen")
@@ -488,6 +546,19 @@ export const deleteTask = asyncHandler(async (req, res) => {
 
   await Task.findByIdAndDelete({_id: req.params.id} , {_performedBy: req.user._id});
 
+  // ── Archive task group chat ──────────────────────────────────────────────
+  // Conversation + message history are preserved for audit purposes; the
+  // conversation is just hidden from active lists via isActive = false.
+  // Non-blocking — chat failure must never break task deletion.
+  try {
+    await Conversation.findOneAndUpdate(
+      { type: "task_group", taskId: task._id },
+      { isActive: false }
+    );
+  } catch (chatErr) {
+    console.error("[Chat] Task group archive failed (non-fatal):", chatErr.message);
+  }
+
   const recipients = new Set();
   recipients.add(task.subManagerId.toString());
   task.teamMembers.forEach(memberId => recipients.add(memberId.toString()));
@@ -516,7 +587,7 @@ export const deleteTask = asyncHandler(async (req, res) => {
  *  - Sets task.completedAt when task status reaches "completed"
  */
 export const updateAssignmentProgress = asyncHandler(async (req, res) => {
-  const { completionPercentage, actualHours, remarks } = req.body;
+  const { completionPercentage, actualHours } = req.body;
   const taskId = req.params.id;
 
   const task = await Task.findById(taskId);
@@ -539,9 +610,6 @@ export const updateAssignmentProgress = asyncHandler(async (req, res) => {
       throw new ApiError(400, "actualHours must be a non-negative number");
     assignment.actualHours = actualHours;
   }
-  if (remarks !== undefined) {
-    assignment.remarks = remarks;
-}
 
   // Auto status
   if (assignment.completionPercentage === 100) {

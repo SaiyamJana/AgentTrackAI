@@ -271,11 +271,22 @@ Cloned the project repository to local system.
 - controllers : analytics , task , project , employeeProject , risk , reports , notifications
 - Handled the routes of re-written controllers
 
+# Member2 : (2023CSB115)
+1) Reviewed rewritten controllers (task, project, employeeProject) against new schema
+2) Tested updated API endpoints via Postman across all roles
+3) Identified and documented integration issues between new task schema and existing frontend hooks
+
 # Day18 : (19/6/26)
 # Member1 : (2023CSB037)
 1) Handled the full frontend for this redesign 
 2) Tested and identifies addTaskMember to task hook bug 
 3) Fixed the addTaskMember bug and identified more logical bugs in hooks file and fixed them
+
+# Member2 : (2023CSB115)
+1) Audited all 16 notification creation points across task/project/employeeProject controllers against the Notification model's type enum
+2) Found and fixed 3 logic bugs: removeEmployee deactivating before role-check (silent data corruption), promotion/demotion notification type mismatch, task_completed/project_completed not reaching all relevant recipients
+3) Confirmed both completion-notification fixes with Saiyam, implemented and verified end-to-end via Postman (sub-manager, manager, and admin all correctly notified)
+4) Pushed verified fixes to 2023CSB037
 
 # Day19 : (20/6/26)
 # Member1 : (2023CSB037)
@@ -289,27 +300,17 @@ Cloned the project repository to local system.
 4) Verified server boots cleanly, all routes mounted correctly
 5) End-to-end tested new Task/TaskAssignment schema via Postman — all working
 
-# Day18 : (19/6/26)
-# Member2 : (2023CSB115)
-1) Audited all 16 notification creation points across task/project/employeeProject controllers against the Notification model's type enum
-2) Found and fixed 3 logic bugs: removeEmployee deactivating before role-check (silent data corruption), promotion/demotion notification type mismatch, task_completed/project_completed not reaching all relevant recipients
-3) Confirmed both completion-notification fixes with Saiyam, implemented and verified end-to-end via Postman (sub-manager, manager, and admin all correctly notified)
-4) Pushed verified fixes to 2023CSB037
-
-# Day19 : (20/6/26)
-# Member2 : (2023CSB115)
-1) Merged 2023CSB037 into main, then fast-forwarded 2023CSB115 to latest main
-2) Removed duplicate ProtectedRoute.jsx (recurring merge artifact)
-3) Tested Saiyam's frontend fixes for task member assignment and progress update bugs
-4) Diagnosed "Members modal crash" as stale pre-redesign task data (missing subManagerId field), confirmed via direct MongoDB inspection — 3+ old tasks still using deprecated assignedTo field
-5) Verified task progress averaging logic is working correctly (multi-assignee average, not a bug)
-6) Flagged stale data cleanup as a discussion point for the team
 
 # Day21 : (22/6/26)
 # Member1 : (2023CSB037)
 1) Analyzed the current design flow and issues for workload design
 2) Identified the schema design issues 
 3) Implemented the new schema design and studied the control flow and calculation criteria for workload calculation
+
+# Member2 : (2023CSB115)
+1) Built and finalized Admin Settings page with secure invite code management (hidden by default, password required to reveal or regenerate)
+2) Masked invite code on Admin Dashboard, redirecting to Settings for secure access
+
 
 # Day22 : (23/6/26)
 # Member1 : (2023CSB037)
@@ -325,6 +326,11 @@ Cloned the project repository to local system.
 7) Added manager , admin , employee dashbaords for workload
 8) Used the backend endpoint for workload
 
+# Member2 : (2023CSB115)
+1) Tested Activity Log feature end-to-end across all roles
+2) Identified findOneAndUpdate hook not firing for project status changes — root cause: Mongoose options not passing _performedBy reliably
+
+
 # Day23 : (24/6/26)
 # Member1 : (2023CSB037)
 1) Added workload components for employee , admin , manager workload dashboard
@@ -333,6 +339,11 @@ Cloned the project repository to local system.
 4) Identified 6 backend design issues and fixed them
 5) Wrapped up the frontend and backend designs for workload analysis
 
+# Member2 : (2023CSB115)
+1) Continued Activity Log testing across project/task lifecycle actions
+2) Identified and documented missing log hits vs defined enum actions
+
+
 # Day24 : (25/6/26)
 # Member1 : (2023CSB037)
 1) Merged the new design supporting workload and activityLog
@@ -340,11 +351,118 @@ Cloned the project repository to local system.
 3) Tested the resultant codebase
 4) Identifies the managerId issue for activityLog and fixed it (issue in use Hooks)
 
+# Member2 : (2023CSB115)
+1) Reviewed Saiyam's bug reports from testing session
+2) Fixed ManageTeamModal remove button (was hidden for managers, silently failing)
+
+
 # Day25 : (27/6/26)
 # Member1 : (2023CSB037)
 1) Testing ..
 2) Merged 115 branch having latest code and solved merge conflicts
 
+# Member2 : (2023CSB115)
+1) Pulled latest main, resolved merge conflicts
+2) Implemented multi-manager support per project
+3) Fixed removeEmployee active task check bug
+4) Added task remarks feature end-to-end
+
+
+# Day26 : (27/6/26)
+# Member2 : (2023CSB115)
+1) Implemented hard-delete for projects with full cascade + admin password re-verification
+2) Added frontend delete button with type-to-confirm + password modal
+
+
 # Day27 : (28/6/26)
 # Member1 : (2023CSB037)
 1) Fixed and changed manage team section for admin
+
+# Member2 : (2023CSB115)
+1) Fixed "All Projects" view in Activity Log
+2) Added 8 new activity log hits: employee_assigned, manager_added/removed, user_login, task_progress_updated, employee_deactivated/reactivated
+3) Fixed completed task blocking employee removal bug
+4) Updated Activity Log filter tabs and ACTION_CFG for all new action types
+
+   
+# Day28 : (29/6/26)
+# Member1 : (2023CSB037)
+1) socket-io and multer setup
+2) created models : 
+- Conversation.js
+- Message.js
+- MessageRead.js
+3) created socket middleware checking user authentication during connection (socketAuth.js)
+4) defined the chat permissions on different users according to users
+
+# Member2 : (2023CSB115)
+1) Implemented multi-manager support per project
+2) Fixed removeEmployee bug — was blocking removal even for completed tasks
+3) Added task remarks feature (Limitation 2) end-to-end
+
+
+# Day29 : (30/6/26)
+# Member1 : (2023CSB037)
+1) Socket creation && defined socket structure in socket.js
+2) Added chat notification type
+3) Handled task and project related chat groups (in respective controllers)
+
+# Member2 : (2023CSB115)
+1) Implemented hard-delete for projects with full cascade + admin password re-verification
+2) Added frontend delete button with type-to-confirm + password modal
+3) Fixed "All Projects" view in Activity Log (was silently returning empty for admin)
+4) Added 8 new activity log hits: employee_assigned, manager_added, employee_removed, manager_removed, user_login, task_progress_updated, employee_deactivated, employee_reactivated
+5) Fixed active task check bug in removeEmployee (completed tasks were blocking removal)
+6) Updated Activity Log filter tabs and ACTION_CFG for all new action types
+
+
+# Day30 : (1/7/26)
+# Member1 : (2023CSB037)
+1) Added useChat hooks for frontend
+2) Added components for chat system and modified the api.js and new routes for chat
+3) Identified the bugs of chat system
+4) Task management Bug (Backend returns tasks with respect to project from manager , but it should return all tasks of all projects he is of manager)
+5) Fixed the task fetching from manager dashboard
+
+# Member2 : (2023CSB115)
+1) Added employee_created and employee_updated activity log hits in user.controller.js
+2) Added user_login logging restored after file corruption incident (recovered via git checkout)
+3) Updated activityLogs.model.js enum with employee_created, employee_updated, employee_deactivated, employee_reactivated, user_login
+4) Updated entityType enum to include "User" for user-scoped log entries
+5) Updated Activity Log frontend ACTION_CFG and filter tabs for all newly added action types
+
+
+# Day31 : (2/7/26)
+# Member2 : (2023CSB115)
+1) Implemented online/offline status (Limitation 3) end-to-end:
+   - Added lastSeen field to User model, updated via fire-and-forget write in verifyJWT middleware
+   - Built attachOnlineStatus.js utility (computeIsOnline, withOnlineStatus, withOnlineStatusArray) for use across .lean() queries
+   - Wired isOnline into user listing, task detail, task members, and getMyTasks endpoints
+   - Added green/gray status dot UI to Admin Employees page, Manager task detail view, and Employee/Sub-manager task cards
+   - Fixed lastseen→lastSeen casing typo across multiple populate calls
+2) Found and fixed real bug in Project.js findOneAndUpdate hook — was reading update.status directly instead of update.$set.status, silently breaking project_status_changed and manager_assigned logging
+3) Wired up previously-unused project_updated activity log action for title/description/priority/date edits
+4) Verified full activity log system end-to-end — 22/22 defined actions confirmed wired and tested
+5) Reviewed Saiyam's chat system (2023CSB037 branch) — found syncProjectGroupMembers existed but was never called from employeeProject.controller.js, meaning project-level chat groups never synced on employee add/remove (reported to Saiyam, since fixed)
+
+# Day32 : (3/7/26)
+# Member2 : (2023CSB115)
+1) Deployed frontend to Vercel (agenttrackai.vercel.app), backend deployed separately to Render by Member1
+2) Fixed hardcoded localhost:5000 URLs in api.js and useChat.js — switched to VITE_API_URL / VITE_SOCKET_URL env vars with local fallback
+3) Diagnosed and resolved Vercel misconfiguration — deployment was building from a disconnected personal fork instead of the shared repo; fixed Root Directory (frontend) and re-imported from correct source
+4) Debugged "Failed to fetch" / ERR_CONNECTION_REFUSED errors down to stale env vars requiring redeploy after being set
+5) Diagnosed CORS mismatch between preview deployment URLs and allowed production origin
+6) Confirmed full login + dashboard flow working live end-to-end on deployed frontend + backend
+
+# Day33 : (4/7/26)
+# Member2 : (2023CSB115)
+1) Fixed invite code display wrapping awkwardly on company registration success page
+2) Renamed "Invite Code" / "Company ID" labels to "Secure Code" across LoginPage, RegisterPage, RegisterCompanyPage, AdminDashboard, AdminEmployeesPage, and SettingsPage (UI text only — no backend/variable changes)
+3) Removed misleading "Company ID (for login)" box from registration success page — was displaying internal Mongo _id, unused by actual login logic
+4) Clarified login credential design with team: invite code is the single, permanent credential for both registration and login; Company _id is backend-internal only
+
+# Day34 : (5/7/26)
+# Member1 : (2023CSB037)
+1) Deployed backend on render
+2) Deployed frontend on vercel
+3) Solved the issue of reloading on live link

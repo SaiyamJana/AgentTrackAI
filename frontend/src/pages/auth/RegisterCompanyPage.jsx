@@ -54,15 +54,22 @@ export default function RegisterCompanyPage() {
           <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
         </div>
         <h2 className="text-xl font-black text-slate-800 mb-2">Company registered!</h2>
-        <p className="text-sm text-slate-500 mb-6">Share the invite code with your employees so they can register.</p>
+        <p className="text-sm text-slate-500 mb-6">Share the Secure Code with your employees so they can register.</p>
         <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 mb-4">
-          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">Employee Invite Code</p>
-          <p className="text-xl font-black text-blue-800 font-mono tracking-widest break-all">{done.inviteCode}</p>
-        </div>
-        <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 mb-6 text-left">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Company ID (for login)</p>
-          <p className="text-sm font-mono text-slate-700 break-all">{done.companyId}</p>
-        </div>
+  <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">Employee Secure Code</p>
+  <div className="flex items-center gap-2 bg-white border border-blue-100 rounded-lg px-3 py-2.5">
+    <p className="text-sm font-bold text-blue-800 font-mono tracking-tight break-all flex-1">
+      {done.inviteCode}
+    </p>
+    <button
+      type="button"
+      onClick={() => navigator.clipboard.writeText(done.inviteCode)}
+      className="text-[10px] font-semibold px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors shrink-0"
+    >
+      Copy
+    </button>
+  </div>
+</div>
         <button onClick={() => navigate("/admin/dashboard")} className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-colors">Go to Admin Dashboard →</button>
       </div>
     </div>

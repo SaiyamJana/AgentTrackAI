@@ -38,7 +38,7 @@ export default function AdminDashboard() {
         <StatCard label="Total Employees" value={loading?"…":employees.length} sub="registered"       icon={UsersIcon}  color="blue"   />
         <StatCard label="Active"          value={loading?"…":active}           sub="currently active" icon={FolderIcon} color="green"  />
         <StatCard label="Inactive"        value={loading?"…":inactive}         sub="deactivated"      icon={TaskIcon}   color="amber"  />
-        <StatCard label="Company ID"      value="••••••••"                     sub="see Settings"     icon={KeyIcon}    color="purple" />
+        <StatCard label="Secure Code"      value="••••••••"                     sub="see Settings"     icon={KeyIcon}    color="purple" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 page-enter-delay-2">
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
                 <Icon name="users" className="w-6 h-6 text-slate-300"/>
               </div>
               <p className="text-sm font-semibold text-slate-500">No employees yet</p>
-              <p className="text-xs text-slate-400 mt-1">Go to Settings to get the invite code for employees to register.</p>
+              <p className="text-xs text-slate-400 mt-1">Go to Settings to get the Secure Code for employees to register.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">

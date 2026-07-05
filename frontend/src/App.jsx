@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ChatProvider } from "./context/ChatContext";
 import { AdminGuard, EmployeeGuard, AnyAuthGuard } from "./components/auth/ProtectedRoute";
 
 import LoginPage           from "./pages/auth/LoginPage";
@@ -20,6 +21,7 @@ import AnalyticsPage       from "./pages/shared/AnalyticsPage";
 import ActivityLogPage from "./pages/shared/ActivityLogPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import LandingPage from "./pages/public/LandingPage";
+import ChatPage from "./pages/shared/ChatPage"; // NEW
 
 // ── NEW: Workload pages ────────────────────────────────────────────────────────
 import WorkloadDashboard   from "./pages/manager/WorkloadDashboard";   // replaces Placeholder
@@ -43,7 +45,7 @@ const Placeholder = ({ title }) => (
 const RootRedirect = () => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (!user)   return <Navigate to="/login" replace />;   // ← skips straight to login, no landing page
+  if (!user)   return <LandingPage />;
   return <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/employee/dashboard"} replace />;
 };
 
@@ -59,6 +61,11 @@ function AppRoutes() {
       {/* ── Shared ─────────────────────────────────────────────────── */}
       <Route path="/analytics" element={
         <AnyAuthGuard><AnalyticsPage /></AnyAuthGuard>
+      } />
+
+      {/* NEW: Real-time chat — available to admin and employee */}
+      <Route path="/chat" element={
+        <AnyAuthGuard><ChatPage /></AnyAuthGuard>
       } />
 
       {/* ── Admin ──────────────────────────────────────────────────── */}
@@ -101,7 +108,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <ChatProvider>
+          <AppRoutes />
+        </ChatProvider>
       </AuthProvider>
     </BrowserRouter>
   );

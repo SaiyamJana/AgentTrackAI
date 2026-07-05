@@ -285,7 +285,7 @@ export default function AdminEmployeesPage() {
           </div>
           <p className="text-base font-bold text-slate-600">No employees found</p>
           <p className="text-sm text-slate-400 mt-2">
-            {search || filterStatus ? "Try adjusting your search or filters." : "Employees will appear here once they register with your invite code."}
+            {search || filterStatus ? "Try adjusting your search or filters." : "Employees will appear here once they register with your Secure Code."}
           </p>
         </div>
       ) : (

@@ -50,9 +50,11 @@ export default function SettingsPage() {
     if (!password.trim()) { setPwError("Password is required"); return; }
     setPwLoading(true); setPwError("");
     try {
-      const res = await fetch("http://localhost:5000/api/v1/users/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           companyId: company?.inviteCode,
           email: user.email,
@@ -157,7 +159,7 @@ export default function SettingsPage() {
       {/* Invite code */}
       <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-4">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-          Employee invite code
+          Employee Secure Code
         </p>
         <p className="text-sm text-slate-500 mb-4">
           Share this code with employees so they can join your workspace.

@@ -1,6 +1,9 @@
+import { useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Icon from "../../components/shared/Icon";
 import { useMyProjects } from "../../hooks/useTasks";
+// ── Chat integration ─────────────────────────────────────────────────────────
+import MemberListWithChat from "../../components/chat/MemberListWithChat";
 
 const STATUS_CFG = {
   active:    { dot:"bg-emerald-500", badge:"bg-emerald-50 text-emerald-700" },
@@ -11,6 +14,7 @@ const fmt = (d) => d ? new Date(d).toLocaleDateString("en-IN",{day:"numeric",mon
 
 export default function ProjectsPage() {
   const { projects, loading, error } = useMyProjects();
+  const [expandedId, setExpandedId] = useState(null); // NEW — toggles MemberListWithChat per card
 
   return (
     <DashboardLayout title="My Projects">
@@ -89,6 +93,22 @@ export default function ProjectsPage() {
                     </span>
                   </div>
                 )}
+
+                {/* ── Chat: Project Members toggle ─────────────────────── */}
+                <div className="mt-3 pt-3 border-t border-slate-50">
+                  <button
+                    onClick={() => setExpandedId(expandedId === p._id ? null : p._id)}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700"
+                  >
+                    <Icon name="chat" className="w-3.5 h-3.5" />
+                    {expandedId === p._id ? "Hide Members" : "View Members & Chat"}
+                  </button>
+                  {expandedId === p._id && (
+                    <div className="mt-3">
+                      <MemberListWithChat mode="project" contextId={p._id} />
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}

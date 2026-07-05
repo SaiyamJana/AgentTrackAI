@@ -25,13 +25,10 @@ export function useTaskList(filters = {}) {
   });
 
   const fetch_ = useCallback(async () => {
-    if (!filters.projectId && Object.keys(filters).length === 0) {
-      setTasks([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
+    // if (!filters.projectId && Object.keys(filters).length === 0) {
+    //   setTasks([]); setLoading(false); return;
+    // }
+    setLoading(true); setError(null);
     try {
       const res = await taskAPI.list(filters);
       const list = res.data ?? [];
