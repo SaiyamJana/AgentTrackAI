@@ -4,7 +4,7 @@ import { FormInput } from "../../components/auth/FormInput.jsx";
 import { AuthPanel }  from "../../components/auth/AuthPanel.jsx";
 import { useAuth }    from "../../context/AuthContext.jsx";
 import { authAPI }    from "../../utils/api.js";
-
+import { BrandLogo } from "../../components/auth/BrandLogo.jsx";
 const INDUSTRIES = ["Technology","Finance","Healthcare","Education","Retail","Manufacturing","Media","Legal","Other"];
 const Spin = () => <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>;
 
@@ -77,8 +77,9 @@ export default function RegisterCompanyPage() {
 
   return (
     <div className="min-h-screen flex bg-slate-50">
-      <div className="w-[45%] shrink-0"><AuthPanel /></div>
+      <div className="hidden lg:block lg:w-[45%] shrink-0"><AuthPanel /></div>
       <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 xl:px-16 py-12 bg-white overflow-y-auto">
+        <div className="lg:hidden mb-7"><BrandLogo size="md" /></div>
         <div className="w-full max-w-md mx-auto">
           <div className="mb-7">
             <p className="text-xs font-bold text-blue-600 tracking-widest uppercase mb-2">Company Registration</p>

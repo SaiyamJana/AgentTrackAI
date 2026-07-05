@@ -58,7 +58,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-slate-50">
-      <div className="w-[52%] shrink-0"><AuthPanel /></div>
+      <div className="hidden lg:block lg:w-[52%] shrink-0"><AuthPanel /></div>
 
       <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 xl:px-20 py-12 bg-white relative">
         <div className="absolute top-0 right-0 w-40 h-40 bg-blue-50 rounded-bl-[80px] z-0" />

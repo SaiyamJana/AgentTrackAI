@@ -4,7 +4,7 @@ import { FormInput } from "../../components/auth/FormInput.jsx";
 import { AuthPanel }  from "../../components/auth/AuthPanel.jsx";
 import { useAuth }    from "../../context/AuthContext.jsx";
 import { authAPI }    from "../../utils/api.js";
-
+import { BrandLogo } from "../../components/auth/BrandLogo.jsx";
 const DEPARTMENTS = ["Engineering","Product","Design","Marketing","Sales","Operations","HR","Finance","Legal","Other"];
 
 const SpinnerIcon = () => (
@@ -92,9 +92,10 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex bg-slate-50">
-      <div className="w-[45%] shrink-0"><AuthPanel /></div>
+      <div className="hidden lg:block lg:w-[45%] shrink-0"><AuthPanel /></div>
 
       <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 xl:px-16 py-12 bg-white relative overflow-y-auto">
+        <div className="lg:hidden mb-10"><BrandLogo size="md" /></div>
         <div className="absolute top-0 right-0 w-40 h-40 bg-blue-50 rounded-bl-[80px] z-0" />
         <div className="relative z-10 w-full max-w-md mx-auto">
 
