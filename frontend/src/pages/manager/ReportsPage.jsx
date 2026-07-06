@@ -205,8 +205,8 @@ export default function ReportsPage() {
 
   return (
     <DashboardLayout title="Reports">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  {/* Header */}
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 page-enter">
         <div>
           <h2 className="text-xl font-bold text-slate-800">AI-Generated Reports</h2>
           <p className="text-sm text-slate-500 mt-0.5">

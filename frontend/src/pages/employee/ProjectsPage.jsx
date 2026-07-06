@@ -18,7 +18,7 @@ export default function ProjectsPage() {
 
   return (
     <DashboardLayout title="My Projects">
-      <div className="mb-6">
+  <div className="mb-6 page-enter">
         <h2 className="text-xl font-bold text-slate-800">My Projects</h2>
         <p className="text-sm text-slate-500 mt-1">Projects you have been assigned to by your Admin.</p>
       </div>
@@ -40,8 +40,8 @@ export default function ProjectsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {projects.map(p => {
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 content-fade-in">
+    {projects.map(p => {
             const s    = STATUS_CFG[p.status] ?? STATUS_CFG.active;
             const prog = p.progressPercentage ?? 0;
             return (

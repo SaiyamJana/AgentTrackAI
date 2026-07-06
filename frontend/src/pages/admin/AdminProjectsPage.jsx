@@ -634,7 +634,7 @@ export default function AdminProjectsPage() {
 
   return (
     <DashboardLayout title="Project Management">
-      <div className="flex items-center justify-between mb-6">
+  <div className="flex items-center justify-between mb-6 page-enter">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Projects</h2>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -653,7 +653,7 @@ export default function AdminProjectsPage() {
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
+<div className="grid grid-cols-3 gap-4 mb-5 page-enter-delay-1">
         {[
           {
             label: "Active",
@@ -727,10 +727,10 @@ export default function AdminProjectsPage() {
             Create Project
           </button>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-          {projects.map((p) => (
-            <ProjectCard
+        ) : (
+  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 content-fade-in">
+    {projects.map((p) => (
+      <ProjectCard
               key={p._id}
               project={p}
               allEmployees={employees}

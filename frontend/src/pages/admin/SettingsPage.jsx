@@ -143,14 +143,14 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout title="Settings">
-      <div className="mb-6">
+  <div className="mb-6 page-enter">
         <h2 className="text-xl font-bold text-slate-800">Settings</h2>
         <p className="text-sm text-slate-500 mt-0.5">
           Manage your company workspace and security settings.
         </p>
       </div>
       {/* Appearance */}
-      <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-4">
+<div className="bg-white rounded-2xl border border-slate-100 p-5 mb-4 page-enter-delay-1">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
           Appearance
         </p>

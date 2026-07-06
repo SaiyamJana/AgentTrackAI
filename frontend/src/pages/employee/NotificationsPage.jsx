@@ -38,7 +38,7 @@ export default function NotificationsPage() {
 
   return (
     <DashboardLayout title="Notifications">
-      <div className="flex items-center justify-between mb-6">
+  <div className="flex items-center justify-between mb-6 page-enter">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Notifications</h2>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -70,8 +70,8 @@ export default function NotificationsPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {notifications.map((n) => {
+  <div className="space-y-2 content-fade-in">
+    {notifications.map((n) => {
             const cfg = TYPE_CFG[n.type] ?? { icon: "bell", color: "bg-slate-100 text-slate-500" };
             return (
               <div

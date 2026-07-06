@@ -49,7 +49,7 @@ export default function RisksPage() {
 
   return (
     <DashboardLayout title="Risk Alerts">
-      <div className="flex items-center justify-between mb-6">
+  <div className="flex items-center justify-between mb-6 page-enter">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Active Risks</h2>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -65,7 +65,7 @@ export default function RisksPage() {
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-4 gap-4 mb-5">
+<div className="grid grid-cols-4 gap-4 mb-5 page-enter-delay-1">
         {[
           { label: "Critical", val: counts.critical, color: "bg-red-50 border-red-200 text-red-700" },
           { label: "High",     val: counts.high,     color: "bg-orange-50 border-orange-200 text-orange-700" },
