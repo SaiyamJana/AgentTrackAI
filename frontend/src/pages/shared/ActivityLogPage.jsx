@@ -8,19 +8,19 @@ import { useManagerProjects, useAllProjects } from "../../hooks/useTasks";
 /* ── helpers ───────────────────────────────────────────────────────────────── */
 const ACTION_CFG = {
   project_created:        { label: "Project Created",       color: "bg-emerald-50 text-emerald-700",  icon: "folder"     },
-  project_updated:        { label: "Project Updated",       color: "bg-blue-50 text-blue-700",        icon: "folder"     },
+  project_updated:        { label: "Project Updated",       color: "bg-primary-light text-primary",        icon: "folder"     },
   project_status_changed: { label: "Status Changed",        color: "bg-amber-50 text-amber-700",      icon: "chart"      },
   project_completed:      { label: "Project Completed",     color: "bg-emerald-50 text-emerald-700",  icon: "checkCircle"},
   manager_assigned:       { label: "Manager Assigned",      color: "bg-violet-50 text-violet-700",    icon: "users"      },
-  employee_assigned:      { label: "Employee Assigned",     color: "bg-blue-50 text-blue-700",        icon: "users"      },
+  employee_assigned:      { label: "Employee Assigned",     color: "bg-primary-light text-primary",        icon: "users"      },
   employee_removed:       { label: "Employee Removed",      color: "bg-red-50 text-red-700",          icon: "users"      },
-  task_created:           { label: "Task Created",          color: "bg-blue-50 text-blue-700",        icon: "task"       },
+  task_created:           { label: "Task Created",          color: "bg-primary-light text-primary",        icon: "task"       },
   task_updated:           { label: "Task Updated",          color: "bg-amber-50 text-amber-700",      icon: "task"       },
   task_deleted:           { label: "Task Deleted",          color: "bg-red-50 text-red-700",          icon: "task"       },
-  task_member_added:      { label: "Member Added",          color: "bg-blue-50 text-blue-700",        icon: "users"      },
+  task_member_added:      { label: "Member Added",          color: "bg-primary-light text-primary",        icon: "users"      },
   task_member_removed:    { label: "Member Removed",        color: "bg-red-50 text-red-700",          icon: "users"      },
   task_completed:         { label: "Task Completed",        color: "bg-emerald-50 text-emerald-700",  icon: "checkCircle"},
-  task_progress_updated: { label: "Progress Updated", color: "bg-blue-50 text-blue-700", icon: "chart" },
+  task_progress_updated: { label: "Progress Updated", color: "bg-primary-light text-primary", icon: "chart" },
   user_login:              { label: "User Login",            color: "bg-slate-50 text-slate-600",      icon: "users"      },
 employee_deactivated:    { label: "Employee Deactivated",  color: "bg-red-50 text-red-700",          icon: "users"      },
 employee_reactivated:    { label: "Employee Reactivated",  color: "bg-emerald-50 text-emerald-700",  icon: "users"      },
@@ -38,7 +38,7 @@ const LogRow = ({ log }) => {
   const performedBy = log.userId?.name ?? "System";
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 px-4 py-3 flex items-start gap-3 hover:border-blue-100 transition-colors">
+    <div className="bg-white rounded-2xl border border-slate-100 px-4 py-3 flex items-start gap-3 hover:border-primary/20 transition-colors">
       <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${cfg.color}`}>
         <Icon name={cfg.icon} className="w-4 h-4" />
       </div>
@@ -97,7 +97,7 @@ export default function ActivityLogPage() {
         <select
           value={projectId}
           onChange={e => setProjectId(e.target.value)}
-          className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 min-w-48"
+          className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400 min-w-48"
         >
           {isAdmin && <option value="">All Projects</option>}
           {projLoading ? (
@@ -118,7 +118,7 @@ export default function ActivityLogPage() {
           <button key={a} onClick={() => setFilterAction(a)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
               filterAction === a
-                ? "bg-blue-600 text-white border-blue-600"
+                ? "bg-primary text-white border-primary"
                 : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
             }`}>
             {a === "" ? "All" : (ACTION_CFG[a]?.label ?? a)}

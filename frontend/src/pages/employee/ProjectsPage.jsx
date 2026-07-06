@@ -48,8 +48,8 @@ export default function ProjectsPage() {
               <div key={p._id} className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-md hover:shadow-slate-100 hover:-translate-y-0.5 transition-all">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                      <Icon name="folder" className="w-5 h-5 text-blue-600"/>
+                    <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center shrink-0">
+                      <Icon name="folder" className="w-5 h-5 text-primary"/>
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-800">{p.title}</h3>
@@ -67,7 +67,7 @@ export default function ProjectsPage() {
                     <span className="text-xs font-bold text-slate-600">{prog}%</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all ${prog>=75?"bg-emerald-500":prog>=40?"bg-blue-500":"bg-amber-400"}`}
+                    <div className={`h-full rounded-full transition-all ${prog>=75?"bg-emerald-500":prog>=40?"bg-primary-light0":"bg-amber-400"}`}
                       style={{width:`${prog}%`}}/>
                   </div>
                 </div>
@@ -98,7 +98,7 @@ export default function ProjectsPage() {
                 <div className="mt-3 pt-3 border-t border-slate-50">
                   <button
                     onClick={() => setExpandedId(expandedId === p._id ? null : p._id)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary"
                   >
                     <Icon name="chat" className="w-3.5 h-3.5" />
                     {expandedId === p._id ? "Hide Members" : "View Members & Chat"}

@@ -11,7 +11,7 @@ const priorityCfg = {
 };
 const statusCfg = {
   pending: { color: "bg-slate-100 text-slate-600", label: "Pending" },
-  "in-progress": { color: "bg-blue-50 text-blue-700", label: "In Progress" },
+  "in-progress": { color: "bg-primary-light text-primary", label: "In Progress" },
   completed: { color: "bg-emerald-50 text-emerald-700", label: "Completed" },
 };
 const formatDl = (date) => {
@@ -78,7 +78,7 @@ const UpdateModal = ({ task, onClose, onSave }) => {
               <label className="text-xs font-semibold text-slate-500">
                 Completion
               </label>
-              <span className="text-sm font-bold text-blue-600">{pct}%</span>
+              <span className="text-sm font-bold text-primary">{pct}%</span>
             </div>
             <input
               type="range"
@@ -96,7 +96,7 @@ const UpdateModal = ({ task, onClose, onSave }) => {
             />
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mt-2">
               <div
-                className={`h-full rounded-full ${pct === 100 ? "bg-emerald-500" : pct > 50 ? "bg-blue-500" : "bg-amber-500"}`}
+                className={`h-full rounded-full ${pct === 100 ? "bg-emerald-500" : pct > 50 ? "bg-primary-light0" : "bg-amber-500"}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -110,7 +110,7 @@ const UpdateModal = ({ task, onClose, onSave }) => {
                 <button
                   key={s}
                   onClick={() => setStatus(s)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${status === s ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-500"}`}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${status === s ? "border-blue-400 bg-primary-light text-primary" : "border-slate-200 text-slate-500"}`}
                 >
                   {statusCfg[s].label}
                 </button>
@@ -129,7 +129,7 @@ const UpdateModal = ({ task, onClose, onSave }) => {
               value={hours}
               min={0}
               onChange={(e) => setHours(Number(e.target.value))}
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400 transition-all"
             />
           </div>
           <div>
@@ -142,7 +142,7 @@ const UpdateModal = ({ task, onClose, onSave }) => {
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Describe what you're currently doing on this task..."
               rows={3}
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all resize-none"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400 transition-all resize-none"
             />
           </div>
         </div>
@@ -156,7 +156,7 @@ const UpdateModal = ({ task, onClose, onSave }) => {
           <button
             onClick={submit}
             disabled={saving}
-            className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+            className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save"}
           </button>
@@ -219,7 +219,7 @@ const TaskCard = ({ task, onUpdate }) => {
         )}
         <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${task.status === "completed" ? "bg-emerald-500" : (task.completionPercentage ?? 0) > 50 ? "bg-blue-500" : "bg-amber-400"}`}
+            className={`h-full rounded-full transition-all ${task.status === "completed" ? "bg-emerald-500" : (task.completionPercentage ?? 0) > 50 ? "bg-primary-light0" : "bg-amber-400"}`}
             style={{ width: `${task.completionPercentage ?? 0}%` }}
           />
         </div>
@@ -232,7 +232,7 @@ const TaskCard = ({ task, onUpdate }) => {
         {task.status !== "completed" ? (
           <button
             onClick={() => onUpdate(task)}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary-light text-primary hover:bg-primary-light transition-colors"
           >
             Update
           </button>
@@ -349,7 +349,7 @@ export default function MyTasksPage() {
           <button
             key={s}
             onClick={() => setFilterStatus(s)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all border ${filterStatus === s ? "bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all border ${filterStatus === s ? "bg-primary text-white border-primary shadow-sm shadow-blue-200" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}
           >
             {s === "" ? "All" : statusCfg[s]?.label}
           </button>

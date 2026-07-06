@@ -58,18 +58,18 @@ const NavSection = ({ title, links, onClose }) => {
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
             ${isActive
-              ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-              : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+              ? "bg-primary text-white shadow-md shadow-primary/20"
+: "text-slate-600 hover:bg-primary-light hover:text-primary-hover"
             }`
           }
         >
           {({ isActive }) => (
             <>
-              <Icon name={link.icon} className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-blue-600"}`} />
+              <Icon name={link.icon} className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-primary"}`} />
               <span className="truncate flex-1">{link.label}</span>
               {link.to === "/chat" && totalUnread > 0 && (
                 <span className={`shrink-0 min-w-4.5 h-4.5 text-[10px] font-bold rounded-full flex items-center justify-center px-1
-                  ${isActive ? "bg-white text-blue-600" : "bg-blue-600 text-white"}`}>
+                  ${isActive ? "bg-white text-primary" : "bg-primary text-white"}`}>
                   {totalUnread > 99 ? "99+" : totalUnread}
                 </span>
               )}
@@ -103,7 +103,7 @@ const Sidebar = ({ open, onClose, isManager = false }) => {
       `}>
         {/* Brand */}
         <div className="h-16 flex items-center gap-3 px-5 border-b border-slate-100 shrink-0">
-          <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow shadow-blue-200 shrink-0">
+          <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center shadow shadow-primary/20 shrink-0">
             <svg viewBox="0 0 36 36" fill="none" className="w-5 h-5">
               <circle cx="18" cy="10" r="4" fill="white" fillOpacity="0.9"/>
               <circle cx="10" cy="26" r="3" fill="white" fillOpacity="0.6"/>
@@ -114,7 +114,7 @@ const Sidebar = ({ open, onClose, isManager = false }) => {
             </svg>
           </div>
           <div>
-            <span className="text-sm font-black text-slate-800 tracking-tight">Agent<span className="text-blue-600">Track</span></span>
+            <span className="text-sm font-black text-slate-800 tracking-tight">Agent<span className="text-primary">Track</span></span>
             <div className="text-[9px] text-slate-400 font-semibold tracking-widest uppercase">AI Platform</div>
           </div>
         </div>
@@ -122,7 +122,7 @@ const Sidebar = ({ open, onClose, isManager = false }) => {
         {/* User info */}
         <div className="px-4 py-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-3 px-2 py-2 bg-slate-50 rounded-xl">
-            <div className="w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
               {(user?.name || "U").split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase()}
             </div>
             <div className="min-w-0">

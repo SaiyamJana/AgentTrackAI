@@ -46,8 +46,8 @@ export default function AdminDashboard() {
         {/* Invite Code Card — secured */}
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-              <Icon name="settings" className="w-5 h-5 text-blue-600"/>
+            <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center">
+              <Icon name="settings" className="w-5 h-5 text-primary"/>
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-700">Company Login Code</h3>
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
           </div>
           <a
             href="/admin/settings"
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-colors">
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold bg-primary-light text-primary border border-primary/20 hover:bg-primary-light transition-colors">
             <Icon name="settings" className="w-3.5 h-3.5"/>
             View or change in Settings
           </a>
@@ -72,7 +72,7 @@ export default function AdminDashboard() {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-slate-700">Employees</h3>
-            <a href="/admin/employees" className="text-xs text-blue-600 font-semibold hover:text-blue-800">Manage</a>
+            <a href="/admin/employees" className="text-xs text-primary font-semibold hover:text-primary-hover">Manage</a>
           </div>
           {loading ? (
             [...Array(4)].map((_,i) => <div key={i} className="h-12 bg-slate-50 rounded-xl animate-pulse mb-2"/>)
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
                     <tr key={e._id} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-700 shrink-0">
+                          <div className="w-7 h-7 bg-primary-light rounded-full flex items-center justify-center text-xs font-bold text-primary shrink-0">
                             {e.name?.charAt(0)?.toUpperCase()}
                           </div>
                           <div>
@@ -137,11 +137,11 @@ export default function AdminDashboard() {
             { label:"System Settings",  icon:"settings", to:"/admin/settings"  },
             { label:"View Analytics",   icon:"chart",    to:"/analytics"       },
           ].map(a => (
-            <a key={a.label} href={a.to} className="flex items-center gap-3 p-4 rounded-xl border border-slate-100 hover:bg-blue-50 hover:border-blue-200 transition-all group">
-              <div className="w-9 h-9 bg-slate-50 group-hover:bg-blue-100 rounded-xl flex items-center justify-center transition-colors">
-                <Icon name={a.icon} className="w-4.5 h-4.5 text-slate-500 group-hover:text-blue-600"/>
+            <a key={a.label} href={a.to} className="flex items-center gap-3 p-4 rounded-xl border border-slate-100 hover:bg-primary-light hover:border-blue-200 transition-all group">
+              <div className="w-9 h-9 bg-slate-50 group-hover:bg-primary-light rounded-xl flex items-center justify-center transition-colors">
+                <Icon name={a.icon} className="w-4.5 h-4.5 text-slate-500 group-hover:text-primary"/>
               </div>
-              <span className="text-xs font-semibold text-slate-600 group-hover:text-blue-700">{a.label}</span>
+              <span className="text-xs font-semibold text-slate-600 group-hover:text-primary">{a.label}</span>
             </a>
           ))}
         </div>

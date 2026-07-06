@@ -58,7 +58,7 @@ export default function RisksPage() {
         </div>
         <button
           onClick={() => setShowResolved(!showResolved)}
-          className={`text-xs font-semibold px-4 py-2.5 rounded-xl border transition-all ${showResolved ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}
+          className={`text-xs font-semibold px-4 py-2.5 rounded-xl border transition-all ${showResolved ? "bg-primary text-white border-primary" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}
         >
           {showResolved ? "Showing Resolved" : "Show Resolved"}
         </button>
@@ -83,7 +83,7 @@ export default function RisksPage() {
       <div className="flex gap-2 mb-5 flex-wrap">
         {["", "critical", "high", "medium", "low"].map(l => (
           <button key={l} onClick={() => setFilterLevel(l)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all capitalize ${filterLevel === l ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}>
+            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all capitalize ${filterLevel === l ? "bg-primary text-white border-primary" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}>
             {l === "" ? "All" : l}
           </button>
         ))}
@@ -147,9 +147,9 @@ export default function RisksPage() {
 
                 <p className="text-sm text-slate-600 leading-relaxed mb-2">{r.reason}</p>
 
-                <div className="bg-blue-50/50 border border-blue-100 rounded-xl px-3.5 py-2.5">
-                  <p className="text-xs font-semibold text-blue-700 mb-0.5">Recommendation</p>
-                  <p className="text-xs text-blue-600 leading-relaxed">{r.recommendation}</p>
+                <div className="bg-primary-light/50 border border-primary/20 rounded-xl px-3.5 py-2.5">
+                  <p className="text-xs font-semibold text-primary mb-0.5">Recommendation</p>
+                  <p className="text-xs text-primary leading-relaxed">{r.recommendation}</p>
                 </div>
 
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50 text-xs text-slate-400">

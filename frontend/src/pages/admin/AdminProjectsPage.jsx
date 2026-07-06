@@ -57,8 +57,8 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
-              <Icon name="plus" className="w-4 h-4 text-blue-600" />
+            <div className="w-9 h-9 bg-primary-light rounded-xl flex items-center justify-center">
+              <Icon name="plus" className="w-4 h-4 text-primary" />
             </div>
             <h2 className="text-base font-bold text-slate-800">
               Create Project
@@ -86,7 +86,7 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
               value={form.title}
               onChange={h}
               placeholder="e.g. Q3 Infrastructure"
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400"
             />
           </div>
           <div>
@@ -99,7 +99,7 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
               onChange={h}
               rows={2}
               placeholder="Brief overview…"
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400 resize-none"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -111,7 +111,7 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
                 name="managerId"
                 value={form.managerId}
                 onChange={h}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400"
               >
                 <option value="">Select employee</option>
                 {employees.map((e) => (
@@ -130,7 +130,7 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
                 name="priority"
                 value={form.priority}
                 onChange={h}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -148,7 +148,7 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
                 name="startDate"
                 value={form.startDate}
                 onChange={h}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400"
               />
             </div>
             <div>
@@ -160,7 +160,7 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
                 name="endDate"
                 value={form.endDate}
                 onChange={h}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400"
               />
             </div>
           </div>
@@ -175,7 +175,7 @@ const CreateProjectModal = ({ employees, onClose, onCreate }) => {
           <button
             onClick={submit}
             disabled={saving}
-            className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+            className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover disabled:opacity-60"
           >
             {saving ? "Creating…" : "Create Project"}
           </button>
@@ -296,7 +296,7 @@ const ManageTeamModal = ({ project, allEmployees, onClose }) => {
               <button
                 onClick={doAssign}
                 disabled={saving || !assignId}
-                className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 shrink-0"
+                className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover disabled:opacity-50 shrink-0"
               >
                 {saving ? "..." : "Assign"}
               </button>
@@ -335,7 +335,7 @@ const ManageTeamModal = ({ project, allEmployees, onClose }) => {
                       key={eid}
                       className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl"
                     >
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-700 shrink-0">
+                      <div className="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center text-xs font-bold text-primary shrink-0">
                         {name.charAt(0).toUpperCase()}
                       </div>
 
@@ -422,8 +422,8 @@ const ProjectCard = ({ project, allEmployees, onStatusChange, onDelete }) => {
       <div className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-md hover:shadow-slate-100 hover:-translate-y-0.5 transition-all">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-              <Icon name="folder" className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center shrink-0">
+              <Icon name="folder" className="w-5 h-5 text-primary" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-800">
@@ -454,7 +454,7 @@ const ProjectCard = ({ project, allEmployees, onStatusChange, onDelete }) => {
           </div>
           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${prog >= 75 ? "bg-emerald-500" : prog >= 40 ? "bg-blue-500" : "bg-amber-400"}`}
+              className={`h-full rounded-full transition-all ${prog >= 75 ? "bg-emerald-500" : prog >= 40 ? "bg-primary-light0" : "bg-amber-400"}`}
               style={{ width: `${prog}%` }}
             />
           </div>
@@ -474,7 +474,7 @@ const ProjectCard = ({ project, allEmployees, onStatusChange, onDelete }) => {
         <div className="mt-3 pt-3 border-t border-slate-50 flex gap-2">
           <button
             onClick={() => setShowTeam(true)}
-            className="flex-1 py-2 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors flex items-center justify-center gap-1.5"
+            className="flex-1 py-2 rounded-xl text-xs font-semibold bg-primary-light text-primary hover:bg-primary-light transition-colors flex items-center justify-center gap-1.5"
           >
             <Icon name="users" className="w-3.5 h-3.5" />
             Manage Team
@@ -645,7 +645,7 @@ export default function AdminProjectsPage() {
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
+          className="flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-hover transition-colors shadow-sm shadow-blue-200"
         >
           <Icon name="plus" className="w-4 h-4" />
           New Project
@@ -687,7 +687,7 @@ export default function AdminProjectsPage() {
           <button
             key={s}
             onClick={() => setFilterStatus(s)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${filterStatus === s ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${filterStatus === s ? "bg-primary text-white border-primary" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}
           >
             {s === ""
               ? "All"
@@ -722,7 +722,7 @@ export default function AdminProjectsPage() {
           </p>
           <button
             onClick={() => setShowCreate(true)}
-            className="mt-4 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="mt-4 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-colors"
           >
             Create Project
           </button>

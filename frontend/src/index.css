@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-light: #eff6ff;
+}
+
 :root {
   --font-display: 'DM Sans', sans-serif;
   --font-mono: 'DM Mono', monospace;
