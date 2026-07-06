@@ -57,8 +57,8 @@ function RangePicker({ range, setRange, custom, setCustom }) {
         <button key={opt.value} onClick={() => setRange(opt.value)}
           className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all duration-150 ${
             range === opt.value
-              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-              : "bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600"
+              ? "bg-primary text-white border-primary shadow-sm"
+              : "bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-primary"
           }`}>
           {opt.label}
         </button>
@@ -67,11 +67,11 @@ function RangePicker({ range, setRange, custom, setCustom }) {
         <div className="flex items-center gap-1.5 flex-wrap">
           <input type="date" value={custom.from} max={custom.to || todayISO}
             onChange={e => setCustom(c => ({ ...c, from: e.target.value }))}
-            className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white" />
+            className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400 bg-white" />
           <span className="text-xs text-slate-400">to</span>
           <input type="date" value={custom.to} min={custom.from || undefined} max={todayISO}
             onChange={e => setCustom(c => ({ ...c, to: e.target.value }))}
-            className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white" />
+            className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400 bg-white" />
         </div>
       )}
     </div>
@@ -156,7 +156,7 @@ function ProductivityTrend({ trend }) {
           </ResponsiveContainer>
           <div className="flex items-center gap-5 mt-3 pl-1">
             <span className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />Created
+              <span className="w-2.5 h-2.5 rounded-full bg-primary-light0 shrink-0" />Created
             </span>
             <span className="flex items-center gap-1.5 text-xs text-slate-500">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />Completed
@@ -242,12 +242,12 @@ function ProjectBreakdown({ projects }) {
                 </div>
                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
                   {p.completed  > 0 && <div className="h-full bg-emerald-500" style={{ width: `${(p.completed / p.total) * 100}%` }} />}
-                  {p.inProgress > 0 && <div className="h-full bg-blue-500"    style={{ width: `${(p.inProgress / p.total) * 100}%` }} />}
+                  {p.inProgress > 0 && <div className="h-full bg-primary-light0"    style={{ width: `${(p.inProgress / p.total) * 100}%` }} />}
                   {p.pending    > 0 && <div className="h-full bg-slate-300"   style={{ width: `${(p.pending / p.total) * 100}%` }} />}
                 </div>
                 <div className="flex items-center gap-4 mt-1.5">
                   <span className="text-[10px] text-emerald-600 font-medium">{p.completed} done</span>
-                  <span className="text-[10px] text-blue-600 font-medium">{p.inProgress} active</span>
+                  <span className="text-[10px] text-primary font-medium">{p.inProgress} active</span>
                   <span className="text-[10px] text-slate-400">{p.pending} pending</span>
                   <span className="ml-auto text-[10px] font-bold text-slate-600">{pct}%</span>
                 </div>
@@ -306,14 +306,14 @@ function TeamComparison({ members }) {
                 <td className="px-2 py-2.5 font-semibold text-slate-700">{m.name}</td>
                 <td className="px-2 py-2.5 text-center text-slate-600 font-medium">{m.total}</td>
                 <td className="px-2 py-2.5 text-center text-emerald-600 font-bold">{m.completed}</td>
-                <td className="px-2 py-2.5 text-center text-blue-600 font-bold">{m.inProgress}</td>
+                <td className="px-2 py-2.5 text-center text-primary font-bold">{m.inProgress}</td>
                 <td className="px-2 py-2.5 text-center">
                   <span className={`font-bold ${m.overdue > 0 ? "text-red-500" : "text-slate-300"}`}>{m.overdue}</span>
                 </td>
                 <td className="px-2 py-2.5 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${m.avgCompletion}%` }} />
+                      <div className="h-full bg-primary-light0 rounded-full" style={{ width: `${m.avgCompletion}%` }} />
                     </div>
                     <span className="text-slate-600 font-medium">{m.avgCompletion}%</span>
                   </div>
@@ -462,7 +462,7 @@ export default function AnalyticsPage() {
             {["personal","team"].map(v => (
               <button key={v} onClick={() => setView(v)}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  view === v ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  view === v ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"
                 }`}>
                 {v === "personal" ? "My Analytics" : "Team Analytics"}
               </button>
@@ -470,7 +470,7 @@ export default function AnalyticsPage() {
           </div>
           {view === "team" && (
             <select value={teamProjectId} onChange={e => setTeamProjectId(e.target.value)}
-              className="border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+              className="border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400">
               {managedProjects.map(p => <option key={p._id} value={p._id}>{p.title}</option>)}
             </select>
           )}
@@ -498,8 +498,8 @@ export default function AnalyticsPage() {
             <>
               <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-5 flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                    <Icon name="folder" className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
+                    <Icon name="folder" className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-800">{teamData?.project?.title ?? "—"}</p>

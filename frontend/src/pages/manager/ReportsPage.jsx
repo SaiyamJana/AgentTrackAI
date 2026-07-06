@@ -5,7 +5,7 @@ import { useManagerProjects, useReports } from "../../hooks/useTasks";
 
 /* ── helpers ─────────────────────────────────────────────────────── */
 const TYPE_CFG = {
-  daily:            { label: "Daily Report",   short: "Daily",   icon: "clock",    color: "bg-blue-50 text-blue-700" },
+  daily:            { label: "Daily Report",   short: "Daily",   icon: "clock",    color: "bg-primary-light text-primary" },
   weekly:           { label: "Weekly Report",  short: "Weekly",  icon: "calendar", color: "bg-violet-50 text-violet-700" },
   "project-summary":{ label: "Project Summary", short: "Summary", icon: "report",  color: "bg-emerald-50 text-emerald-700" },
 };
@@ -60,7 +60,7 @@ function MarkdownReport({ text }) {
         if (b.type === "h2") {
           return (
             <h4 key={i} className="text-sm font-bold text-slate-800 pt-2 first:pt-0 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary-light0 shrink-0" />
               {b.text}
             </h4>
           );
@@ -141,7 +141,7 @@ const ReportModal = ({ report, onClose, onDelete }) => {
             className="px-4 py-2.5 rounded-xl border border-red-100 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-60">
             {deleting ? "Deleting…" : "Delete Report"}
           </button>
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-colors">
             Close
           </button>
         </div>
@@ -218,7 +218,7 @@ export default function ReportsPage() {
         <select
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
-          className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 min-w-50"
+          className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-blue-400 min-w-50"
         >
           {projectsLoading ? (
             <option>Loading projects…</option>
@@ -250,7 +250,7 @@ export default function ReportsPage() {
             <button
               onClick={() => handleGenerate(type)}
               disabled={!projectId || generating}
-              className="px-3.5 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shrink-0"
+              className="px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 shrink-0"
             >
               {generating && genType === type ? "Generating…" : "Generate"}
             </button>
@@ -262,7 +262,7 @@ export default function ReportsPage() {
       <div className="flex gap-2 mb-5 flex-wrap">
         {["", "daily", "weekly", "project-summary"].map(t => (
           <button key={t} onClick={() => setFilterType(t)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${filterType === t ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}>
+            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${filterType === t ? "bg-primary text-white border-primary" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"}`}>
             {t === "" ? "All Reports" : TYPE_CFG[t].label}
           </button>
         ))}

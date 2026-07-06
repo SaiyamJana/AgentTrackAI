@@ -29,7 +29,7 @@ export default function ManagerDashboard() {
   const activeProjects = projects.filter(p => p.status==="active").length;
 
   const quickLinks = [
-    { label:"Reports",  icon:"report",   to:"/manager/reports",  cls:"bg-blue-50 text-blue-700 hover:bg-blue-100"     },
+    { label:"Reports",  icon:"report",   to:"/manager/reports",  cls:"bg-primary-light text-primary hover:bg-primary-light"     },
     { label:"Risks",    icon:"shield",   to:"/manager/risks",    cls:"bg-red-50 text-red-700 hover:bg-red-100"        },
     { label:"Workload", icon:"workload", to:"/manager/workload", cls:"bg-amber-50 text-amber-700 hover:bg-amber-100"  },
     { label:"Chatbot",  icon:"chat",     to:"/manager/chatbot",  cls:"bg-emerald-50 text-emerald-700 hover:bg-emerald-100" },
@@ -69,7 +69,7 @@ export default function ManagerDashboard() {
       <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-5 page-enter-delay-2">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-slate-700">My Projects</h3>
-          <button onClick={() => navigate("/manager/tasks")} className="text-xs text-blue-600 font-semibold hover:text-blue-800">Manage Tasks →</button>
+          <button onClick={() => navigate("/manager/tasks")} className="text-xs text-primary font-semibold hover:text-primary-hover">Manage Tasks →</button>
         </div>
 
         {pLoading ? (
@@ -90,8 +90,8 @@ export default function ManagerDashboard() {
               return (
                 <div key={p._id} className="flex items-center gap-4 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
                   onClick={() => navigate("/manager/tasks")}>
-                  <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                    <Icon name="folder" className="w-4 h-4 text-blue-600"/>
+                  <div className="w-9 h-9 bg-primary-light rounded-xl flex items-center justify-center shrink-0">
+                    <Icon name="folder" className="w-4 h-4 text-primary"/>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-800 truncate">{p.title}</p>
@@ -117,19 +117,19 @@ export default function ManagerDashboard() {
         <div className="bg-white rounded-2xl border border-slate-100 p-5 page-enter-delay-3">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-slate-700">Recent Tasks — {projects[0]?.title}</h3>
-            <button onClick={() => navigate("/manager/tasks")} className="text-xs text-blue-600 font-semibold hover:text-blue-800">View all →</button>
+            <button onClick={() => navigate("/manager/tasks")} className="text-xs text-primary font-semibold hover:text-primary-hover">View all →</button>
           </div>
           {tLoading ? (
             [...Array(3)].map((_,i) => <div key={i} className="h-12 bg-slate-50 rounded-xl animate-pulse mb-2"/>)
           ) : tasks.length === 0 ? (
             <div className="text-center py-6">
               <p className="text-sm text-slate-400">No tasks yet. Go to Task Management to create the first task.</p>
-              <button onClick={() => navigate("/manager/tasks")} className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-800">Create Task →</button>
+              <button onClick={() => navigate("/manager/tasks")} className="mt-3 text-xs font-semibold text-primary hover:text-primary-hover">Create Task →</button>
             </div>
           ) : (
             <div className="space-y-2">
               {tasks.slice(0,6).map(t => {
-                const sc = {"pending":"bg-slate-100 text-slate-600","in-progress":"bg-blue-50 text-blue-700","completed":"bg-emerald-50 text-emerald-700"};
+                const sc = {"pending":"bg-slate-100 text-slate-600","in-progress":"bg-primary-light text-primary","completed":"bg-emerald-50 text-emerald-700"};
                 return (
                   <div key={t._id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                     <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center shrink-0">

@@ -111,8 +111,8 @@ export default function CompanyWorkloadPage() {
         <button
           onClick={handleRecalculate}
           disabled={recalcLoading}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl
-            hover:bg-blue-700 transition disabled:opacity-60 shadow-sm shadow-blue-200"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl
+            hover:bg-primary-hover transition disabled:opacity-60 shadow-sm shadow-blue-200"
         >
           {recalcLoading ? (
             <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Calculating…</>
@@ -263,9 +263,9 @@ export default function CompanyWorkloadPage() {
                       key={employee._id}
                       onClick={() => handleViewEmployee({ employee, snapshot })}
                       className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl transition
-                        ${isSelected ? "bg-blue-50 border border-blue-200" : "hover:bg-slate-50 border border-transparent"}`}
+                        ${isSelected ? "bg-primary-light border border-blue-200" : "hover:bg-slate-50 border border-transparent"}`}
                     >
-                      <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-primary-light text-primary text-xs font-bold flex items-center justify-center shrink-0">
                         {initials(employee.name)}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -295,7 +295,7 @@ export default function CompanyWorkloadPage() {
                 <>
                   <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-primary-light text-primary font-bold text-sm flex items-center justify-center">
                         {initials(selectedEmployee.employee?.name)}
                       </div>
                       <div>

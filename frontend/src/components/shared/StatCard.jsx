@@ -2,7 +2,7 @@
 // Props: label, value, sub, icon, color, trend
 
 const colorMap = {
-  blue:    { bg: "bg-blue-50",    icon: "text-blue-600",    border: "border-blue-100" },
+  blue:    { bg: "bg-blue-50",    icon: "text-primary",    border: "border-blue-100" },
   green:   { bg: "bg-emerald-50", icon: "text-emerald-600", border: "border-emerald-100" },
   amber:   { bg: "bg-amber-50",   icon: "text-amber-600",   border: "border-amber-100" },
   red:     { bg: "bg-red-50",     icon: "text-red-600",     border: "border-red-100" },
