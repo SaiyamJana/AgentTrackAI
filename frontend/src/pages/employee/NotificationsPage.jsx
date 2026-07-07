@@ -77,7 +77,7 @@ export default function NotificationsPage() {
               <div
                 key={n._id}
                 onClick={() => handleClick(n)}
-                className={`bg-white rounded-2xl border p-4 flex gap-4 cursor-pointer transition-all hover:shadow-md hover:shadow-slate-100 ${!n.read ? "border-primary/20 bg-primary-light/30" : "border-slate-100"}`}
+                className={`bg-white rounded-2xl border p-4 flex gap-4 cursor-pointer transition-all hover:shadow-md hover:shadow-slate-100 hover:-translate-y-0.5 ${!n.read ? "border-primary/20 bg-primary-light/30" : "border-slate-100"}`}
               >
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cfg.color}`}>
                   <Icon name={cfg.icon} className="w-5 h-5" />

@@ -75,8 +75,8 @@ export default function AdminDashboard() {
             <a href="/admin/employees" className="text-xs text-primary font-semibold hover:text-primary-hover">Manage</a>
           </div>
           {loading ? (
-            [...Array(4)].map((_,i) => <div key={i} className="h-12 bg-slate-50 rounded-xl animate-pulse mb-2"/>)
-          ) : employees.length === 0 ? (
+  [...Array(4)].map((_,i) => <div key={i} className="h-12 bg-slate-50 rounded-xl animate-pulse mb-2"/>)
+) : employees.length === 0 ? (
             <div className="text-center py-10">
               <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
                 <Icon name="users" className="w-6 h-6 text-slate-300"/>
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
               <p className="text-xs text-slate-400 mt-1">Go to Settings to get the Secure Code for employees to register.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+  <div className="overflow-x-auto content-fade-in">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">

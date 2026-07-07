@@ -118,7 +118,7 @@ export default function TeamWorkloadTable({ members = [], onViewEmployee }) {
           return (
             <div
               key={employee._id}
-              className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white border border-slate-100 rounded-xl p-4 hover:shadow-md hover:shadow-slate-100 hover:-translate-y-0.5 transition-all"
             >
               <div className="flex items-start gap-4">
                 {/* Avatar */}

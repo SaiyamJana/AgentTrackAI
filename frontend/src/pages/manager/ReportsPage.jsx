@@ -160,7 +160,7 @@ const ReportCard = ({ report, onOpen }) => {
 
   return (
     <button onClick={() => onOpen(report)}
-      className="w-full text-left bg-white rounded-2xl border border-slate-100 p-4 hover:border-blue-200 hover:shadow-sm transition-all duration-150 flex items-start gap-4">
+      className="w-full text-left bg-white rounded-2xl border border-slate-100 p-4 hover:shadow-md hover:shadow-slate-100 hover:-translate-y-0.5 transition-all flex items-start gap-4">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cfg.color}`}>
         <Icon name={cfg.icon} className="w-5 h-5" />
       </div>

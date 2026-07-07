@@ -191,10 +191,12 @@ export default function EmployeeDashboard() {
           {tasksLoading ? (
             [...Array(3)].map((_,i) => <div key={i} className="bg-white rounded-2xl border border-slate-100 h-32 animate-pulse"/>)
           ) : recentTasks.length === 0 ? (
-            <EmptyState icon="task" title="No tasks yet" message="Your manager hasn't assigned any tasks to you yet." />
-          ) : (
-            recentTasks.map(task => <TaskCard key={task._id} task={task} onUpdate={setUpdateTask} />)
-          )}
+  <EmptyState icon="task" title="No tasks yet" message="Your manager hasn't assigned any tasks to you yet." />
+) : (
+  <div className="space-y-4 content-fade-in">
+    {recentTasks.map(task => <TaskCard key={task._id} task={task} onUpdate={setUpdateTask} />)}
+  </div>
+)}
         </div>
 
         {/* Right column */}
@@ -215,8 +217,9 @@ export default function EmployeeDashboard() {
                 <p className="text-xs text-slate-400">Not assigned to any project yet.</p>
               </div>
             ) : (
-              projects.map(p => (
-                <div key={p._id} className="flex items-center gap-3 py-2.5 border-b border-slate-50 last:border-0">
+  <div className="content-fade-in">
+    {projects.map(p => (
+      <div key={p._id} className="flex items-center gap-3 py-2.5 border-b border-slate-50 last:border-0">
                   <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center shrink-0">
                     <Icon name="folder" className="w-4 h-4 text-primary"/>
                   </div>
@@ -228,7 +231,8 @@ export default function EmployeeDashboard() {
                     {p.progressPercentage ?? 0}%
                   </span>
                 </div>
-              ))
+              ))}
+              </div>
             )}
           </div>
 
