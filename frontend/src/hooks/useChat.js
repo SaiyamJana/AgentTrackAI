@@ -37,6 +37,7 @@ const useChat = (token, handlers = {}) => {
     }
 
     console.log("[Socket] Connecting to", SOCKET_URL);
+    console.log(".env.BACKEND_URL =", import.meta.env.BACKEND_URL);
 
     _socket = io(SOCKET_URL, {
       auth:            { token },
