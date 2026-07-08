@@ -4,6 +4,9 @@ import Topbar  from "./Topbar";
 import { memberAPI } from "../../utils/api";
 import { useAuth }   from "../../context/AuthContext";
 
+const URL = import.meta.env.BACKEND_URL || "http://localhost:5000";
+const VERSION = import.meta.env.VERSION || "api/v1";
+
 /**
  * DashboardLayout
  * Checks if the logged-in employee is a manager on any project
@@ -17,7 +20,7 @@ const DashboardLayout = ({ title, children }) => {
   useEffect(() => {
     if (user?.role !== "employee") return;
     // Check managed projects via GET /projects (controller filters to manager's own)
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/projects`, {
+    fetch(`${URL}/${VERSION}/projects`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },

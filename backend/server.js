@@ -27,26 +27,28 @@ const app = express();
 // ── CORS ──────────────────────────────────────────────────────────────────────
 // Must use explicit origin (not "*") so Socket.IO credentials work.
 const corsOptions = {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true,
 };
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const API = `/${process.env.VERSION || "api/v1"}`
+
 // ── Route mounts ──────────────────────────────────────────────────────────────
-app.use("/api/v1/users",              userRouter);
-app.use("/api/v1/companies",          companyRouter);
-app.use("/api/v1/projects",           projectRouter);
-app.use("/api/v1/projects/:id/employees", employeeProjectRouter);
-app.use("/api/v1/tasks",              taskRouter);
-app.use("/api/v1/risks",              riskRouter);
-app.use("/api/v1/notifications",      notificationRouter);
-app.use("/api/v1/reports",            reportRouter);
-app.use("/api/v1/analytics",          analyticsRouter);
-app.use("/api/v1/workloads",          workloadRouter);
-app.use("/api/v1/activity-logs",      activityLogRouter);
-app.use("/api/v1/chat",               chatRouter);                       // NEW
+app.use(`${API}/users`,              userRouter);
+app.use(`${API}/companies`,          companyRouter);
+app.use(`${API}/projects`,           projectRouter);
+app.use(`${API}/projects/:id/employees`, employeeProjectRouter);
+app.use(`${API}/tasks`,              taskRouter);
+app.use(`${API}/risks`,              riskRouter);
+app.use(`${API}/notifications`,      notificationRouter);
+app.use(`${API}/reports`,            reportRouter);
+app.use(`${API}/analytics`,          analyticsRouter);
+app.use(`${API}/workloads`,          workloadRouter);
+app.use(`${API}/activity-logs`,      activityLogRouter);
+app.use(`${API}/chat`,               chatRouter);                       // NEW
 
 app.get("/", (req, res) => res.send("AgentTrack AI — Server Running"));
 

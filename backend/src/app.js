@@ -16,14 +16,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const API = `/${process.env.VERSION || "api/v1"}`;
+
 // Routes
-app.use("/api/v1/users",                       userRouter);
-app.use("/api/v1/companies",                   companyRouter);
-app.use("/api/v1/projects",                    projectRouter);
-app.use("/api/v1/projects/:projectId/employees", employeeProjectRouter);
-app.use("/api/v1/tasks",                       taskRouter);
-app.use("/api/v1/reports",                     reportRouter);
-app.use("/api/v1/analytics",                   analyticsRouter);
+app.use(`${API}/users`,                       userRouter);
+app.use(`${API}/companies`,                   companyRouter);
+app.use(`${API}/projects`,                    projectRouter);
+app.use(`${API}/projects/:projectId/employees`, employeeProjectRouter);
+app.use(`${API}/tasks`,                       taskRouter);
+app.use(`${API}/reports`,                     reportRouter);
+app.use(`${API}/analytics`,                   analyticsRouter);
 
 // Centralized error handler
 app.use((err, req, res, next) => {

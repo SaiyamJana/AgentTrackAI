@@ -1,4 +1,7 @@
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+const URL = import.meta.env.BACKEND_URL || "http://localhost:5000";
+const VERSION = import.meta.env.VERSION || "api/v1";
+
+const BASE = `${URL}/${VERSION}` || "http://localhost:5000/api/v1"; // fallback for dev
 
 const getToken = () => localStorage.getItem("token");
 const authHeaders = () => ({
@@ -42,7 +45,6 @@ export const authAPI = {
   },
 
   login: async (companyId, email, password) => {
-    console.log("API URL:", import.meta.env.VITE_API_URL);
     const res = await fetch(`${BASE}/users/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
