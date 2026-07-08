@@ -4,8 +4,8 @@ import Topbar  from "./Topbar";
 import { memberAPI } from "../../utils/api";
 import { useAuth }   from "../../context/AuthContext";
 
-const URL = import.meta.env.BACKEND_URL || "http://localhost:5000";
-const VERSION = import.meta.env.VERSION || "api/v1";
+const URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const VERSION = import.meta.env.VITE_VERSION || "api/v1";
 
 /**
  * DashboardLayout

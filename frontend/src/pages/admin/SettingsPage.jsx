@@ -9,8 +9,8 @@ import {
   getStoredAccentColor,
 } from "../../utils/theme.js";
 
-const URL = import.meta.env.BACKEND_URL || "http://localhost:5000";
-const VERSION = import.meta.env.VERSION || "api/v1";
+const URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const VERSION = import.meta.env.VITE_VERSION || "api/v1";
 
 export default function SettingsPage() {
   const { user } = useAuth();

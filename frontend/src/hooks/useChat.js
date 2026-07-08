@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
-const SOCKET_URL = import.meta.env.BACKEND_URL || "http://localhost:5000";
+const SOCKET_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 let _socket = null; // singleton — one connection per browser tab
 
 /*
@@ -37,7 +37,7 @@ const useChat = (token, handlers = {}) => {
     }
 
     console.log("[Socket] Connecting to", SOCKET_URL);
-    console.log(".env.BACKEND_URL =", import.meta.env.BACKEND_URL);
+    console.log(".env.VITE_BACKEND_URL =", import.meta.env.VITE_BACKEND_URL);
 
     _socket = io(SOCKET_URL, {
       auth:            { token },

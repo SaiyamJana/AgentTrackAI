@@ -1,5 +1,5 @@
-const URL = import.meta.env.BACKEND_URL || "http://localhost:5000";
-const VERSION = import.meta.env.VERSION || "api/v1";
+const URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const VERSION = import.meta.env.VITE_VERSION || "api/v1";
 
 const BASE = `${URL}/${VERSION}` || "http://localhost:5000/api/v1"; // fallback for dev
 
@@ -16,7 +16,7 @@ const request = async (method, path, body) => {
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
   console.log("URL: ", `${BASE}${path}`);
-  console.log(".env: ", import.meta.env.BACKEND_URL);
+  console.log(".env: ", import.meta.env.VITE_BACKEND_URL);
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Request failed");
   return data;
