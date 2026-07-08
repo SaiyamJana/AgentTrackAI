@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
-const SOCKET_URL = import.meta.env.VITE_CLIENT_URL || "http://localhost:5000";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 let _socket = null; // singleton — one connection per browser tab
 
 /*
