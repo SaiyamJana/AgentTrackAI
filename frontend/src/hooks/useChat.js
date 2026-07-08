@@ -36,6 +36,8 @@ const useChat = (token, handlers = {}) => {
       return;
     }
 
+    console.log("[Socket] Connecting to", SOCKET_URL);
+
     _socket = io(SOCKET_URL, {
       auth:            { token },
       transports:      ["websocket", "polling"],
