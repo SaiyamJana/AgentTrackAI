@@ -15,6 +15,8 @@ const request = async (method, path, body) => {
     headers: authHeaders(),
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
+  console.log("URL: ", `${BASE}${path}`);
+  console.log(".env: ", import.meta.env.BACKEND_URL);
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Request failed");
   return data;
