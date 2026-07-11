@@ -83,8 +83,8 @@ export default function ManagerDashboard() {
             <p className="text-xs text-slate-400 mt-1">Your Admin hasn't assigned you as manager on any project.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {projects.map(p => {
+  <div className="space-y-3 content-fade-in">
+    {projects.map(p => {
               const s   = S_CFG[p.status] ?? S_CFG.active;
               const prog = p.progressPercentage ?? 0;
               return (
@@ -127,7 +127,7 @@ export default function ManagerDashboard() {
               <button onClick={() => navigate("/manager/tasks")} className="mt-3 text-xs font-semibold text-primary hover:text-primary-hover">Create Task →</button>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 content-fade-in">
               {tasks.slice(0,6).map(t => {
                 const sc = {"pending":"bg-slate-100 text-slate-600","in-progress":"bg-primary-light text-primary","completed":"bg-emerald-50 text-emerald-700"};
                 return (

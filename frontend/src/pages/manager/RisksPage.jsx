@@ -112,7 +112,7 @@ export default function RisksPage() {
           {filtered.map(r => {
             const cfg = RISK_CFG[r.riskLevel] ?? RISK_CFG.low;
             return (
-              <div key={r._id} className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-md hover:shadow-slate-100 transition-all">
+              <div key={r._id} className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-md hover:shadow-slate-100 hover:-translate-y-0.5 transition-all">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${cfg.badge}`}>

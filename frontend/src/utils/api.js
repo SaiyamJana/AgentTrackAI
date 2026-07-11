@@ -1,4 +1,7 @@
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+const URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const VERSION = import.meta.env.VITE_VERSION || "api/v1";
+
+const BASE = `${URL}/${VERSION}` || "http://localhost:5000/api/v1"; // fallback for dev
 
 const getToken = () => localStorage.getItem("token");
 const authHeaders = () => ({
@@ -12,6 +15,8 @@ const request = async (method, path, body) => {
     headers: authHeaders(),
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
+  console.log("URL: ", `${BASE}${path}`);
+  console.log(".env: ", import.meta.env.VITE_BACKEND_URL);
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Request failed");
   return data;
@@ -42,7 +47,6 @@ export const authAPI = {
   },
 
   login: async (companyId, email, password) => {
-    console.log("API URL:", import.meta.env.VITE_API_URL);
     const res = await fetch(`${BASE}/users/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

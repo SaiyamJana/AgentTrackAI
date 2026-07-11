@@ -9,6 +9,9 @@ import {
   getStoredAccentColor,
 } from "../../utils/theme.js";
 
+const URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const VERSION = import.meta.env.VITE_VERSION || "api/v1";
+
 export default function SettingsPage() {
   const { user } = useAuth();
   const [company, setCompany] = useState(null);
@@ -65,7 +68,7 @@ export default function SettingsPage() {
     setPwError("");
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/users/login`,
+        `${URL}/${VERSION}/users/login`,
         {
           method: "POST",
           headers: {
