@@ -18,6 +18,8 @@ let _socket = null; // singleton — one connection per browser tab
  *   onUserStatus({userId, status, lastSeen})
  *   onUsersOnline(userIdArray)
  *   onNewConversation(conv)     — a new DM or group was created for this user
+ *   onConversationRemoved({conversationId}) — user lost access to a conversation
+ *                                  (removed from task/project, or it was deleted)
  *   onNotification(notif)       — real-time notification pushed
  *
  * Returns: { socket, emit, joinConv, sendMessage, startTyping, stopTyping, markSeen }
@@ -69,6 +71,8 @@ const useChat = (token, handlers = {}) => {
       _socket.off("user:status");
       _socket.off("users:online");
       _socket.off("conv:new");
+      _socket.off("conv:removed");
+      _socket.off("conv:removed:bulk");
       _socket.off("notification:new");
     };
   }, [token]);
@@ -97,6 +101,12 @@ const useChat = (token, handlers = {}) => {
     });
     socket.off("conv:new").on("conv:new", (conv) => {
       handlersRef.current.onNewConversation?.(conv);
+    });
+    socket.off("conv:removed").on("conv:removed", (data) => {
+      handlersRef.current.onConversationRemoved?.(data);
+    });
+    socket.off("conv:removed:bulk").on("conv:removed:bulk", (data) => {
+      handlersRef.current.onConversationsRemovedBulk?.(data);
     });
     socket.off("notification:new").on("notification:new", (notif) => {
       handlersRef.current.onNotification?.(notif);

@@ -5,6 +5,7 @@ import { chatAPI } from "../../utils/api";
 import Icon from "../shared/Icon";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
+import MemberListWithChat from "./MemberListWithChat";
 
 /*
  * ChatWindow
@@ -39,6 +40,12 @@ const ChatWindow = ({ conversation }) => {
   const [draft,       setDraft]       = useState("");
   const [replyTo,     setReplyTo]     = useState(null);
   const [typingUser,  setTypingUser]  = useState(null);
+  // ── Member list panel (issue #1) ─────────────────────────────────────────
+  // Expandable panel showing the current members of a project/task group
+  // chat — name, role, avatar/online status. Reuses the same
+  // MemberListWithChat component already used on Task/Project detail pages
+  // so the member data (and the role labels) stay consistent everywhere.
+  const [showMembers, setShowMembers] = useState(false);
 
   const scrollRef        = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -50,6 +57,7 @@ const ChatWindow = ({ conversation }) => {
     if (!convId) return;
     setLoading(true);
     setMessages([]);
+    setShowMembers(false);
     chatAPI.getMessages(convId)
       .then((res) => {
         setMessages(res.data.messages ?? []);
@@ -213,24 +221,56 @@ const ChatWindow = ({ conversation }) => {
     : null;
   const headerName    = conversation.name || other?.name || "Unknown";
   const isOtherOnline = other && onlineUsers.has(String(other._id));
+  const isGroupChat   = conversation.type === "project_group" || conversation.type === "task_group";
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50">
       {/* Header */}
-      <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100 bg-white shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold">
-            {headerName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+      <div className="border-b border-slate-100 bg-white shrink-0">
+        <div className="h-16 flex items-center justify-between px-5">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
+              {headerName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-800 truncate">{headerName}</p>
+              {conversation.type === "direct" ? (
+                <p className="text-[11px] text-slate-400">{isOtherOnline ? "Online" : "Offline"}</p>
+              ) : (
+                <p className="text-[11px] text-slate-400">{conversation.members?.length ?? 0} members</p>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-bold text-slate-800">{headerName}</p>
-            {conversation.type === "direct" ? (
-              <p className="text-[11px] text-slate-400">{isOtherOnline ? "Online" : "Offline"}</p>
-            ) : (
-              <p className="text-[11px] text-slate-400">{conversation.members?.length ?? 0} members</p>
-            )}
-          </div>
+
+          {/* Group chats: toggle for the member list panel */}
+          {isGroupChat && (
+            <button
+              onClick={() => setShowMembers((s) => !s)}
+              className={`flex items-center gap-1.5 shrink-0 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-colors
+                ${showMembers ? "bg-blue-50 border-blue-200 text-blue-600" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+            >
+              <Icon name="users" className="w-3.5 h-3.5" />
+              Members
+              <Icon name="arrow" className={`w-3 h-3 transition-transform ${showMembers ? "-rotate-90" : "rotate-90"}`} />
+            </button>
+          )}
         </div>
+
+        {/* Expandable member list panel */}
+        {isGroupChat && showMembers && (
+          <div className="px-4 pb-4 border-t border-slate-50 max-h-72 overflow-y-auto">
+            <div className="pt-3">
+              <MemberListWithChat
+                mode={conversation.type === "project_group" ? "project" : "task"}
+                contextId={
+                  conversation.type === "project_group"
+                    ? (conversation.projectId?._id ?? conversation.projectId)
+                    : (conversation.taskId?._id ?? conversation.taskId)
+                }
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Messages */}

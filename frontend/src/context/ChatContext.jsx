@@ -97,20 +97,51 @@ export const ChatProvider = ({ children }) => {
         return [{ ...conv, unreadCount: 0 }, ...prev];
       });
     },
+
+    onConversationRemoved: ({ conversationId }) => {
+      setConversations((prev) => prev.filter((c) => String(c._id) !== String(conversationId)));
+      // If the removed conversation was open, fall back to the empty state
+      // instead of leaving the window pointed at a conversation the user
+      // can no longer access.
+      if (String(conversationId) === activeConvIdRef.current) {
+        setActiveConvId(null);
+      }
+    },
+
+    onConversationsRemovedBulk: ({ conversationIds }) => {
+      const idSet = new Set((conversationIds ?? []).map(String));
+      setConversations((prev) => prev.filter((c) => !idSet.has(String(c._id))));
+      if (idSet.has(activeConvIdRef.current)) {
+        setActiveConvId(null);
+      }
+    },
   };
 
   const chatUtils = useChat(token, handlers);
 
   // ── Open a conversation (sets active + joins socket room) ───────────────────
-  const openConversation = useCallback((convId) => {
+  // `convObj` is optional: pass the freshly-created conversation (e.g. from
+  // chatAPI.openDirect's response) when opening a conversation that may not
+  // be in `conversations` yet. Without this, a brand-new DM would set
+  // activeConvId to an id ChatPage can't find in its list, and the chat
+  // window would just show the empty "Select a conversation" placeholder
+  // until the next full reload — this was the root cause of "DMs between
+  // task members don't work".
+  const openConversation = useCallback((convId, convObj) => {
     setActiveConvId(convId);
     chatUtils.joinConv(convId);
-    // Zero out unread count immediately on open
-    setConversations((prev) =>
-      prev.map((c) =>
-        String(c._id) === String(convId) ? { ...c, unreadCount: 0 } : c
-      )
-    );
+    setConversations((prev) => {
+      const exists = prev.some((c) => String(c._id) === String(convId));
+      if (exists) {
+        return prev.map((c) =>
+          String(c._id) === String(convId) ? { ...c, unreadCount: 0 } : c
+        );
+      }
+      if (convObj) {
+        return [{ ...convObj, unreadCount: 0 }, ...prev];
+      }
+      return prev;
+    });
   }, [chatUtils]);
 
   return (

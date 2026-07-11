@@ -433,6 +433,15 @@ Cloned the project repository to local system.
 
 
 # Day31 : (2/7/26)
+# Member1 : (2023CSB037)
+1) Added drop down system for group chats to see the current members 
+2) Identfied the chat group auto deletion system bug 
+3) Fixed the auto deletion system
+4) Identified the task group chat bug (auto addition and deletion of employees)
+5) Fixed the bug
+6) Identified and fixed the bug for DMs between two members
+7) Reassignment manager -> chat member bug fixed
+
 # Member2 : (2023CSB115)
 1) Implemented online/offline status (Limitation 3) end-to-end:
    - Added lastSeen field to User model, updated via fire-and-forget write in verifyJWT middleware
