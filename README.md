@@ -475,3 +475,19 @@ Cloned the project repository to local system.
 1) Deployed backend on render
 2) Deployed frontend on vercel
 3) Solved the issue of reloading on live link
+
+
+# Day  : (11/7/26)
+# Member2 : (2023CSB115)
+1) Fixed CSS conflict where duplicate .content-fade-in rule was silently overriding the intended contentFadeIn keyframe (fade + subtle slide) in index.css
+2) Made card hover-lift animation consistent across NotificationsPage, ReportsPage, RisksPage, and TeamWorkloadTable — standardized to hover:shadow-md hover:-translate-y-0.5 transition-all
+3) Wired skeleton-loading → content fade-in animation into Admin, Manager, and Employee dashboards
+4) Merged 2023CSB037 and 2023CSB115 branches into main, resolving a README.md conflict
+
+
+# Day  : (12/7/26)
+# Member2 : (2023CSB115)
+1) Replaced broken Gemini AI integration (regional free-tier quota block) with Groq's OpenAI-compatible API across both workloadAgent.js and reportingAgent.service.js
+2) Created shared aiClient.service.js to centralize AI provider logic (previously duplicated in both agent files)
+3) Diagnosed and resolved intermittent connection timeouts with retry-and-backoff logic
+4) Verified both AI agents end-to-end via live API calls — confirmed usedAI: true with real generated content in Reports and Workload features
