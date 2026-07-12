@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateText } from "../services/aiClient.service.js";
 import { Task }           from "../models/Task.js";
 import { TaskAssignment } from "../models/TaskAssignment.js";
 import { User }           from "../models/User.js";
@@ -20,15 +20,6 @@ import {
 } from "../services/workloadCalculation.service.js";
 
 // ── Gemini setup (mirrors reportingAgent.service.js pattern) ─────────────────
-
-const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-
-let genAI = null;
-function getClient() {
-  if (!process.env.GEMINI_API_KEY) return null;
-  if (!genAI) genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  return genAI;
-}
 
 // ── AI enrichment ─────────────────────────────────────────────────────────────
 
@@ -113,15 +104,10 @@ function buildFallbackAI(snapshot) {
 }
 
 async function enrichWithAI(employee, snapshot, activeTasks) {
-  const client = getClient();
-  if (!client) return { ...buildFallbackAI(snapshot), usedAI: false };
+  const prompt = buildWorkloadPrompt({ employee, snapshot, activeTasks });
 
   try {
-    const model  = client.getGenerativeModel({ model: MODEL_NAME });
-    const prompt = buildWorkloadPrompt({ employee, snapshot, activeTasks });
-    const result = await model.generateContent(prompt);
-    const text   = result?.response?.text?.()?.trim();
-
+    const text = await generateText(prompt);
     if (!text) return { ...buildFallbackAI(snapshot), usedAI: false };
 
     // Strip any accidental markdown fences
@@ -135,7 +121,7 @@ async function enrichWithAI(employee, snapshot, activeTasks) {
       usedAI: true,
     };
   } catch (err) {
-    console.error("[WorkloadAgent] Gemini error:", err.message);
+    console.error("[WorkloadAgent] Groq error:", err.message);
     return { ...buildFallbackAI(snapshot), usedAI: false };
   }
 }

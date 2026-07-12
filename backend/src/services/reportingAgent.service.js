@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateText } from "./aiClient.service.js";
 
 /*
  * Reporting Agent — uses Gemini to turn raw project/task data into a
@@ -8,17 +8,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
  * we fall back to a clean, deterministic, template-based summary so the
  * Reports feature keeps working without the AI layer.
  */
-
-const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-
-let genAI = null;
-function getClient() {
-  console.log(process.env.GEMINI_MODEL);
-  if (!process.env.GEMINI_API_KEY) return null;
-  if (!genAI) genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  return genAI;
-}
-
 const REPORT_LABELS = {
   daily: "Daily Status Report",
   weekly: "Weekly Status Report",
@@ -97,21 +86,10 @@ ${riskLine}
  * Returns { summary: string, usedAI: boolean }
  */
 export async function generateProjectReport({ reportType, project, metrics, tasksSnapshot }) {
-  console.log("MODEL_NAME =", MODEL_NAME);
-  console.log("ENV =", process.env.GEMINI_MODEL);
-
-  const client = getClient();
-
-  if (!client) {
-    return { summary: buildFallbackSummary({ reportType, project, metrics }), usedAI: false };
-  }
+  const prompt = buildPrompt({ reportType, project, metrics, tasksSnapshot });
 
   try {
-    const model = client.getGenerativeModel({ model: MODEL_NAME });
-    const prompt = buildPrompt({ reportType, project, metrics, tasksSnapshot });
-
-    const result = await model.generateContent(prompt);
-    const text = result?.response?.text?.()?.trim();
+    const text = await generateText(prompt);
 
     if (!text) {
       return { summary: buildFallbackSummary({ reportType, project, metrics }), usedAI: false };
@@ -119,7 +97,7 @@ export async function generateProjectReport({ reportType, project, metrics, task
 
     return { summary: text, usedAI: true };
   } catch (err) {
-    console.error("Reporting Agent (Gemini) error:", err.message);
+    console.error("Reporting Agent (Groq) error:", err.message, err.cause);
     return { summary: buildFallbackSummary({ reportType, project, metrics }), usedAI: false };
   }
 }
